@@ -1,0 +1,27 @@
+{
+  "name": "vax360-backend",
+  "version": "1.0.0",
+  "description": "Vax360 backend API – SQLite-powered sync server for vaccination data",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "db:init": "node db-init.js",
+    "db:reset": "rm -f database.sqlite && node db-init.js"
+  },
+  "keywords": ["vaccination", "health", "api", "sqlite"],
+  "author": "Vax360 Team",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  },
+  "optionalDependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
