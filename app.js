@@ -1472,6 +1472,23 @@ const S = {
   confirmCb: null,
 };
 
+let childCache = null;
+
+function invalidateChildCache() {
+  childCache = null;
+}
+
+function rebuildChildCache() {
+  childCache = new Map();
+  for (const u of S.users) {
+    if (u.children) {
+      for (const c of u.children) {
+        childCache.set(c.id, { child: c, parent: u });
+      }
+    }
+  }
+}
+
 // ─── Helpers ────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
@@ -1530,10 +1547,11 @@ function load() {
     const d = JSON.parse(localStorage.getItem('vt2'));
     if (d) {
       S.users = d.users || [];
+      invalidateChildCache();
       S.adminPin = d.adminPin || '1234';
       S.adminProfiles = d.adminProfiles || [];
     }
-  } catch { S.users = []; S.adminProfiles = []; }
+  } catch { S.users = []; invalidateChildCache(); S.adminProfiles = []; }
   // Ensure at least one admin profile always exists
   if (S.adminProfiles.length === 0) {
     S.adminProfiles.push({
@@ -1575,7 +1593,7 @@ async function syncFromCloud() {
     if (json.success && json.data) {
       // Merge cloud data over local
       const d = json.data;
-      if (d.users) S.users = d.users;
+      if (d.users) { S.users = d.users; invalidateChildCache(); }
       if (d.adminPin) S.adminPin = d.adminPin;
       if (d.adminProfiles) S.adminProfiles = d.adminProfiles;
       
@@ -2000,6 +2018,7 @@ function handleCreateParent(e) {
 
   const user = { id: uid(), name, avatar, email, whatsapp, pin: pin || null, children: [] };
   S.users.push(user);
+  invalidateChildCache();
   save();
   S.userId = user.id;
   $('form-create-parent').reset();
@@ -2156,11 +2175,9 @@ window.openVaccineModal = openVaccineModal;
 
 // ─── Child Detail ───────────────────────────────────────
 function getChildById(id) {
-  for (const u of S.users) {
-    const c = (u.children||[]).find(ch => ch.id === id);
-    if (c) return c;
-  }
-  return null;
+  if (!childCache) rebuildChildCache();
+  const entry = childCache.get(id);
+  return entry ? entry.child : null;
 }
 
 function renderChildDetail() {
@@ -2633,7 +2650,9 @@ function handleSaveChild(e) {
   // Find which user owns this child
   let owner;
   if (editId) {
-    owner = S.users.find(u => (u.children||[]).some(c => c.id === editId));
+    if (!childCache) rebuildChildCache();
+    const entry = childCache.get(editId);
+    owner = entry ? entry.parent : null;
   } else {
     owner = currentUser();
   }
@@ -2644,6 +2663,7 @@ function handleSaveChild(e) {
     if (child) {
       const oldDob = child.birthDate;
       child.name = name; child.birthDate = dob; child.gender = gender;
+      invalidateChildCache();
       if (oldDob !== dob) {
         child.vaccines.forEach(v => {
           const s = VACCINE_SCHEDULE.find(x => x.id === v.id);
@@ -2659,6 +2679,7 @@ function handleSaveChild(e) {
       completedDate: null, notes: ''
     }));
     owner.children.push({ id: uid(), name, birthDate: dob, gender, vaccines });
+    invalidateChildCache();
     toast(t('child_added', {name}));
     fireConfetti();
   }
@@ -2675,9 +2696,12 @@ function handleDeleteChild() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
   confirm2(t('delete_child_title'), t('delete_child_msg', {name: child.name}), () => {
-    for (const u of S.users) {
-      const idx = (u.children||[]).findIndex(c => c.id === S.currentChildId);
-      if (idx >= 0) { u.children.splice(idx, 1); break; }
+    if (!childCache) rebuildChildCache();
+    const entry = childCache.get(S.currentChildId);
+    if (entry) {
+      const idx = entry.parent.children.indexOf(entry.child);
+      if (idx >= 0) entry.parent.children.splice(idx, 1);
+      invalidateChildCache();
     }
     save();
     toast(t('child_deleted', {name: child.name}));
@@ -2744,6 +2768,7 @@ function importData(e) {
       if (data.users) {
         confirm2(t('import_data'), t('import_data_confirm', {n: data.users.length}), () => {
           S.users = data.users;
+          invalidateChildCache();
           if (data.adminPin) S.adminPin = data.adminPin;
           if (data.adminProfiles) S.adminProfiles = data.adminProfiles;
           save();
@@ -2782,6 +2807,7 @@ function handleClearAll() {
     }
     $('modal-password-confirm').classList.add('hidden');
     S.users = [];
+    invalidateChildCache();
     S.adminPin = '1234';
     S.adminProfiles = [{ id: uid(), name: 'Admin', email: '', pin: '1234' }];
     save();
@@ -2846,6 +2872,7 @@ function handleDeleteFamily(userId) {
   if (!user) return;
   confirm2(t('delete_family_title'), t('delete_family_msg', {name: user.name}), () => {
     S.users = S.users.filter(u => u.id !== userId);
+    invalidateChildCache();
     save();
     toast(t('child_deleted', {name: user.name}));
     showAppView('admin-home');
