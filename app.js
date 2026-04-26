@@ -561,10 +561,12 @@ const I18N = {
     children_count: '{n} children',
     // Admin pin
     admin_access: 'Admin Access',
+    setup_admin_pin: 'Setup Admin PIN',
+    create_new_pin: 'Create a new 4-6 digit PIN to secure admin access',
     enter_pin: 'Enter the admin PIN to continue',
-    default_pin: 'Default PIN: 1234',
     unlock: 'Unlock',
     incorrect_pin: '❌ Incorrect PIN',
+    pin_too_short: 'PIN must be at least 4 digits',
     // Create parent
     your_profile: 'Your Profile',
     tell_about: 'Tell us a little about yourself',
@@ -824,10 +826,12 @@ const I18N = {
     child_count: '{n} filho',
     children_count: '{n} filhos',
     admin_access: 'Acesso Admin',
+    setup_admin_pin: 'Configurar PIN Admin',
+    create_new_pin: 'Crie um novo PIN de 4-6 dígitos para acesso admin',
     enter_pin: 'Digite o PIN de administrador para continuar',
-    default_pin: 'PIN padrão: 1234',
     unlock: 'Desbloquear',
     incorrect_pin: '❌ PIN incorreto',
+    pin_too_short: 'O PIN deve ter pelo menos 4 dígitos',
     your_profile: 'Seu Perfil',
     tell_about: 'Conte-nos um pouco sobre você',
     your_name: 'Seu Nome',
@@ -1061,10 +1065,12 @@ const I18N = {
     child_count: '{n} enfant',
     children_count: '{n} enfants',
     admin_access: 'Accès Admin',
+    setup_admin_pin: 'Configurer PIN Admin',
+    create_new_pin: 'Créez un nouveau PIN (4-6 chiffres) pour l\'accès admin',
     enter_pin: "Entrez le PIN admin pour continuer",
-    default_pin: 'PIN par défaut : 1234',
     unlock: 'Déverrouiller',
     incorrect_pin: '❌ PIN incorrect',
+    pin_too_short: 'Le PIN doit comporter au moins 4 chiffres',
     your_profile: 'Votre Profil',
     tell_about: 'Dites-nous un peu sur vous',
     your_name: 'Votre Nom',
@@ -1250,10 +1256,12 @@ const I18N = {
     child_count: '{n} kind',
     children_count: '{n} kinders',
     admin_access: 'Admin Toegang',
+    setup_admin_pin: 'Stel Admin PIN Op',
+    create_new_pin: 'Skep \'n nuwe 4-6 syfer PIN vir admin toegang',
     enter_pin: 'Voer die admin-PIN in om voort te gaan',
-    default_pin: 'Verstek PIN: 1234',
     unlock: 'Ontsluit',
     incorrect_pin: '❌ Verkeerde PIN',
+    pin_too_short: 'PIN moet ten minste 4 syfers wees',
     your_profile: 'Jou Profiel',
     tell_about: "Vertel ons 'n bietjie van jouself",
     your_name: 'Jou Naam',
@@ -1463,7 +1471,7 @@ const S = {
   role: null,        // 'parent' | 'admin'
   userId: null,      // current parent profile id
   users: [],         // all parent profiles
-  adminPin: '1234',  // legacy fallback
+  adminPin: null,    // legacy fallback
   adminProfiles: [], // [{id, name, email, pin}]
   currentAdminId: null, // which admin is logged in
   currentChildId: null,
@@ -1530,7 +1538,7 @@ function load() {
     const d = JSON.parse(localStorage.getItem('vt2'));
     if (d) {
       S.users = d.users || [];
-      S.adminPin = d.adminPin || '1234';
+      S.adminPin = d.adminPin || null;
       S.adminProfiles = d.adminProfiles || [];
     }
   } catch { S.users = []; S.adminProfiles = []; }
@@ -1683,7 +1691,19 @@ function bindEvents() {
 
   // Login flow
   $('btn-role-parent').onclick = () => showScreen('parent-select');
-  $('btn-role-admin').onclick = () => showScreen('admin-pin');
+  $('btn-role-admin').onclick = () => {
+    const hasPin = S.adminPin || S.adminProfiles.some(a => a.pin);
+    if (!hasPin) {
+      $('admin-access-title').textContent = t('setup_admin_pin');
+      $('admin-access-desc').textContent = t('create_new_pin');
+      $('btn-admin-login').innerHTML = `💾 <span>${t('save') || 'Save'}</span>`;
+    } else {
+      $('admin-access-title').textContent = t('admin_access');
+      $('admin-access-desc').textContent = t('enter_pin');
+      $('btn-admin-login').innerHTML = `🔓 <span>${t('unlock')}</span>`;
+    }
+    showScreen('admin-pin');
+  };
   $('btn-back-to-login').onclick = () => showScreen('login');
   $('btn-back-to-login2').onclick = () => showScreen('login');
   $('btn-back-to-profiles').onclick = () => showScreen('parent-select');
@@ -1970,7 +1990,26 @@ function renderParentProfiles() {
 
 function handleAdminLogin() {
   const pin = $('input-admin-pin').value;
-  // Check against all admin profiles
+
+  // If no admin profile has a PIN yet, this is initial setup
+  const needsSetup = !S.adminPin && !S.adminProfiles.some(a => a.pin);
+  if (needsSetup) {
+    if (!pin || pin.length < 4) {
+      toast(t('pin_too_short') || 'PIN too short');
+      return;
+    }
+    S.adminPin = pin;
+    if (S.adminProfiles.length > 0) {
+      S.adminProfiles[0].pin = pin;
+      S.currentAdminId = S.adminProfiles[0].id;
+    }
+    save();
+    $('input-admin-pin').value = '';
+    enterApp('admin');
+    return;
+  }
+
+  // Normal login: Check against all admin profiles
   const matched = S.adminProfiles.find(a => a.pin === pin);
   if (matched) {
     S.currentAdminId = matched.id;
@@ -2782,8 +2821,8 @@ function handleClearAll() {
     }
     $('modal-password-confirm').classList.add('hidden');
     S.users = [];
-    S.adminPin = '1234';
-    S.adminProfiles = [{ id: uid(), name: 'Admin', email: '', pin: '1234' }];
+    S.adminPin = null;
+    S.adminProfiles = [{ id: uid(), name: 'Admin', email: '', pin: null }];
     save();
     toast(t('all_data_cleared'));
     handleLogout();
