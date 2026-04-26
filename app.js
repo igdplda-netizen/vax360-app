@@ -1558,7 +1558,7 @@ function save() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
       body: dataString
-    }).catch(err => console.log('DB Sync failed:', err));
+    }).catch(() => {});
   }
 }
 
@@ -1580,11 +1580,9 @@ async function syncFromCloud() {
         adminPin: S.adminPin,
         adminProfiles: S.adminProfiles
       }));
-      
-      console.log('Database sync successful');
     }
   } catch (err) {
-    console.log('Running offline or DB not reachable');
+    // Offline or DB not reachable
   }
 }
 
