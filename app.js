@@ -1629,7 +1629,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }, 2200);
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch((err)=>{ console.error('Service Worker registration failed:', err); });
 });
 
 function injectSVGDefs() {
