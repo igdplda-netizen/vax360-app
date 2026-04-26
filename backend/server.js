@@ -16,6 +16,7 @@ const DB_PATH    = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, 'database.sqlite');
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const SYNC_AUTH_TOKEN = process.env.SYNC_AUTH_TOKEN;
 
 // ─── Middleware ─────────────────────────────────────────
 app.use(cors({
@@ -58,9 +59,28 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', env: NODE_ENV, uptime: process.uptime() });
 });
 
+// ─── Authentication Middleware ──────────────────────────
+const authenticateSync = (req, res, next) => {
+  if (!SYNC_AUTH_TOKEN) {
+    console.error('❌ SECURITY WARNING: SYNC_AUTH_TOKEN is not set in the environment.');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (token !== SYNC_AUTH_TOKEN) {
+    return res.status(403).json({ error: 'Forbidden: Invalid sync token' });
+  }
+  next();
+};
+
 // ─── API Routes ─────────────────────────────────────────
 // GET sync data by ID
-app.get('/api/sync/:id', (req, res) => {
+app.get('/api/sync/:id', authenticateSync, (req, res) => {
   const id = req.params.id;
   db.get('SELECT data FROM store WHERE id = ?', [id], (err, row) => {
     if (err) {
@@ -75,7 +95,7 @@ app.get('/api/sync/:id', (req, res) => {
 });
 
 // POST sync data by ID
-app.post('/api/sync/:id', (req, res) => {
+app.post('/api/sync/:id', authenticateSync, (req, res) => {
   const id = req.params.id;
   const data = JSON.stringify(req.body);
 
