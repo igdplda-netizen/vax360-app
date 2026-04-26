@@ -18,17 +18,22 @@
     "cap:open:android": "npx -y @capacitor/cli open android",
     "cap:open:ios": "npx -y @capacitor/cli open ios",
     "android": "npm run cap:sync && npm run cap:open:android",
-    "ios": "npm run cap:sync && npm run cap:open:ios"
+    "ios": "npm run cap:sync && npm run cap:open:ios",
+    "test": "mocha tests/**/*.test.js"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
     "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
-    "@capacitor/status-bar": "^6.0.0",
-    "@capacitor/splash-screen": "^6.0.0"
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "^6.0.0",
+    "chai": "^6.2.2",
+    "jsdom": "^29.0.2",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^11.7.5"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -37,6 +42,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/igdplda-netizen/vax360-app.git"
-  }
+    "url": "git+https://github.com/igdplda-netizen/vax360-app.git"
+  },
+  "main": "app.js",
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/igdplda-netizen/vax360-app/issues"
+  },
+  "homepage": "https://github.com/igdplda-netizen/vax360-app#readme"
 }
