@@ -2378,13 +2378,18 @@ function renderAdminHome() {
   let totalChildren = 0, totalVaccinesGiven = 0, totalVaccines = 0;
   const vaccineData = {};
 
+  const schedMap = new Map();
+  for (let i = 0; i < VACCINE_SCHEDULE.length; i++) {
+    schedMap.set(VACCINE_SCHEDULE[i].id, VACCINE_SCHEDULE[i]);
+  }
+
   S.users.forEach(u => {
     (u.children||[]).forEach(child => {
       totalChildren++;
       (child.vaccines||[]).forEach(v => {
         totalVaccines++;
         if (v.completedDate) totalVaccinesGiven++;
-        const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+        const sched = schedMap.get(v.id);
         const label = sched ? sched.group : 'other';
         if (!vaccineData[label]) vaccineData[label] = { done:0, total:0 };
         vaccineData[label].total++;
