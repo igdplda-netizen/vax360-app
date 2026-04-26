@@ -12,9 +12,11 @@ const app = express();
 // ─── Configuration (from environment) ───────────────────
 const PORT       = process.env.PORT       || 5000;
 const NODE_ENV   = process.env.NODE_ENV   || 'development';
-const DB_PATH    = process.env.DB_PATH
-  ? path.resolve(process.env.DB_PATH)
-  : path.resolve(__dirname, 'database.sqlite');
+const DB_PATH    = process.env.DB_PATH === ':memory:'
+  ? ':memory:'
+  : process.env.DB_PATH
+    ? path.resolve(process.env.DB_PATH)
+    : path.resolve(__dirname, 'database.sqlite');
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // ─── Middleware ─────────────────────────────────────────
@@ -104,8 +106,12 @@ process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 // ─── Start Server ───────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
-  console.log(`   Environment: ${NODE_ENV}`);
-  console.log(`   Database:    ${DB_PATH}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
+    console.log(`   Environment: ${NODE_ENV}`);
+    console.log(`   Database:    ${DB_PATH}\n`);
+  });
+}
+
+module.exports = { app, db };
