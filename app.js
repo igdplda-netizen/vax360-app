@@ -1517,6 +1517,20 @@ function fmtDate(s) {
   return d.toLocaleDateString(localeMap[currentLang]||'en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 
+function renderVaccineItem(v, onClickAction) {
+  const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
+  return `
+    <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="${onClickAction}">
+      <span class="uc-dot dot-${v.status}"></span>
+      <div class="uc-info">
+        <div class="uc-name">${getVaccineI18n(v.id).name}</div>
+        <div class="uc-date">${dateText}</div>
+      </div>
+      <span class="uc-badge badge-${v.status}">${t(v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending')}</span>
+    </div>
+  `;
+}
+
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return { text: t('good_morning'), emoji:'🌅' };
@@ -2218,17 +2232,7 @@ function renderChildVaccines() {
     if (!grouped[gk]) return;
     html += `<div class="vt-group-label">${GL[gk]}</div>`;
     grouped[gk].forEach(v => {
-      const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
-      html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="openVaccineModal('${v.id}')">
-          <span class="uc-dot dot-${v.status}"></span>
-          <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
-            <div class="uc-date">${dateText}</div>
-          </div>
-          <span class="uc-badge badge-${v.status}">${t(v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending')}</span>
-        </div>
-      `;
+      html += renderVaccineItem(v, `openVaccineModal('${v.id}')`);
     });
   });
   container.innerHTML = html;
@@ -2278,17 +2282,7 @@ function renderScheduleView() {
     if (!grouped[gk]) return;
     html += `<div class="vt-group-label">${GL[gk]}</div>`;
     grouped[gk].forEach(v => {
-      const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
-      html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="goScheduleVaccine('${child.id}','${v.id}')">
-          <span class="uc-dot dot-${v.status}"></span>
-          <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
-            <div class="uc-date">${dateText}</div>
-          </div>
-          <span class="uc-badge badge-${v.status}">${t(v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending')}</span>
-        </div>
-      `;
+      html += renderVaccineItem(v, `goScheduleVaccine('${child.id}','${v.id}')`);
     });
   });
   $('schedule-timeline').innerHTML = html;
