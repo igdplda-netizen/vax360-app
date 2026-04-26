@@ -2502,8 +2502,8 @@ function renderAdminVaccines() {
       <div class="admin-vaccine-item">
         <span class="avi-dot" ${isCustom ? 'style="background:var(--secondary)"' : ''}></span>
         <div class="avi-info">
-          <div class="avi-name">${vi.name || v.name} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t('custom_vaccine')}]</span>` : ''}</div>
-          <div class="avi-age">${vi.ageLabel || v.ageLabel} · ${vi.desc || v.desc}</div>
+          <div class="avi-name">${esc(vi.name || v.name)} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t('custom_vaccine')}]</span>` : ''}</div>
+          <div class="avi-age">${esc(vi.ageLabel || v.ageLabel)} · ${esc(vi.desc || v.desc)}</div>
         </div>
         ${isCustom ? `
           <button class="btn btn-glass btn-sm" type="button" onclick="editCustomVaccine('${v.id}')">✏️</button>
