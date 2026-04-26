@@ -77,7 +77,38 @@ app.get('/api/sync/:id', (req, res) => {
 // POST sync data by ID
 app.post('/api/sync/:id', (req, res) => {
   const id = req.params.id;
+
+  // Basic validation to ensure req.body is a plain object
+  if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+    return res.status(400).json({ error: 'Invalid payload: expected a JSON object' });
+  }
+
+  // Strict validation against expected schema keys
+  const allowedKeys = ['users', 'adminPin', 'adminProfiles'];
+  const keys = Object.keys(req.body);
+
+  // Check for unexpected keys
+  const hasUnexpectedKeys = keys.some(key => !allowedKeys.includes(key));
+  if (hasUnexpectedKeys) {
+    return res.status(400).json({ error: 'Invalid payload: contains unexpected properties' });
+  }
+
+  // Type checking for expected properties
+  if (req.body.users && !Array.isArray(req.body.users)) {
+    return res.status(400).json({ error: 'Invalid payload: users must be an array' });
+  }
+  if (req.body.adminPin !== undefined && typeof req.body.adminPin !== 'string') {
+    return res.status(400).json({ error: 'Invalid payload: adminPin must be a string' });
+  }
+  if (req.body.adminProfiles && !Array.isArray(req.body.adminProfiles)) {
+    return res.status(400).json({ error: 'Invalid payload: adminProfiles must be an array' });
+  }
+
+  // Ensure reasonable payload size by checking stringified length (e.g., limit to ~2MB)
   const data = JSON.stringify(req.body);
+  if (Buffer.byteLength(data, 'utf8') > 2 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Payload too large' });
+  }
 
   db.run(
     `INSERT INTO store (id, data, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
