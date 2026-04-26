@@ -1544,6 +1544,15 @@ function load() {
 
 const SYNC_API_URL = 'https://tangy-llamas-enjoy.loca.lt/api/sync/vax360_main';
 
+/**
+ * SYNC_AUTH_TOKEN: A secure token required to authenticate with the sync API.
+ * In a production environment, this should be provided via a build-time
+ * environment variable or a secure configuration mechanism.
+ *
+ * Replace the placeholder below with your actual sync token.
+ */
+const SYNC_AUTH_TOKEN = 'YOUR_SYNC_AUTH_TOKEN_PLACEHOLDER';
+
 function save() {
   const dataString = JSON.stringify({
     users: S.users,
@@ -1556,7 +1565,11 @@ function save() {
   if (navigator.onLine) {
     fetch(SYNC_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SYNC_AUTH_TOKEN}`,
+        'bypass-tunnel-reminder': 'true'
+      },
       body: dataString
     }).catch(err => console.log('DB Sync failed:', err));
   }
@@ -1564,7 +1577,12 @@ function save() {
 
 async function syncFromCloud() {
   try {
-    const res = await fetch(SYNC_API_URL, { headers: { 'bypass-tunnel-reminder': 'true' } });
+    const res = await fetch(SYNC_API_URL, {
+      headers: {
+        'Authorization': `Bearer ${SYNC_AUTH_TOKEN}`,
+        'bypass-tunnel-reminder': 'true'
+      }
+    });
     if (!res.ok) return;
     const json = await res.json();
     if (json.success && json.data) {

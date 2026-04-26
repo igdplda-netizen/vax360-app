@@ -133,6 +133,7 @@ cp .env.example .env
 | `NODE_ENV` | `development` | Environment (`development` / `production`) |
 | `DB_PATH` | `./database.sqlite` | Path to SQLite database file |
 | `DEFAULT_ADMIN_PIN` | `1234` | Default admin PIN on first setup |
+| `SYNC_AUTH_TOKEN` | — | **(Required)** Secure token for API authentication |
 | `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origins (comma-separated) |
 | `API_URL` | `http://localhost:5000` | Backend URL used by the frontend |
 
@@ -211,10 +212,12 @@ curl http://localhost:5000/api/health
 # Save data
 curl -X POST http://localhost:5000/api/sync/user-123 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_SYNC_AUTH_TOKEN" \
   -d '{"name": "John", "children": []}'
 
 # Retrieve data
-curl http://localhost:5000/api/sync/user-123
+curl http://localhost:5000/api/sync/user-123 \
+  -H "Authorization: Bearer YOUR_SYNC_AUTH_TOKEN"
 ```
 
 ---
