@@ -15,11 +15,11 @@ const NODE_ENV   = process.env.NODE_ENV   || 'development';
 const DB_PATH    = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, 'database.sqlite');
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 
 // ─── Middleware ─────────────────────────────────────────
 app.use(cors({
-  origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN.split(',').map(s => s.trim()),
+  origin: CORS_ORIGIN === '*' ? '*' : CORS_ORIGIN.split(',').map(s => s.trim()),
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
 

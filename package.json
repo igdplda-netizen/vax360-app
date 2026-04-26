@@ -21,11 +21,12 @@
     "ios": "npm run cap:sync && npm run cap:open:ios"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
     "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
-    "@capacitor/splash-screen": "^6.0.0"
+    "cors": "^2.8.6"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0"
