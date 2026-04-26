@@ -1651,7 +1651,8 @@ function injectSVGDefs() {
 }
 
 // ─── Events ─────────────────────────────────────────────
-function bindEvents() {
+
+function bindLandingEvents() {
   // Landing page
   $('btn-get-started').onclick = () => showScreen('lang');
 
@@ -1680,7 +1681,9 @@ function bindEvents() {
     showScreen('lang');
     $('app-shell').classList.add('hidden');
   };
+}
 
+function bindAuthEvents() {
   // Login flow
   $('btn-role-parent').onclick = () => showScreen('parent-select');
   $('btn-role-admin').onclick = () => showScreen('admin-pin');
@@ -1692,6 +1695,15 @@ function bindEvents() {
   $('form-create-parent').onsubmit = handleCreateParent;
   $('input-admin-pin').addEventListener('keyup', e => { if (e.key==='Enter') handleAdminLogin(); });
 
+  // Password confirm modal
+  $('btn-close-pw-confirm').onclick = () => $('modal-password-confirm').classList.add('hidden');
+  $('btn-pw-cancel').onclick = () => $('modal-password-confirm').classList.add('hidden');
+
+  // Parent PIN login modal
+  $('btn-close-parent-pin').onclick = () => $('modal-parent-pin').classList.add('hidden');
+}
+
+function bindNavEvents() {
   // Navigation
   $('btn-nav-back').onclick = navBack;
   $('btn-header-profile').onclick = () => showAppView('settings');
@@ -1713,11 +1725,32 @@ function bindEvents() {
   };
   $('btn-close-onboarding').onclick = closeOnboarding;
   $('btn-onboarding-ok').onclick = closeOnboarding;
+}
 
+function bindChildEvents() {
   // Child form
   $('btn-close-child-modal').onclick = () => $('modal-child').classList.add('hidden');
   $('form-child').onsubmit = handleSaveChild;
 
+  // Child detail actions
+  $('btn-edit-child').onclick = openEditChildModal;
+  $('btn-delete-child').onclick = handleDeleteChild;
+
+  // Contact edit modal
+  $('btn-edit-email').onclick = () => openEditContactModal('email');
+  $('btn-edit-whatsapp').onclick = () => openEditContactModal('whatsapp');
+  $('btn-close-contact-modal').onclick = () => $('modal-edit-contact').classList.add('hidden');
+  $('btn-save-contact').onclick = saveContact;
+
+  // Edit parent modal
+  $('btn-close-edit-parent').onclick = () => $('modal-edit-parent').classList.add('hidden');
+  $('form-edit-parent').onsubmit = handleEditParent;
+
+  // Schedule child dropdown
+  $('schedule-child-dropdown').onchange = renderScheduleView;
+}
+
+function bindVaccineEvents() {
   // Vaccine modal
   $('btn-close-vaccine-modal').onclick = () => $('modal-vaccine').classList.add('hidden');
   $('btn-mark-vaccine').onclick = handleMarkVaccine;
@@ -1732,10 +1765,6 @@ function bindEvents() {
     };
   });
 
-  // Child detail actions
-  $('btn-edit-child').onclick = openEditChildModal;
-  $('btn-delete-child').onclick = handleDeleteChild;
-
   // Filter pills
   $$('.pill').forEach(p => {
     p.onclick = () => {
@@ -1745,7 +1774,9 @@ function bindEvents() {
       renderChildVaccines();
     };
   });
+}
 
+function bindSettingsEvents() {
   // Settings
   $('toggle-theme').onchange = toggleTheme;
   $('btn-logout').onclick = handleLogout;
@@ -1757,7 +1788,9 @@ function bindEvents() {
   $('import-file').onchange = importData;
   $('btn-clear-all').onclick = handleClearAll;
   $('btn-dismiss-tip').onclick = () => $('tip-card').classList.add('hidden');
+}
 
+function bindAdminEvents() {
   // Admin profile management
   $('btn-manage-admins').onclick = openAdminProfilesModal;
   $('btn-close-admin-profiles').onclick = () => $('modal-admin-profiles').classList.add('hidden');
@@ -1769,19 +1802,6 @@ function bindEvents() {
   $('btn-add-custom-vaccine').onclick = openAddVaccineModal;
   $('btn-close-admin-vaccine').onclick = () => $('modal-admin-vaccine').classList.add('hidden');
   $('form-admin-vaccine').onsubmit = handleSaveVaccine;
-
-  // Password confirm modal
-  $('btn-close-pw-confirm').onclick = () => $('modal-password-confirm').classList.add('hidden');
-  $('btn-pw-cancel').onclick = () => $('modal-password-confirm').classList.add('hidden');
-
-  // Parent PIN login modal
-  $('btn-close-parent-pin').onclick = () => $('modal-parent-pin').classList.add('hidden');
-
-  // Contact edit modal
-  $('btn-edit-email').onclick = () => openEditContactModal('email');
-  $('btn-edit-whatsapp').onclick = () => openEditContactModal('whatsapp');
-  $('btn-close-contact-modal').onclick = () => $('modal-edit-contact').classList.add('hidden');
-  $('btn-save-contact').onclick = saveContact;
 
   // Admin family actions
   $('btn-admin-add-child').onclick = () => {
@@ -1796,11 +1816,9 @@ function bindEvents() {
   $('btn-admin-delete-family').onclick = () => {
     if (S.adminViewUserId) handleDeleteFamily(S.adminViewUserId);
   };
+}
 
-  // Edit parent modal
-  $('btn-close-edit-parent').onclick = () => $('modal-edit-parent').classList.add('hidden');
-  $('form-edit-parent').onsubmit = handleEditParent;
-
+function bindGlobalEvents() {
   // Confirm modal
   $('btn-confirm-no').onclick = () => $('modal-confirm').classList.add('hidden');
   $('btn-confirm-yes').onclick = () => { if (S.confirmCb) S.confirmCb(); $('modal-confirm').classList.add('hidden'); };
@@ -1809,9 +1827,17 @@ function bindEvents() {
   $$('.modal-overlay').forEach(o => {
     o.onclick = e => { if (e.target === o) o.classList.add('hidden'); };
   });
+}
 
-  // Schedule child dropdown
-  $('schedule-child-dropdown').onchange = renderScheduleView;
+function bindEvents() {
+  bindLandingEvents();
+  bindAuthEvents();
+  bindNavEvents();
+  bindChildEvents();
+  bindVaccineEvents();
+  bindSettingsEvents();
+  bindAdminEvents();
+  bindGlobalEvents();
 }
 
 // ─── Screen Navigation ──────────────────────────────────
