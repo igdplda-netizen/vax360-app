@@ -201,27 +201,19 @@ const VACCINE_I18N = {
   },
 };
 
-function getVaccineI18n(vaccineId) {
-  const lang = VACCINE_I18N[currentLang];
+function getVaccineI18n(vaccineId, deps) {
+  const customList = deps?.customVaccines || (typeof customVaccines !== 'undefined' ? customVaccines : []);
+  const langKey = deps?.currentLang || (typeof currentLang !== 'undefined' ? currentLang : 'en');
+  const lang = VACCINE_I18N[langKey];
   if (lang && lang[vaccineId]) return lang[vaccineId];
   const base = VACCINE_SCHEDULE.find(s => s.id === vaccineId);
-  // Also check custom vaccines
-  const custom = customVaccines?.find(s => s.id === vaccineId);
+  const custom = customList?.find(s => s.id === vaccineId);
   if (base) return { name: base.name, desc: base.desc, ageLabel: base.ageLabel };
   if (custom) return { name: custom.name, desc: custom.desc, ageLabel: custom.ageLabel };
   return { name: vaccineId, desc: '', ageLabel: '' };
 }
 
-function getVaccineBaseType(id) {
-  // Extract base type: 'penta-2' -> 'penta', 'bcg' -> 'bcg', 'custom-abc123' -> 'custom'
-  const parts = id.split('-');
-  if (parts[0] === 'custom') return 'custom';
-  // Remove trailing number
-  if (parts.length > 1 && /^\d+$/.test(parts[parts.length-1])) parts.pop();
-  // Remove 'b' suffix (booster indicator)
-  if (parts.length > 1 && /^b\d*$/.test(parts[parts.length-1])) parts.pop();
-  return parts.join('-');
-}
+
 
 // ─── Vaccine Pros & Cons (Benefits / Side Effects) ──────
 const VACCINE_DETAIL = {
@@ -3193,3 +3185,7 @@ window.selectParent = function(id) {
     enterApp('parent');
   }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { getVaccineI18n, VACCINE_I18N, VACCINE_SCHEDULE };
+}
