@@ -38,6 +38,8 @@ const VACCINE_SCHEDULE = [
   { id:'tdap', name:'Tdap Booster', desc:'Adolescent booster for Tetanus, Diphtheria, Pertussis.', ageMonths:132, ageLabel:'11 years', group:'11y' },
 ];
 
+const VACCINE_SCHEDULE_MAP = VACCINE_SCHEDULE.reduce((map, s) => { map[s.id] = s; return map; }, {});
+
 // ─── Vaccine Dependencies ───────────────────────────────
 const VACCINE_DEPENDENCIES = {
   'penta-2': ['penta-1'], 'penta-3': ['penta-2'],
@@ -204,7 +206,7 @@ const VACCINE_I18N = {
 function getVaccineI18n(vaccineId) {
   const lang = VACCINE_I18N[currentLang];
   if (lang && lang[vaccineId]) return lang[vaccineId];
-  const base = VACCINE_SCHEDULE.find(s => s.id === vaccineId);
+  const base = VACCINE_SCHEDULE_MAP[vaccineId];
   // Also check custom vaccines
   const custom = customVaccines?.find(s => s.id === vaccineId);
   if (base) return { name: base.name, desc: base.desc, ageLabel: base.ageLabel };
@@ -2200,7 +2202,7 @@ function renderChildVaccines() {
 
   const grouped = {};
   vaccines.forEach(v => {
-    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+    const sched = VACCINE_SCHEDULE_MAP[v.id];
     const g = sched ? sched.group : 'other';
     if (!grouped[g]) grouped[g] = [];
     grouped[g].push(v);
@@ -2266,7 +2268,7 @@ function renderScheduleView() {
 
   const grouped = {};
   vaccines.forEach(v => {
-    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+    const sched = VACCINE_SCHEDULE_MAP[v.id];
     const g = sched ? sched.group : 'other';
     if (!grouped[g]) grouped[g] = [];
     grouped[g].push(v);
@@ -2384,7 +2386,7 @@ function renderAdminHome() {
       (child.vaccines||[]).forEach(v => {
         totalVaccines++;
         if (v.completedDate) totalVaccinesGiven++;
-        const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+        const sched = VACCINE_SCHEDULE_MAP[v.id];
         const label = sched ? sched.group : 'other';
         if (!vaccineData[label]) vaccineData[label] = { done:0, total:0 };
         vaccineData[label].total++;
@@ -2523,7 +2525,7 @@ function openVaccineModal(vaccineId) {
   if (!vaccine) return;
   S.currentVaccineId = vaccineId;
 
-  const sched = VACCINE_SCHEDULE.find(s => s.id === vaccineId);
+  const sched = VACCINE_SCHEDULE_MAP[vaccineId];
   const st = vaccine.completedDate ? 'completed' : vaccineStatus(vaccine, child.birthDate);
 
   const vi18n = getVaccineI18n(vaccineId);
@@ -2646,7 +2648,7 @@ function handleSaveChild(e) {
       child.name = name; child.birthDate = dob; child.gender = gender;
       if (oldDob !== dob) {
         child.vaccines.forEach(v => {
-          const s = VACCINE_SCHEDULE.find(x => x.id === v.id);
+          const s = VACCINE_SCHEDULE_MAP[v.id];
           if (s) v.scheduledDate = schedDate(dob, s.ageMonths);
         });
       }
