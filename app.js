@@ -1944,6 +1944,17 @@ function navBack() {
   }
 }
 
+function groupVaccinesBySchedule(vaccines) {
+  const grouped = {};
+  vaccines.forEach(v => {
+    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+    const g = sched ? sched.group : 'other';
+    if (!grouped[g]) grouped[g] = [];
+    grouped[g].push(v);
+  });
+  return grouped;
+}
+
 // ─── Login Handlers ─────────────────────────────────────
 function renderParentProfiles() {
   const list = $('parent-profiles-list');
@@ -2198,13 +2209,7 @@ function renderChildVaccines() {
 
   if (S.filter !== 'all') vaccines = vaccines.filter(v => v.status === S.filter);
 
-  const grouped = {};
-  vaccines.forEach(v => {
-    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
-    const g = sched ? sched.group : 'other';
-    if (!grouped[g]) grouped[g] = [];
-    grouped[g].push(v);
-  });
+  const grouped = groupVaccinesBySchedule(vaccines);
 
   const container = $('child-vaccines-list');
   if (!vaccines.length) {
@@ -2264,13 +2269,7 @@ function renderScheduleView() {
     ...v, status: v.completedDate ? 'completed' : vaccineStatus(v, child.birthDate)
   }));
 
-  const grouped = {};
-  vaccines.forEach(v => {
-    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
-    const g = sched ? sched.group : 'other';
-    if (!grouped[g]) grouped[g] = [];
-    grouped[g].push(v);
-  });
+  const grouped = groupVaccinesBySchedule(vaccines);
 
   let html = '';
   const GL = getGroupLabels();
