@@ -3193,3 +3193,9 @@ window.selectParent = function(id) {
     enterApp('parent');
   }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    getVaccineBaseType
+  };
+}
