@@ -508,7 +508,7 @@ const VACCINE_DETAIL = {
 };
 
 // Map vaccine IDs to their base type for pros/cons lookup
-function getVaccineBaseType(vaccineId) {
+function getVaccineBaseTypeForProsCons(vaccineId) {
   const map = {
     'bcg':'bcg', 'hepb-1':'hepb', 'penta-1':'penta', 'penta-2':'penta', 'penta-3':'penta',
     'ipv-1':'ipv', 'ipv-2':'ipv', 'ipv-3':'ipv', 'ipv-b1':'ipv', 'ipv-b2':'ipv',
@@ -3193,3 +3193,4 @@ window.selectParent = function(id) {
     enterApp('parent');
   }
 };
+if (typeof module !== 'undefined' && module.exports) { module.exports = { ageStr, t, I18N, vaccineStatus }; }
