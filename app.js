@@ -3193,3 +3193,8 @@ window.selectParent = function(id) {
     enterApp('parent');
   }
 };
+
+// EXPORTS FOR TESTING ONLY
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+  module.exports = { schedDate };
+}
