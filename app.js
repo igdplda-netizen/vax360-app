@@ -508,7 +508,7 @@ const VACCINE_DETAIL = {
 };
 
 // Map vaccine IDs to their base type for pros/cons lookup
-function getVaccineBaseType(vaccineId) {
+function getVaccineProsConsType(vaccineId) {
   const map = {
     'bcg':'bcg', 'hepb-1':'hepb', 'penta-1':'penta', 'penta-2':'penta', 'penta-3':'penta',
     'ipv-1':'ipv', 'ipv-2':'ipv', 'ipv-3':'ipv', 'ipv-b1':'ipv', 'ipv-b2':'ipv',
@@ -522,7 +522,8 @@ function getVaccineBaseType(vaccineId) {
     'hpv-1':'hpv', 'hpv-2':'hpv',
     'meningo-acwy':'meningo-acwy', 'tdap':'tdap',
   };
-  return map[vaccineId] || vaccineId;
+  // Fall back to the other base type parser
+  return map[vaccineId] || getVaccineBaseType(vaccineId);
 }
 
 function getVaccineDetail(vaccineId) {
