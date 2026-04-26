@@ -3193,3 +3193,4 @@ window.selectParent = function(id) {
     enterApp('parent');
   }
 };
+if (typeof module !== 'undefined') module.exports = { S, currentUser };
