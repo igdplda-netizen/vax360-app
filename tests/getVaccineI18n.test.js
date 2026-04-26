@@ -11,6 +11,9 @@ beforeAll(() => {
 const { getVaccineI18n } = require('../app.js');
 
 describe('getVaccineI18n', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
   it('should return i18n data for a known vaccine and language', () => {
     const deps = { currentLang: 'pt', customVaccines: [] };
     const result = getVaccineI18n('bcg', deps);

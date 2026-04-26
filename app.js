@@ -38,6 +38,9 @@ const VACCINE_SCHEDULE = [
   { id:'tdap', name:'Tdap Booster', desc:'Adolescent booster for Tetanus, Diphtheria, Pertussis.', ageMonths:132, ageLabel:'11 years', group:'11y' },
 ];
 
+const VACCINE_SCHEDULE_MAP = {};
+VACCINE_SCHEDULE.forEach(s => { VACCINE_SCHEDULE_MAP[s.id] = s; });
+
 // ─── Vaccine Dependencies ───────────────────────────────
 const VACCINE_DEPENDENCIES = {
   'penta-2': ['penta-1'], 'penta-3': ['penta-2'],
@@ -206,7 +209,7 @@ function getVaccineI18n(vaccineId, deps) {
   const langKey = deps?.currentLang || (typeof currentLang !== 'undefined' ? currentLang : 'en');
   const lang = VACCINE_I18N[langKey];
   if (lang && lang[vaccineId]) return lang[vaccineId];
-  const base = VACCINE_SCHEDULE.find(s => s.id === vaccineId);
+  const base = VACCINE_SCHEDULE_MAP[vaccineId];
   const custom = customList?.find(s => s.id === vaccineId);
   if (base) return { name: base.name, desc: base.desc, ageLabel: base.ageLabel };
   if (custom) return { name: custom.name, desc: custom.desc, ageLabel: custom.ageLabel };
@@ -1643,19 +1646,16 @@ function injectSVGDefs() {
 }
 
 // ─── Events ─────────────────────────────────────────────
-function bindEvents() {
-  // Landing page
+
+function bindLandingEvents() {
   $('btn-get-started').onclick = () => showScreen('lang');
 
-  // Language selection buttons
   $$('.lang-btn').forEach(btn => {
     btn.onclick = () => {
       const lang = btn.dataset.lang;
       setLanguage(lang);
-      // Highlight active
       $$('.lang-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Go to login after a brief highlight
       setTimeout(() => {
         showScreen('login');
         applyTranslations();
@@ -1663,17 +1663,14 @@ function bindEvents() {
     };
   });
 
-  // Change language from login screen
   $('btn-change-lang-login').onclick = () => showScreen('lang');
-
-  // Change language from settings
   $('btn-change-lang').onclick = () => {
-    // Show language selection inline
     showScreen('lang');
     $('app-shell').classList.add('hidden');
   };
+}
 
-  // Login flow
+function bindAuthEvents() {
   $('btn-role-parent').onclick = () => showScreen('parent-select');
   $('btn-role-admin').onclick = () => showScreen('admin-pin');
   $('btn-back-to-login').onclick = () => showScreen('login');
@@ -1683,12 +1680,16 @@ function bindEvents() {
   $('btn-admin-login').onclick = handleAdminLogin;
   $('form-create-parent').onsubmit = handleCreateParent;
   $('input-admin-pin').addEventListener('keyup', e => { if (e.key==='Enter') handleAdminLogin(); });
+  $('btn-close-parent-pin').onclick = () => $('modal-parent-pin').classList.add('hidden');
 
-  // Navigation
+  $('btn-close-pw-confirm').onclick = () => $('modal-password-confirm').classList.add('hidden');
+  $('btn-pw-cancel').onclick = () => $('modal-password-confirm').classList.add('hidden');
+}
+
+function bindNavEvents() {
   $('btn-nav-back').onclick = navBack;
   $('btn-header-profile').onclick = () => showAppView('settings');
 
-  // Bottom nav items
   $$('.nav-item').forEach(item => {
     item.onclick = () => {
       const view = item.dataset.view;
@@ -1697,8 +1698,10 @@ function bindEvents() {
     };
   });
   $('nav-fab').onclick = openAddChildModal;
+  $('schedule-child-dropdown').onchange = renderScheduleView;
+}
 
-  // Onboarding Modal
+function bindModalEvents() {
   const closeOnboarding = () => {
     $('modal-onboarding').classList.add('hidden');
     localStorage.setItem('vt2_onboarded', 'true');
@@ -1706,15 +1709,12 @@ function bindEvents() {
   $('btn-close-onboarding').onclick = closeOnboarding;
   $('btn-onboarding-ok').onclick = closeOnboarding;
 
-  // Child form
   $('btn-close-child-modal').onclick = () => $('modal-child').classList.add('hidden');
   $('form-child').onsubmit = handleSaveChild;
 
-  // Vaccine modal
   $('btn-close-vaccine-modal').onclick = () => $('modal-vaccine').classList.add('hidden');
   $('btn-mark-vaccine').onclick = handleMarkVaccine;
 
-  // Vaccine modal tabs
   $$('.mv-tab').forEach(tab => {
     tab.onclick = () => {
       $$('.mv-tab').forEach(t => t.classList.remove('active'));
@@ -1724,11 +1724,18 @@ function bindEvents() {
     };
   });
 
-  // Child detail actions
+  $('btn-confirm-no').onclick = () => $('modal-confirm').classList.add('hidden');
+  $('btn-confirm-yes').onclick = () => { if (S.confirmCb) S.confirmCb(); $('modal-confirm').classList.add('hidden'); };
+
+  $$('.modal-overlay').forEach(o => {
+    o.onclick = e => { if (e.target === o) o.classList.add('hidden'); };
+  });
+}
+
+function bindChildActionEvents() {
   $('btn-edit-child').onclick = openEditChildModal;
   $('btn-delete-child').onclick = handleDeleteChild;
 
-  // Filter pills
   $$('.pill').forEach(p => {
     p.onclick = () => {
       $$('.pill').forEach(x => x.classList.remove('active'));
@@ -1737,8 +1744,9 @@ function bindEvents() {
       renderChildVaccines();
     };
   });
+}
 
-  // Settings
+function bindSettingsEvents() {
   $('toggle-theme').onchange = toggleTheme;
   $('btn-logout').onclick = handleLogout;
   $('btn-change-pin').onclick = () => $('modal-pin').classList.remove('hidden');
@@ -1750,32 +1758,23 @@ function bindEvents() {
   $('btn-clear-all').onclick = handleClearAll;
   $('btn-dismiss-tip').onclick = () => $('tip-card').classList.add('hidden');
 
-  // Admin profile management
+  $('btn-edit-email').onclick = () => openEditContactModal('email');
+  $('btn-edit-whatsapp').onclick = () => openEditContactModal('whatsapp');
+  $('btn-close-contact-modal').onclick = () => $('modal-edit-contact').classList.add('hidden');
+  $('btn-save-contact').onclick = saveContact;
+}
+
+function bindAdminEvents() {
   $('btn-manage-admins').onclick = openAdminProfilesModal;
   $('btn-close-admin-profiles').onclick = () => $('modal-admin-profiles').classList.add('hidden');
   $('btn-add-admin').onclick = openAddAdminForm;
   $('btn-close-admin-form').onclick = () => $('modal-admin-form').classList.add('hidden');
   $('form-admin').onsubmit = handleSaveAdmin;
 
-  // Admin vaccine CRUD
   $('btn-add-custom-vaccine').onclick = openAddVaccineModal;
   $('btn-close-admin-vaccine').onclick = () => $('modal-admin-vaccine').classList.add('hidden');
   $('form-admin-vaccine').onsubmit = handleSaveVaccine;
 
-  // Password confirm modal
-  $('btn-close-pw-confirm').onclick = () => $('modal-password-confirm').classList.add('hidden');
-  $('btn-pw-cancel').onclick = () => $('modal-password-confirm').classList.add('hidden');
-
-  // Parent PIN login modal
-  $('btn-close-parent-pin').onclick = () => $('modal-parent-pin').classList.add('hidden');
-
-  // Contact edit modal
-  $('btn-edit-email').onclick = () => openEditContactModal('email');
-  $('btn-edit-whatsapp').onclick = () => openEditContactModal('whatsapp');
-  $('btn-close-contact-modal').onclick = () => $('modal-edit-contact').classList.add('hidden');
-  $('btn-save-contact').onclick = saveContact;
-
-  // Admin family actions
   $('btn-admin-add-child').onclick = () => {
     if (S.adminViewUserId) {
       S.userId = S.adminViewUserId;
@@ -1789,21 +1788,18 @@ function bindEvents() {
     if (S.adminViewUserId) handleDeleteFamily(S.adminViewUserId);
   };
 
-  // Edit parent modal
   $('btn-close-edit-parent').onclick = () => $('modal-edit-parent').classList.add('hidden');
   $('form-edit-parent').onsubmit = handleEditParent;
+}
 
-  // Confirm modal
-  $('btn-confirm-no').onclick = () => $('modal-confirm').classList.add('hidden');
-  $('btn-confirm-yes').onclick = () => { if (S.confirmCb) S.confirmCb(); $('modal-confirm').classList.add('hidden'); };
-
-  // Close modals on overlay click
-  $$('.modal-overlay').forEach(o => {
-    o.onclick = e => { if (e.target === o) o.classList.add('hidden'); };
-  });
-
-  // Schedule child dropdown
-  $('schedule-child-dropdown').onchange = renderScheduleView;
+function bindEvents() {
+  bindLandingEvents();
+  bindAuthEvents();
+  bindNavEvents();
+  bindModalEvents();
+  bindChildActionEvents();
+  bindSettingsEvents();
+  bindAdminEvents();
 }
 
 // ─── Screen Navigation ──────────────────────────────────
@@ -1939,12 +1935,27 @@ function navBack() {
 function groupVaccinesBySchedule(vaccines) {
   const grouped = {};
   vaccines.forEach(v => {
-    const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+    const sched = VACCINE_SCHEDULE_MAP[v.id];
     const g = sched ? sched.group : 'other';
     if (!grouped[g]) grouped[g] = [];
     grouped[g].push(v);
   });
   return grouped;
+}
+
+function renderVaccineItem(v, onClickAction) {
+  const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
+  const statusKey = v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending';
+  return `
+    <div class="vt-card ${v.status === 'completed' ? 'vt-completed' : ''}" onclick="${onClickAction}">
+      <span class="uc-dot dot-${v.status}"></span>
+      <div class="uc-info">
+        <div class="uc-name">${getVaccineI18n(v.id).name}</div>
+        <div class="uc-date">${dateText}</div>
+      </div>
+      <span class="uc-badge badge-${v.status}">${t(statusKey)}</span>
+    </div>
+  `;
 }
 
 // ─── Login Handlers ─────────────────────────────────────
@@ -2215,17 +2226,7 @@ function renderChildVaccines() {
     if (!grouped[gk]) return;
     html += `<div class="vt-group-label">${GL[gk]}</div>`;
     grouped[gk].forEach(v => {
-      const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
-      html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="openVaccineModal('${v.id}')">
-          <span class="uc-dot dot-${v.status}"></span>
-          <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
-            <div class="uc-date">${dateText}</div>
-          </div>
-          <span class="uc-badge badge-${v.status}">${t(v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending')}</span>
-        </div>
-      `;
+      html += renderVaccineItem(v, `openVaccineModal('${v.id}')`);
     });
   });
   container.innerHTML = html;
@@ -2269,17 +2270,7 @@ function renderScheduleView() {
     if (!grouped[gk]) return;
     html += `<div class="vt-group-label">${GL[gk]}</div>`;
     grouped[gk].forEach(v => {
-      const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
-      html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="goScheduleVaccine('${child.id}','${v.id}')">
-          <span class="uc-dot dot-${v.status}"></span>
-          <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
-            <div class="uc-date">${dateText}</div>
-          </div>
-          <span class="uc-badge badge-${v.status}">${t(v.status === 'completed' ? 'done' : v.status === 'overdue' ? 'overdue' : v.status === 'upcoming' ? 'upcoming_label' : 'pending')}</span>
-        </div>
-      `;
+      html += renderVaccineItem(v, `goScheduleVaccine('${child.id}','${v.id}')`);
     });
   });
   $('schedule-timeline').innerHTML = html;
@@ -2375,7 +2366,7 @@ function renderAdminHome() {
       (child.vaccines||[]).forEach(v => {
         totalVaccines++;
         if (v.completedDate) totalVaccinesGiven++;
-        const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
+        const sched = VACCINE_SCHEDULE_MAP[v.id];
         const label = sched ? sched.group : 'other';
         if (!vaccineData[label]) vaccineData[label] = { done:0, total:0 };
         vaccineData[label].total++;
@@ -2514,7 +2505,7 @@ function openVaccineModal(vaccineId) {
   if (!vaccine) return;
   S.currentVaccineId = vaccineId;
 
-  const sched = VACCINE_SCHEDULE.find(s => s.id === vaccineId);
+  const sched = VACCINE_SCHEDULE_MAP[vaccineId];
   const st = vaccine.completedDate ? 'completed' : vaccineStatus(vaccine, child.birthDate);
 
   const vi18n = getVaccineI18n(vaccineId);
@@ -2637,7 +2628,7 @@ function handleSaveChild(e) {
       child.name = name; child.birthDate = dob; child.gender = gender;
       if (oldDob !== dob) {
         child.vaccines.forEach(v => {
-          const s = VACCINE_SCHEDULE.find(x => x.id === v.id);
+          const s = VACCINE_SCHEDULE_MAP[v.id];
           if (s) v.scheduledDate = schedDate(dob, s.ageMonths);
         });
       }
@@ -2670,6 +2661,7 @@ function handleDeleteChild() {
       const idx = (u.children||[]).findIndex(c => c.id === S.currentChildId);
       if (idx >= 0) { u.children.splice(idx, 1); break; }
     }
+    invalidateChildCache();
     save();
     toast(t('child_deleted', {name: child.name}));
     navBack();
@@ -2837,6 +2829,7 @@ function handleDeleteFamily(userId) {
   if (!user) return;
   confirm2(t('delete_family_title'), t('delete_family_msg', {name: user.name}), () => {
     S.users = S.users.filter(u => u.id !== userId);
+    invalidateChildCache();
     save();
     toast(t('child_deleted', {name: user.name}));
     showAppView('admin-home');
@@ -3186,5 +3179,11 @@ window.selectParent = function(id) {
 };
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { getVaccineI18n, VACCINE_I18N, VACCINE_SCHEDULE };
+  module.exports = {
+    getVaccineI18n,
+    VACCINE_I18N,
+    VACCINE_SCHEDULE,
+    get S() { return S; },
+    set S(val) { Object.assign(S, val); },
+  };
 }
