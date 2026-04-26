@@ -37,3 +37,4 @@ npm-debug.log*
 .cache/
 dist/
 .tmp/
+coverage

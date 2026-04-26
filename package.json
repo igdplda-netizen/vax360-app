@@ -7,6 +7,7 @@
     "dev": "npx serve . -l 3000",
     "dev:backend": "cd backend && node server.js",
     "dev:all": "npm run dev & npm run dev:backend",
+    "test": "jest",
     "db:init": "cd backend && node db-init.js",
     "db:reset": "cd backend && rm -f database.sqlite && node db-init.js",
     "setup": "npm install && cd backend && npm install && cd .. && npm run db:init",
@@ -21,14 +22,17 @@
     "ios": "npm run cap:sync && npm run cap:open:ios"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
     "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
-    "@capacitor/status-bar": "^6.0.0",
-    "@capacitor/splash-screen": "^6.0.0"
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "^6.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^24.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
