@@ -93,19 +93,27 @@ app.post('/api/sync/:id', (req, res) => {
 });
 
 // ─── Graceful Shutdown ──────────────────────────────────
-function shutdown() {
+function shutdown(cb) {
   console.log('\n🛑 Shutting down...');
   db.close(() => {
     console.log('🗄️  Database connection closed');
-    process.exit(0);
+    if (cb && typeof cb === 'function') {
+      cb();
+    } else {
+      process.exit(0);
+    }
   });
 }
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 // ─── Start Server ───────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
-  console.log(`   Environment: ${NODE_ENV}`);
-  console.log(`   Database:    ${DB_PATH}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
+    console.log(`   Environment: ${NODE_ENV}`);
+    console.log(`   Database:    ${DB_PATH}\n`);
+  });
+}
+
+module.exports = { app, shutdown };
