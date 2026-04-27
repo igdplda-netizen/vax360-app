@@ -567,6 +567,8 @@ const I18N = {
     incorrect_pin: '❌ Incorrect PIN',
     // Create parent
     your_profile: 'Your Profile',
+    enter_phone_pin: 'Enter your phone and PIN',
+    pin_for_security: 'For your security, create a 4-digit PIN',
     tell_about: 'Tell us a little about yourself',
     your_name: 'Your Name',
     email_optional: 'Email (optional)',
@@ -613,6 +615,10 @@ const I18N = {
     no_data_yet: 'No data yet',
     registered: 'registered',
     no_children_admin: 'No children',
+    register: 'Register',
+    register_desc: 'Create a new account',
+    login: 'Login',
+    login_desc: 'I already have an account',
     no_children_admin_desc: 'This family has no children registered yet.',
     // Admin family
     edit_profile: 'Edit Profile',
@@ -829,6 +835,8 @@ const I18N = {
     unlock: 'Desbloquear',
     incorrect_pin: '❌ PIN incorreto',
     your_profile: 'Seu Perfil',
+    enter_phone_pin: 'Insira seu telefone e PIN',
+    pin_for_security: 'Para sua segurança, crie um PIN de 4 dígitos',
     tell_about: 'Conte-nos um pouco sobre você',
     your_name: 'Seu Nome',
     email_optional: 'E-mail (opcional)',
@@ -870,6 +878,10 @@ const I18N = {
     no_data_yet: 'Sem dados ainda',
     registered: 'registrado(s)',
     no_children_admin: 'Sem filhos',
+    register: 'Registrar',
+    register_desc: 'Criar uma nova conta',
+    login: 'Entrar',
+    login_desc: 'Já tenho uma conta',
     no_children_admin_desc: 'Esta família ainda não tem filhos registrados.',
     edit_profile: 'Editar Perfil',
     vaccine_schedule_template: 'Modelo de Calendário Vacinal',
@@ -1066,6 +1078,8 @@ const I18N = {
     unlock: 'Déverrouiller',
     incorrect_pin: '❌ PIN incorrect',
     your_profile: 'Votre Profil',
+    enter_phone_pin: 'Entrez votre téléphone et PIN',
+    pin_for_security: 'Pour votre sécurité, créez un code PIN à 4 chiffres',
     tell_about: 'Dites-nous un peu sur vous',
     your_name: 'Votre Nom',
     email_optional: 'E-mail (optionnel)',
@@ -1107,6 +1121,10 @@ const I18N = {
     no_data_yet: 'Aucune donnée encore',
     registered: 'enregistré(s)',
     no_children_admin: 'Aucun enfant',
+    register: 'S\'inscrire',
+    register_desc: 'Créer un nouveau compte',
+    login: 'Connexion',
+    login_desc: 'J\'ai déjà un compte',
     no_children_admin_desc: "Cette famille n'a pas encore d'enfants enregistrés.",
     edit_profile: 'Modifier le Profil',
     vaccine_schedule_template: 'Modèle de Calendrier Vaccinal',
@@ -1255,6 +1273,8 @@ const I18N = {
     unlock: 'Ontsluit',
     incorrect_pin: '❌ Verkeerde PIN',
     your_profile: 'Jou Profiel',
+    enter_phone_pin: 'Voer jou foon en PIN in',
+    pin_for_security: 'Vir jou sekuriteit, skep \'n 4-syfer PIN',
     tell_about: "Vertel ons 'n bietjie van jouself",
     your_name: 'Jou Naam',
     email_optional: 'E-pos (opsioneel)',
@@ -1296,6 +1316,10 @@ const I18N = {
     no_data_yet: 'Nog geen data nie',
     registered: 'geregistreer',
     no_children_admin: 'Geen kinders',
+    register: 'Registreer',
+    register_desc: 'Skep \'n nuwe rekening',
+    login: 'Teken In',
+    login_desc: 'Ek het reeds \'n rekening',
     no_children_admin_desc: 'Hierdie gesin het nog geen kinders geregistreer nie.',
     edit_profile: 'Wysig Profiel',
     vaccine_schedule_template: 'Entstof Skedule Sjabloon',
@@ -1551,12 +1575,14 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const SYNC_ID = 'vax360_main';
 const SYNC_API_URL = `${API_BASE_URL}/sync/${SYNC_ID}`;
 
-async function getSyncToken() {
+async function getSyncToken(interactive = true) {
   let token = localStorage.getItem('vt2_token');
   let pwd = sessionStorage.getItem('vt2_sync_pwd');
   if (token && pwd) return { token, pwd };
   
   if (sessionStorage.getItem('vt2_sync_skip')) return null;
+
+  if (!interactive) return null;
 
   pwd = prompt('Enter the backend sync password to enable cloud sync:');
   if (!pwd) {
@@ -1625,9 +1651,9 @@ function save() {
   }
 }
 
-async function syncFromCloud() {
+async function syncFromCloud(interactive = true) {
   try {
-    const auth = await getSyncToken();
+    const auth = await getSyncToken(interactive);
     if (!auth) return;
     const { token, pwd } = auth;
 
@@ -1685,7 +1711,7 @@ function toggleTheme() {
 // ─── Init ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   load();
-  await syncFromCloud();
+  await syncFromCloud(false);
   const hasLang = loadLanguage();
   applyTranslations();
   initTheme();
@@ -1707,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener('online', () => {
     toast('Back online. Syncing data...');
-    syncFromCloud();
+    syncFromCloud(false);
     save(); // trigger sync API post
   });
   window.addEventListener('offline', () => {
