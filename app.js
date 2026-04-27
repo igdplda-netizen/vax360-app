@@ -4,38 +4,40 @@
 
 // ─── Vaccine Schedule ───────────────────────────────────
 const VACCINE_SCHEDULE = [
-  { id:'bcg', name:'BCG', desc:'Protects against tuberculosis (TB).', ageMonths:0, ageLabel:'At Birth', group:'birth' },
-  { id:'hepb-1', name:'Hepatitis B – 1st dose', desc:'Protects against liver infection caused by Hepatitis B.', ageMonths:0, ageLabel:'At Birth', group:'birth' },
-  { id:'penta-1', name:'Pentavalent – 1st dose', desc:'Combined vaccine: Diphtheria, Tetanus, Pertussis, Hepatitis B, Hib.', ageMonths:2, ageLabel:'2 months', group:'2m' },
-  { id:'ipv-1', name:'Polio (IPV) – 1st dose', desc:'Inactivated Polio Vaccine.', ageMonths:2, ageLabel:'2 months', group:'2m' },
-  { id:'rota-1', name:'Rotavirus – 1st dose', desc:'Protects against severe diarrhea from rotavirus.', ageMonths:2, ageLabel:'2 months', group:'2m' },
-  { id:'pcv-1', name:'Pneumococcal – 1st dose', desc:'Protects against pneumonia, meningitis.', ageMonths:2, ageLabel:'2 months', group:'2m' },
-  { id:'penta-2', name:'Pentavalent – 2nd dose', desc:'Second dose of the combined vaccine.', ageMonths:4, ageLabel:'4 months', group:'4m' },
-  { id:'ipv-2', name:'Polio (IPV) – 2nd dose', desc:'Second dose of Polio vaccine.', ageMonths:4, ageLabel:'4 months', group:'4m' },
-  { id:'rota-2', name:'Rotavirus – 2nd dose', desc:'Second dose of Rotavirus vaccine.', ageMonths:4, ageLabel:'4 months', group:'4m' },
-  { id:'pcv-2', name:'Pneumococcal – 2nd dose', desc:'Second dose of Pneumococcal vaccine.', ageMonths:4, ageLabel:'4 months', group:'4m' },
-  { id:'penta-3', name:'Pentavalent – 3rd dose', desc:'Third and final primary dose.', ageMonths:6, ageLabel:'6 months', group:'6m' },
-  { id:'ipv-3', name:'Polio (IPV) – 3rd dose', desc:'Third dose of Polio vaccine.', ageMonths:6, ageLabel:'6 months', group:'6m' },
-  { id:'rota-3', name:'Rotavirus – 3rd dose', desc:'Third dose of Rotavirus vaccine.', ageMonths:6, ageLabel:'6 months', group:'6m' },
-  { id:'flu-1', name:'Influenza – 1st dose', desc:'Annual flu vaccine. First dose for babies over 6 months.', ageMonths:6, ageLabel:'6 months', group:'6m' },
-  { id:'yellow-fever', name:'Yellow Fever', desc:'Single dose providing lifelong protection.', ageMonths:9, ageLabel:'9 months', group:'9m' },
-  { id:'measles-1', name:'Measles – 1st dose', desc:'Protects against measles virus.', ageMonths:9, ageLabel:'9 months', group:'9m' },
-  { id:'mmr-1', name:'MMR – 1st dose', desc:'Measles, Mumps, Rubella combined vaccine.', ageMonths:12, ageLabel:'12 months', group:'12m' },
-  { id:'pcv-b', name:'Pneumococcal – Booster', desc:'Booster dose for long-lasting protection.', ageMonths:12, ageLabel:'12 months', group:'12m' },
-  { id:'meningo-c', name:'Meningococcal C', desc:'Protects against meningococcal serogroup C.', ageMonths:12, ageLabel:'12 months', group:'12m' },
-  { id:'hepa-1', name:'Hepatitis A – 1st dose', desc:'Protects against Hepatitis A infection.', ageMonths:12, ageLabel:'12 months', group:'12m' },
-  { id:'varicella-1', name:'Varicella – 1st dose', desc:'Protects against chickenpox.', ageMonths:12, ageLabel:'12 months', group:'12m' },
-  { id:'dtp-b1', name:'DTP – 1st Booster', desc:'Booster for Diphtheria, Tetanus, Pertussis.', ageMonths:15, ageLabel:'15 months', group:'15m' },
-  { id:'ipv-b1', name:'Polio (IPV) – Booster', desc:'Booster dose of Polio vaccine.', ageMonths:15, ageLabel:'15 months', group:'15m' },
-  { id:'mmr-2', name:'MMR – 2nd dose', desc:'Second dose for stronger immunity.', ageMonths:15, ageLabel:'15 months', group:'15m' },
-  { id:'hepa-2', name:'Hepatitis A – 2nd dose', desc:'Second dose for lasting protection.', ageMonths:18, ageLabel:'18 months', group:'18m' },
-  { id:'varicella-2', name:'Varicella – 2nd dose', desc:'Second dose for lasting immunity.', ageMonths:48, ageLabel:'4 years', group:'4y' },
-  { id:'dtp-b2', name:'DTP – 2nd Booster', desc:'Pre-school booster dose.', ageMonths:48, ageLabel:'4 years', group:'4y' },
-  { id:'ipv-b2', name:'Polio – 2nd Booster', desc:'Pre-school booster dose.', ageMonths:48, ageLabel:'4 years', group:'4y' },
-  { id:'hpv-1', name:'HPV – 1st dose', desc:'Protects against HPV-related cancers.', ageMonths:108, ageLabel:'9 years', group:'9y' },
-  { id:'hpv-2', name:'HPV – 2nd dose', desc:'Given 6 months after first dose.', ageMonths:114, ageLabel:'9.5 years', group:'9y' },
-  { id:'meningo-acwy', name:'Meningococcal ACWY', desc:'Protects against serogroups A, C, W, Y.', ageMonths:132, ageLabel:'11 years', group:'11y' },
-  { id:'tdap', name:'Tdap Booster', desc:'Adolescent booster for Tetanus, Diphtheria, Pertussis.', ageMonths:132, ageLabel:'11 years', group:'11y' },
+  { id: 'bcg', name: 'BCG', desc: 'Protects against tuberculosis (TB).', ageMonths: 0, ageLabel: 'At Birth', group: 'birth' },
+  { id: 'hepb-1', name: 'Hepatitis B – 1st dose', desc: 'Protects against liver infection caused by Hepatitis B.', ageMonths: 0, ageLabel: 'At Birth', group: 'birth' },
+  { id: 'penta-1', name: 'Pentavalent – 1st dose', desc: 'Combined vaccine: Diphtheria, Tetanus, Pertussis, Hepatitis B, Hib.', ageMonths: 2, ageLabel: '2 months', group: '2m' },
+  { id: 'ipv-1', name: 'Polio (IPV) – 1st dose', desc: 'Inactivated Polio Vaccine.', ageMonths: 2, ageLabel: '2 months', group: '2m' },
+  { id: 'rota-1', name: 'Rotavirus – 1st dose', desc: 'Protects against severe diarrhea from rotavirus.', ageMonths: 2, ageLabel: '2 months', group: '2m' },
+  { id: 'pcv-1', name: 'Pneumococcal – 1st dose', desc: 'Protects against pneumonia, meningitis.', ageMonths: 2, ageLabel: '2 months', group: '2m' },
+  { id: 'penta-2', name: 'Pentavalent – 2nd dose', desc: 'Second dose of the combined vaccine.', ageMonths: 4, ageLabel: '4 months', group: '4m' },
+  { id: 'ipv-2', name: 'Polio (IPV) – 2nd dose', desc: 'Second dose of Polio vaccine.', ageMonths: 4, ageLabel: '4 months', group: '4m' },
+  { id: 'rota-2', name: 'Rotavirus – 2nd dose', desc: 'Second dose of Rotavirus vaccine.', ageMonths: 4, ageLabel: '4 months', group: '4m' },
+  { id: 'pcv-2', name: 'Pneumococcal – 2nd dose', desc: 'Second dose of Pneumococcal vaccine.', ageMonths: 4, ageLabel: '4 months', group: '4m' },
+  { id: 'penta-3', name: 'Pentavalent – 3rd dose', desc: 'Third and final primary dose.', ageMonths: 6, ageLabel: '6 months', group: '6m' },
+  { id: 'ipv-3', name: 'Polio (IPV) – 3rd dose', desc: 'Third dose of Polio vaccine.', ageMonths: 6, ageLabel: '6 months', group: '6m' },
+  { id: 'rota-3', name: 'Rotavirus – 3rd dose', desc: 'Third dose of Rotavirus vaccine.', ageMonths: 6, ageLabel: '6 months', group: '6m' },
+  { id: 'flu-1', name: 'Influenza – 1st dose', desc: 'Annual flu vaccine. First dose for babies over 6 months.', ageMonths: 6, ageLabel: '6 months', group: '6m' },
+  { id: 'yellow-fever', name: 'Yellow Fever', desc: 'Single dose providing lifelong protection.', ageMonths: 9, ageLabel: '9 months', group: '9m' },
+  { id: 'measles-1', name: 'Measles – 1st dose', desc: 'Protects against measles virus.', ageMonths: 9, ageLabel: '9 months', group: '9m' },
+  { id: 'mmr-1', name: 'MMR – 1st dose', desc: 'Measles, Mumps, Rubella combined vaccine.', ageMonths: 12, ageLabel: '12 months', group: '12m' },
+  { id: 'pcv-b', name: 'Pneumococcal – Booster', desc: 'Booster dose for long-lasting protection.', ageMonths: 12, ageLabel: '12 months', group: '12m' },
+  { id: 'meningo-c', name: 'Meningococcal C', desc: 'Protects against meningococcal serogroup C.', ageMonths: 12, ageLabel: '12 months', group: '12m' },
+  { id: 'hepa-1', name: 'Hepatitis A – 1st dose', desc: 'Protects against Hepatitis A infection.', ageMonths: 12, ageLabel: '12 months', group: '12m' },
+  { id: 'varicella-1', name: 'Varicella – 1st dose', desc: 'Protects against chickenpox.', ageMonths: 12, ageLabel: '12 months', group: '12m' },
+  { id: 'dtp-b1', name: 'DTP – 1st Booster', desc: 'Booster for Diphtheria, Tetanus, Pertussis.', ageMonths: 15, ageLabel: '15 months', group: '15m' },
+  { id: 'ipv-b1', name: 'Polio (IPV) – Booster', desc: 'Booster dose of Polio vaccine.', ageMonths: 15, ageLabel: '15 months', group: '15m' },
+  { id: 'mmr-2', name: 'MMR – 2nd dose', desc: 'Second dose for stronger immunity.', ageMonths: 15, ageLabel: '15 months', group: '15m' },
+  { id: 'hepa-2', name: 'Hepatitis A – 2nd dose', desc: 'Second dose for lasting protection.', ageMonths: 18, ageLabel: '18 months', group: '18m' },
+  { id: 'varicella-2', name: 'Varicella – 2nd dose', desc: 'Second dose for lasting immunity.', ageMonths: 48, ageLabel: '4 years', group: '4y' },
+  { id: 'dtp-b2', name: 'DTP – 2nd Booster', desc: 'Pre-school booster dose.', ageMonths: 48, ageLabel: '4 years', group: '4y' },
+  { id: 'ipv-b2', name: 'Polio – 2nd Booster', desc: 'Pre-school booster dose.', ageMonths: 48, ageLabel: '4 years', group: '4y' },
+  { id: 'hpv-1', name: 'HPV – 1st dose', desc: 'Protects against HPV-related cancers.', ageMonths: 108, ageLabel: '9 years', group: '9y' },
+  { id: 'hpv-2', name: 'HPV – 2nd dose', desc: 'Given 6 months after first dose.', ageMonths: 114, ageLabel: '9.5 years', group: '9y' },
+  { id: 'meningo-acwy', name: 'Meningococcal ACWY', desc: 'Protects against serogroups A, C, W, Y.', ageMonths: 132, ageLabel: '11 years', group: '11y' },
+  { id: 'tdap', name: 'Tdap Booster', desc: 'Adolescent booster for Tetanus, Diphtheria, Pertussis.', ageMonths: 132, ageLabel: '11 years', group: '11y' },
+  { id: 'covid-1', name: 'COVID-19 – 1st dose', desc: 'Protects against COVID-19 virus (Optional).', ageMonths: 6, ageLabel: '6 months', group: '6m' },
+  { id: 'covid-2', name: 'COVID-19 – 2nd dose', desc: 'Second dose of COVID-19 vaccine (Optional).', ageMonths: 7, ageLabel: '7 months', group: '6m' },
 ];
 
 // ─── Vaccine Dependencies ───────────────────────────────
@@ -50,154 +52,161 @@ const VACCINE_DEPENDENCIES = {
   'dtp-b1': ['penta-3'], 'dtp-b2': ['dtp-b1'],
   'hpv-2': ['hpv-1'],
   'measles-1': [], 'mmr-1': ['measles-1'],
+  'covid-2': ['covid-1'],
 };
 
 const GROUP_LABELS_I18N = {
-  en: { birth:'🍼 At Birth', '2m':'📅 2 Months', '4m':'📅 4 Months', '6m':'📅 6 Months', '9m':'📅 9 Months', '12m':'🎂 12 Months', '15m':'📅 15 Months', '18m':'📅 18 Months', '4y':'🎒 4 Years', '9y':'📅 9 Years', '11y':'📅 11 Years' },
-  pt: { birth:'🍼 Ao Nascer', '2m':'📅 2 Meses', '4m':'📅 4 Meses', '6m':'📅 6 Meses', '9m':'📅 9 Meses', '12m':'🎂 12 Meses', '15m':'📅 15 Meses', '18m':'📅 18 Meses', '4y':'🎒 4 Anos', '9y':'📅 9 Anos', '11y':'📅 11 Anos' },
-  fr: { birth:'🍼 À la Naissance', '2m':'📅 2 Mois', '4m':'📅 4 Mois', '6m':'📅 6 Mois', '9m':'📅 9 Mois', '12m':'🎂 12 Mois', '15m':'📅 15 Mois', '18m':'📅 18 Mois', '4y':'🎒 4 Ans', '9y':'📅 9 Ans', '11y':'📅 11 Ans' },
-  af: { birth:'🍼 By Geboorte', '2m':'📅 2 Maande', '4m':'📅 4 Maande', '6m':'📅 6 Maande', '9m':'📅 9 Maande', '12m':'🎂 12 Maande', '15m':'📅 15 Maande', '18m':'📅 18 Maande', '4y':'🎒 4 Jaar', '9y':'📅 9 Jaar', '11y':'📅 11 Jaar' },
+  en: { birth: '🍼 At Birth', '2m': '📅 2 Months', '4m': '📅 4 Months', '6m': '📅 6 Months', '9m': '📅 9 Months', '12m': '🎂 12 Months', '15m': '📅 15 Months', '18m': '📅 18 Months', '4y': '🎒 4 Years', '9y': '📅 9 Years', '11y': '📅 11 Years' },
+  pt: { birth: '🍼 Ao Nascer', '2m': '📅 2 Meses', '4m': '📅 4 Meses', '6m': '📅 6 Meses', '9m': '📅 9 Meses', '12m': '🎂 12 Meses', '15m': '📅 15 Meses', '18m': '📅 18 Meses', '4y': '🎒 4 Anos', '9y': '📅 9 Anos', '11y': '📅 11 Anos' },
+  fr: { birth: '🍼 À la Naissance', '2m': '📅 2 Mois', '4m': '📅 4 Mois', '6m': '📅 6 Mois', '9m': '📅 9 Mois', '12m': '🎂 12 Mois', '15m': '📅 15 Mois', '18m': '📅 18 Mois', '4y': '🎒 4 Ans', '9y': '📅 9 Ans', '11y': '📅 11 Ans' },
+  af: { birth: '🍼 By Geboorte', '2m': '📅 2 Maande', '4m': '📅 4 Maande', '6m': '📅 6 Maande', '9m': '📅 9 Maande', '12m': '🎂 12 Maande', '15m': '📅 15 Maande', '18m': '📅 18 Maande', '4y': '🎒 4 Jaar', '9y': '📅 9 Jaar', '11y': '📅 11 Jaar' },
 };
 function getGroupLabels() { return GROUP_LABELS_I18N[currentLang] || GROUP_LABELS_I18N.en; }
 
 const TIPS = {
   en: [
-    { title:'Did you know?', text:'Vaccines protect not only your child but also the community through herd immunity.' },
-    { title:'Stay on schedule!', text:'Following the recommended vaccine schedule gives your child the best protection early in life.' },
-    { title:'Keep records safe', text:'Use the export feature to back up your vaccination data regularly.' },
-    { title:'Vaccine safety', text:'Vaccines go through rigorous testing before approval. Side effects are usually mild and temporary.' },
-    { title:'Travel alert', text:'Some countries require proof of certain vaccinations. Check requirements before traveling.' },
-    { title:'Boosters matter', text:'Booster doses strengthen immunity that may fade over time. Don\'t skip them!' },
+    { title: 'Did you know?', text: 'Vaccines protect not only your child but also the community through herd immunity.' },
+    { title: 'Stay on schedule!', text: 'Following the recommended vaccine schedule gives your child the best protection early in life.' },
+    { title: 'Keep records safe', text: 'Use the export feature to back up your vaccination data regularly.' },
+    { title: 'Vaccine safety', text: 'Vaccines go through rigorous testing before approval. Side effects are usually mild and temporary.' },
+    { title: 'Travel alert', text: 'Some countries require proof of certain vaccinations. Check requirements before traveling.' },
+    { title: 'Boosters matter', text: 'Booster doses strengthen immunity that may fade over time. Don\'t skip them!' },
   ],
   pt: [
-    { title:'Você sabia?', text:'As vacinas protegem não apenas o seu filho, mas também a comunidade por meio da imunidade coletiva.' },
-    { title:'Fique no cronograma!', text:'Seguir o calendário vacinal recomendado dá ao seu filho a melhor proteção desde cedo.' },
-    { title:'Mantenha registros seguros', text:'Use o recurso de exportação para fazer backup dos dados de vacinação regularmente.' },
-    { title:'Segurança vacinal', text:'As vacinas passam por testes rigorosos antes da aprovação. Efeitos colaterais geralmente são leves.' },
-    { title:'Alerta viagem', text:'Alguns países exigem comprovante de certas vacinações. Verifique os requisitos antes de viajar.' },
-    { title:'Reforços importam', text:'Doses de reforço fortalecem a imunidade que pode diminuir com o tempo. Não as pule!' },
+    { title: 'Você sabia?', text: 'As vacinas protegem não apenas o seu filho, mas também a comunidade por meio da imunidade coletiva.' },
+    { title: 'Fique no cronograma!', text: 'Seguir o calendário vacinal recomendado dá ao seu filho a melhor proteção desde cedo.' },
+    { title: 'Mantenha registros seguros', text: 'Use o recurso de exportação para fazer backup dos dados de vacinação regularmente.' },
+    { title: 'Segurança vacinal', text: 'As vacinas passam por testes rigorosos antes da aprovação. Efeitos colaterais geralmente são leves.' },
+    { title: 'Alerta viagem', text: 'Alguns países exigem comprovante de certas vacinações. Verifique os requisitos antes de viajar.' },
+    { title: 'Reforços importam', text: 'Doses de reforço fortalecem a imunidade que pode diminuir com o tempo. Não as pule!' },
   ],
   fr: [
-    { title:'Le saviez-vous ?', text:'Les vaccins protègent non seulement votre enfant mais aussi la communauté grâce à l\'immunité collective.' },
-    { title:'Respectez le calendrier !', text:'Suivre le calendrier vaccinal recommandé offre la meilleure protection à votre enfant dès le plus jeune âge.' },
-    { title:'Gardez vos dossiers', text:'Utilisez la fonction d\'exportation pour sauvegarder régulièrement vos données de vaccination.' },
-    { title:'Sécurité vaccinale', text:'Les vaccins passent des tests rigoureux avant approbation. Les effets secondaires sont généralement légers.' },
-    { title:'Alerte voyage', text:'Certains pays exigent une preuve de vaccination. Vérifiez les exigences avant de voyager.' },
-    { title:'Les rappels comptent', text:'Les doses de rappel renforcent l\'immunité qui peut s\'affaiblir avec le temps. Ne les sautez pas !' },
+    { title: 'Le saviez-vous ?', text: 'Les vaccins protègent non seulement votre enfant mais aussi la communauté grâce à l\'immunité collective.' },
+    { title: 'Respectez le calendrier !', text: 'Suivre le calendrier vaccinal recommandé offre la meilleure protection à votre enfant dès le plus jeune âge.' },
+    { title: 'Gardez vos dossiers', text: 'Utilisez la fonction d\'exportation pour sauvegarder régulièrement vos données de vaccination.' },
+    { title: 'Sécurité vaccinale', text: 'Les vaccins passent des tests rigoureux avant approbation. Les effets secondaires sont généralement légers.' },
+    { title: 'Alerte voyage', text: 'Certains pays exigent une preuve de vaccination. Vérifiez les exigences avant de voyager.' },
+    { title: 'Les rappels comptent', text: 'Les doses de rappel renforcent l\'immunité qui peut s\'affaiblir avec le temps. Ne les sautez pas !' },
   ],
   af: [
-    { title:'Het jy geweet?', text:'Entstowwe beskerm nie net jou kind nie, maar ook die gemeenskap deur kudde-immuniteit.' },
-    { title:'Bly op skedule!', text:'Deur die aanbevole entstofkalender te volg, kry jou kind die beste beskerming vroeg in die lewe.' },
-    { title:'Hou rekords veilig', text:'Gebruik die uitvoerfunksie om jou inentingsdata gereeld te rugsteun.' },
-    { title:'Entstofveiligheid', text:'Entstowwe ondergaan streng toetsing voor goedkeuring. Newe-effekte is gewoonlik lig en tydelik.' },
-    { title:'Reisalarm', text:'Sommige lande vereis bewys van sekere inentings. Kontroleer vereistes voor jy reis.' },
-    { title:'Herhaalskote is belangrik', text:'Herhaaldosisse versterk immuniteit wat mettertyd kan afneem. Moet dit nie oorslaan nie!' },
+    { title: 'Het jy geweet?', text: 'Entstowwe beskerm nie net jou kind nie, maar ook die gemeenskap deur kudde-immuniteit.' },
+    { title: 'Bly op skedule!', text: 'Deur die aanbevole entstofkalender te volg, kry jou kind die beste beskerming vroeg in die lewe.' },
+    { title: 'Hou rekords veilig', text: 'Gebruik die uitvoerfunksie om jou inentingsdata gereeld te rugsteun.' },
+    { title: 'Entstofveiligheid', text: 'Entstowwe ondergaan streng toetsing voor goedkeuring. Newe-effekte is gewoonlik lig en tydelik.' },
+    { title: 'Reisalarm', text: 'Sommige lande vereis bewys van sekere inentings. Kontroleer vereistes voor jy reis.' },
+    { title: 'Herhaalskote is belangrik', text: 'Herhaaldosisse versterk immuniteit wat mettertyd kan afneem. Moet dit nie oorslaan nie!' },
   ],
 };
 
 // ─── Translated Vaccine Schedule Data ────────────────────
 const VACCINE_I18N = {
   pt: {
-    'bcg':{ name:'BCG', desc:'Protege contra a tuberculose (TB).', ageLabel:'Ao Nascer' },
-    'hepb-1':{ name:'Hepatite B – 1ª dose', desc:'Protege contra infecção hepática causada pela Hepatite B.', ageLabel:'Ao Nascer' },
-    'penta-1':{ name:'Pentavalente – 1ª dose', desc:'Vacina combinada: Difteria, Tétano, Coqueluche, Hepatite B, Hib.', ageLabel:'2 meses' },
-    'ipv-1':{ name:'Pólio (VIP) – 1ª dose', desc:'Vacina Inativada contra Poliomielite.', ageLabel:'2 meses' },
-    'rota-1':{ name:'Rotavírus – 1ª dose', desc:'Protege contra diarreia grave causada por rotavírus.', ageLabel:'2 meses' },
-    'pcv-1':{ name:'Pneumocócica – 1ª dose', desc:'Protege contra pneumonia e meningite.', ageLabel:'2 meses' },
-    'penta-2':{ name:'Pentavalente – 2ª dose', desc:'Segunda dose da vacina combinada.', ageLabel:'4 meses' },
-    'ipv-2':{ name:'Pólio (VIP) – 2ª dose', desc:'Segunda dose da vacina contra Poliomielite.', ageLabel:'4 meses' },
-    'rota-2':{ name:'Rotavírus – 2ª dose', desc:'Segunda dose da vacina contra Rotavírus.', ageLabel:'4 meses' },
-    'pcv-2':{ name:'Pneumocócica – 2ª dose', desc:'Segunda dose da vacina Pneumocócica.', ageLabel:'4 meses' },
-    'penta-3':{ name:'Pentavalente – 3ª dose', desc:'Terceira e última dose primária.', ageLabel:'6 meses' },
-    'ipv-3':{ name:'Pólio (VIP) – 3ª dose', desc:'Terceira dose da vacina contra Poliomielite.', ageLabel:'6 meses' },
-    'rota-3':{ name:'Rotavírus – 3ª dose', desc:'Terceira dose da vacina contra Rotavírus.', ageLabel:'6 meses' },
-    'flu-1':{ name:'Gripe – 1ª dose', desc:'Vacina anual contra a gripe. Primeira dose para bebês com mais de 6 meses.', ageLabel:'6 meses' },
-    'yellow-fever':{ name:'Febre Amarela', desc:'Dose única que oferece proteção vitalícia.', ageLabel:'9 meses' },
-    'measles-1':{ name:'Sarampo – 1ª dose', desc:'Protege contra o vírus do sarampo.', ageLabel:'9 meses' },
-    'mmr-1':{ name:'Tríplice Viral – 1ª dose', desc:'Vacina combinada contra Sarampo, Caxumba e Rubéola.', ageLabel:'12 meses' },
-    'pcv-b':{ name:'Pneumocócica – Reforço', desc:'Dose de reforço para proteção duradoura.', ageLabel:'12 meses' },
-    'meningo-c':{ name:'Meningocócica C', desc:'Protege contra o sorogrupo C da meningococo.', ageLabel:'12 meses' },
-    'hepa-1':{ name:'Hepatite A – 1ª dose', desc:'Protege contra infecção por Hepatite A.', ageLabel:'12 meses' },
-    'varicella-1':{ name:'Varicela – 1ª dose', desc:'Protege contra catapora.', ageLabel:'12 meses' },
-    'dtp-b1':{ name:'DTP – 1º Reforço', desc:'Reforço para Difteria, Tétano e Coqueluche.', ageLabel:'15 meses' },
-    'ipv-b1':{ name:'Pólio (VIP) – Reforço', desc:'Dose de reforço da vacina contra Poliomielite.', ageLabel:'15 meses' },
-    'mmr-2':{ name:'Tríplice Viral – 2ª dose', desc:'Segunda dose para imunidade mais forte.', ageLabel:'15 meses' },
-    'hepa-2':{ name:'Hepatite A – 2ª dose', desc:'Segunda dose para proteção duradoura.', ageLabel:'18 meses' },
-    'varicella-2':{ name:'Varicela – 2ª dose', desc:'Segunda dose para imunidade duradoura.', ageLabel:'4 anos' },
-    'dtp-b2':{ name:'DTP – 2º Reforço', desc:'Dose de reforço pré-escolar.', ageLabel:'4 anos' },
-    'ipv-b2':{ name:'Pólio – 2º Reforço', desc:'Dose de reforço pré-escolar.', ageLabel:'4 anos' },
-    'hpv-1':{ name:'HPV – 1ª dose', desc:'Protege contra cânceres relacionados ao HPV.', ageLabel:'9 anos' },
-    'hpv-2':{ name:'HPV – 2ª dose', desc:'Administrada 6 meses após a primeira dose.', ageLabel:'9,5 anos' },
-    'meningo-acwy':{ name:'Meningocócica ACWY', desc:'Protege contra sorogrupos A, C, W, Y.', ageLabel:'11 anos' },
-    'tdap':{ name:'Reforço dTpa', desc:'Reforço adolescente para Tétano, Difteria e Coqueluche.', ageLabel:'11 anos' },
+    'bcg': { name: 'BCG', desc: 'Protege contra a tuberculose (TB).', ageLabel: 'Ao Nascer' },
+    'hepb-1': { name: 'Hepatite B – 1ª dose', desc: 'Protege contra infecção hepática causada pela Hepatite B.', ageLabel: 'Ao Nascer' },
+    'penta-1': { name: 'Pentavalente – 1ª dose', desc: 'Vacina combinada: Difteria, Tétano, Coqueluche, Hepatite B, Hib.', ageLabel: '2 meses' },
+    'ipv-1': { name: 'Pólio (VIP) – 1ª dose', desc: 'Vacina Inativada contra Poliomielite.', ageLabel: '2 meses' },
+    'rota-1': { name: 'Rotavírus – 1ª dose', desc: 'Protege contra diarreia grave causada por rotavírus.', ageLabel: '2 meses' },
+    'pcv-1': { name: 'Pneumocócica – 1ª dose', desc: 'Protege contra pneumonia e meningite.', ageLabel: '2 meses' },
+    'penta-2': { name: 'Pentavalente – 2ª dose', desc: 'Segunda dose da vacina combinada.', ageLabel: '4 meses' },
+    'ipv-2': { name: 'Pólio (VIP) – 2ª dose', desc: 'Segunda dose da vacina contra Poliomielite.', ageLabel: '4 meses' },
+    'rota-2': { name: 'Rotavírus – 2ª dose', desc: 'Segunda dose da vacina contra Rotavírus.', ageLabel: '4 meses' },
+    'pcv-2': { name: 'Pneumocócica – 2ª dose', desc: 'Segunda dose da vacina Pneumocócica.', ageLabel: '4 meses' },
+    'penta-3': { name: 'Pentavalente – 3ª dose', desc: 'Terceira e última dose primária.', ageLabel: '6 meses' },
+    'ipv-3': { name: 'Pólio (VIP) – 3ª dose', desc: 'Terceira dose da vacina contra Poliomielite.', ageLabel: '6 meses' },
+    'rota-3': { name: 'Rotavírus – 3ª dose', desc: 'Terceira dose da vacina contra Rotavírus.', ageLabel: '6 meses' },
+    'flu-1': { name: 'Gripe – 1ª dose', desc: 'Vacina anual contra a gripe. Primeira dose para bebês com mais de 6 meses.', ageLabel: '6 meses' },
+    'yellow-fever': { name: 'Febre Amarela', desc: 'Dose única que oferece proteção vitalícia.', ageLabel: '9 meses' },
+    'measles-1': { name: 'Sarampo – 1ª dose', desc: 'Protege contra o vírus do sarampo.', ageLabel: '9 meses' },
+    'mmr-1': { name: 'Tríplice Viral – 1ª dose', desc: 'Vacina combinada contra Sarampo, Caxumba e Rubéola.', ageLabel: '12 meses' },
+    'pcv-b': { name: 'Pneumocócica – Reforço', desc: 'Dose de reforço para proteção duradoura.', ageLabel: '12 meses' },
+    'meningo-c': { name: 'Meningocócica C', desc: 'Protege contra o sorogrupo C da meningococo.', ageLabel: '12 meses' },
+    'hepa-1': { name: 'Hepatite A – 1ª dose', desc: 'Protege contra infecção por Hepatite A.', ageLabel: '12 meses' },
+    'varicella-1': { name: 'Varicela – 1ª dose', desc: 'Protege contra catapora.', ageLabel: '12 meses' },
+    'dtp-b1': { name: 'DTP – 1º Reforço', desc: 'Reforço para Difteria, Tétano e Coqueluche.', ageLabel: '15 meses' },
+    'ipv-b1': { name: 'Pólio (VIP) – Reforço', desc: 'Dose de reforço da vacina contra Poliomielite.', ageLabel: '15 meses' },
+    'mmr-2': { name: 'Tríplice Viral – 2ª dose', desc: 'Segunda dose para imunidade mais forte.', ageLabel: '15 meses' },
+    'hepa-2': { name: 'Hepatite A – 2ª dose', desc: 'Segunda dose para proteção duradoura.', ageLabel: '18 meses' },
+    'varicella-2': { name: 'Varicela – 2ª dose', desc: 'Segunda dose para imunidade duradoura.', ageLabel: '4 anos' },
+    'dtp-b2': { name: 'DTP – 2º Reforço', desc: 'Dose de reforço pré-escolar.', ageLabel: '4 anos' },
+    'ipv-b2': { name: 'Pólio – 2º Reforço', desc: 'Dose de reforço pré-escolar.', ageLabel: '4 anos' },
+    'hpv-1': { name: 'HPV – 1ª dose', desc: 'Protege contra cânceres relacionados ao HPV.', ageLabel: '9 anos' },
+    'hpv-2': { name: 'HPV – 2ª dose', desc: 'Administrada 6 meses após a primeira dose.', ageLabel: '9,5 anos' },
+    'meningo-acwy': { name: 'Meningocócica ACWY', desc: 'Protege contra sorogrupos A, C, W, Y.', ageLabel: '11 anos' },
+    'tdap': { name: 'Reforço dTpa', desc: 'Reforço adolescente para Tétano, Difteria e Coqueluche.', ageLabel: '11 anos' },
+    'covid-1': { name: 'COVID-19 – 1ª dose', desc: 'Protege contra o vírus da COVID-19 (Opcional).', ageLabel: '6 meses' },
+    'covid-2': { name: 'COVID-19 – 2ª dose', desc: 'Segunda dose da vacina COVID-19 (Opcional).', ageLabel: '7 meses' },
   },
   fr: {
-    'bcg':{ name:'BCG', desc:'Protège contre la tuberculose (TB).', ageLabel:'À la naissance' },
-    'hepb-1':{ name:'Hépatite B – 1ère dose', desc:"Protège contre l'infection du foie causée par l'hépatite B.", ageLabel:'À la naissance' },
-    'penta-1':{ name:'Pentavalent – 1ère dose', desc:'Vaccin combiné : Diphtérie, Tétanos, Coqueluche, Hépatite B, Hib.', ageLabel:'2 mois' },
-    'ipv-1':{ name:'Polio (VPI) – 1ère dose', desc:'Vaccin antipoliomyélitique inactivé.', ageLabel:'2 mois' },
-    'rota-1':{ name:'Rotavirus – 1ère dose', desc:'Protège contre la diarrhée sévère causée par le rotavirus.', ageLabel:'2 mois' },
-    'pcv-1':{ name:'Pneumococcique – 1ère dose', desc:'Protège contre la pneumonie et la méningite.', ageLabel:'2 mois' },
-    'penta-2':{ name:'Pentavalent – 2ème dose', desc:'Deuxième dose du vaccin combiné.', ageLabel:'4 mois' },
-    'ipv-2':{ name:'Polio (VPI) – 2ème dose', desc:'Deuxième dose du vaccin antipoliomyélitique.', ageLabel:'4 mois' },
-    'rota-2':{ name:'Rotavirus – 2ème dose', desc:'Deuxième dose du vaccin contre le rotavirus.', ageLabel:'4 mois' },
-    'pcv-2':{ name:'Pneumococcique – 2ème dose', desc:'Deuxième dose du vaccin pneumococcique.', ageLabel:'4 mois' },
-    'penta-3':{ name:'Pentavalent – 3ème dose', desc:'Troisième et dernière dose primaire.', ageLabel:'6 mois' },
-    'ipv-3':{ name:'Polio (VPI) – 3ème dose', desc:'Troisième dose du vaccin antipoliomyélitique.', ageLabel:'6 mois' },
-    'rota-3':{ name:'Rotavirus – 3ème dose', desc:'Troisième dose du vaccin contre le rotavirus.', ageLabel:'6 mois' },
-    'flu-1':{ name:'Grippe – 1ère dose', desc:'Vaccin annuel contre la grippe. Première dose pour les bébés de plus de 6 mois.', ageLabel:'6 mois' },
-    'yellow-fever':{ name:'Fièvre Jaune', desc:'Dose unique offrant une protection à vie.', ageLabel:'9 mois' },
-    'measles-1':{ name:'Rougeole – 1ère dose', desc:'Protège contre le virus de la rougeole.', ageLabel:'9 mois' },
-    'mmr-1':{ name:'ROR – 1ère dose', desc:'Vaccin combiné Rougeole, Oreillons, Rubéole.', ageLabel:'12 mois' },
-    'pcv-b':{ name:'Pneumococcique – Rappel', desc:'Dose de rappel pour une protection durable.', ageLabel:'12 mois' },
-    'meningo-c':{ name:'Méningocoque C', desc:'Protège contre le sérogroupe C du méningocoque.', ageLabel:'12 mois' },
-    'hepa-1':{ name:'Hépatite A – 1ère dose', desc:"Protège contre l'infection par l'hépatite A.", ageLabel:'12 mois' },
-    'varicella-1':{ name:'Varicelle – 1ère dose', desc:'Protège contre la varicelle.', ageLabel:'12 mois' },
-    'dtp-b1':{ name:'DTC – 1er Rappel', desc:'Rappel pour Diphtérie, Tétanos, Coqueluche.', ageLabel:'15 mois' },
-    'ipv-b1':{ name:'Polio (VPI) – Rappel', desc:'Dose de rappel du vaccin antipoliomyélitique.', ageLabel:'15 mois' },
-    'mmr-2':{ name:'ROR – 2ème dose', desc:'Deuxième dose pour une immunité renforcée.', ageLabel:'15 mois' },
-    'hepa-2':{ name:'Hépatite A – 2ème dose', desc:'Deuxième dose pour une protection durable.', ageLabel:'18 mois' },
-    'varicella-2':{ name:'Varicelle – 2ème dose', desc:'Deuxième dose pour une immunité durable.', ageLabel:'4 ans' },
-    'dtp-b2':{ name:'DTC – 2ème Rappel', desc:'Dose de rappel pré-scolaire.', ageLabel:'4 ans' },
-    'ipv-b2':{ name:'Polio – 2ème Rappel', desc:'Dose de rappel pré-scolaire.', ageLabel:'4 ans' },
-    'hpv-1':{ name:'HPV – 1ère dose', desc:'Protège contre les cancers liés au HPV.', ageLabel:'9 ans' },
-    'hpv-2':{ name:'HPV – 2ème dose', desc:'Administrée 6 mois après la première dose.', ageLabel:'9,5 ans' },
-    'meningo-acwy':{ name:'Méningocoque ACWY', desc:'Protège contre les sérogroupes A, C, W, Y.', ageLabel:'11 ans' },
-    'tdap':{ name:'Rappel dTca', desc:'Rappel adolescent pour Tétanos, Diphtérie, Coqueluche.', ageLabel:'11 ans' },
+    'bcg': { name: 'BCG', desc: 'Protège contre la tuberculose (TB).', ageLabel: 'À la naissance' },
+    'hepb-1': { name: 'Hépatite B – 1ère dose', desc: "Protège contre l'infection du foie causée par l'hépatite B.", ageLabel: 'À la naissance' },
+    'penta-1': { name: 'Pentavalent – 1ère dose', desc: 'Vaccin combiné : Diphtérie, Tétanos, Coqueluche, Hépatite B, Hib.', ageLabel: '2 mois' },
+    'ipv-1': { name: 'Polio (VPI) – 1ère dose', desc: 'Vaccin antipoliomyélitique inactivé.', ageLabel: '2 mois' },
+    'rota-1': { name: 'Rotavirus – 1ère dose', desc: 'Protège contre la diarrhée sévère causée par le rotavirus.', ageLabel: '2 mois' },
+    'pcv-1': { name: 'Pneumococcique – 1ère dose', desc: 'Protège contre la pneumonie et la méningite.', ageLabel: '2 mois' },
+    'penta-2': { name: 'Pentavalent – 2ème dose', desc: 'Deuxième dose du vaccin combiné.', ageLabel: '4 mois' },
+    'ipv-2': { name: 'Polio (VPI) – 2ème dose', desc: 'Deuxième dose du vaccin antipoliomyélitique.', ageLabel: '4 mois' },
+    'rota-2': { name: 'Rotavirus – 2ème dose', desc: 'Deuxième dose du vaccin contre le rotavirus.', ageLabel: '4 mois' },
+    'pcv-2': { name: 'Pneumococcique – 2ème dose', desc: 'Deuxième dose du vaccin pneumococcique.', ageLabel: '4 mois' },
+    'penta-3': { name: 'Pentavalent – 3ème dose', desc: 'Troisième et dernière dose primaire.', ageLabel: '6 mois' },
+    'ipv-3': { name: 'Polio (VPI) – 3ème dose', desc: 'Troisième dose du vaccin antipoliomyélitique.', ageLabel: '6 mois' },
+    'rota-3': { name: 'Rotavirus – 3ème dose', desc: 'Troisième dose du vaccin contre le rotavirus.', ageLabel: '6 mois' },
+    'flu-1': { name: 'Grippe – 1ère dose', desc: 'Vaccin annuel contre la grippe. Première dose pour les bébés de plus de 6 mois.', ageLabel: '6 mois' },
+    'yellow-fever': { name: 'Fièvre Jaune', desc: 'Dose unique offrant une protection à vie.', ageLabel: '9 mois' },
+    'measles-1': { name: 'Rougeole – 1ère dose', desc: 'Protège contre le virus de la rougeole.', ageLabel: '9 mois' },
+    'mmr-1': { name: 'ROR – 1ère dose', desc: 'Vaccin combiné Rougeole, Oreillons, Rubéole.', ageLabel: '12 mois' },
+    'pcv-b': { name: 'Pneumococcique – Rappel', desc: 'Dose de rappel pour une protection durable.', ageLabel: '12 mois' },
+    'meningo-c': { name: 'Méningocoque C', desc: 'Protège contre le sérogroupe C du méningocoque.', ageLabel: '12 mois' },
+    'hepa-1': { name: 'Hépatite A – 1ère dose', desc: "Protège contre l'infection par l'hépatite A.", ageLabel: '12 mois' },
+    'varicella-1': { name: 'Varicelle – 1ère dose', desc: 'Protège contre la varicelle.', ageLabel: '12 mois' },
+    'dtp-b1': { name: 'DTC – 1er Rappel', desc: 'Rappel pour Diphtérie, Tétanos, Coqueluche.', ageLabel: '15 mois' },
+    'ipv-b1': { name: 'Polio (VPI) – Rappel', desc: 'Dose de rappel du vaccin antipoliomyélitique.', ageLabel: '15 mois' },
+    'mmr-2': { name: 'ROR – 2ème dose', desc: 'Deuxième dose pour une immunité renforcée.', ageLabel: '15 mois' },
+    'hepa-2': { name: 'Hépatite A – 2ème dose', desc: 'Deuxième dose pour une protection durable.', ageLabel: '18 mois' },
+    'varicella-2': { name: 'Varicelle – 2ème dose', desc: 'Deuxième dose pour une immunité durable.', ageLabel: '4 ans' },
+    'dtp-b2': { name: 'DTC – 2ème Rappel', desc: 'Dose de rappel pré-scolaire.', ageLabel: '4 ans' },
+    'ipv-b2': { name: 'Polio – 2ème Rappel', desc: 'Dose de rappel pré-scolaire.', ageLabel: '4 ans' },
+    'hpv-1': { name: 'HPV – 1ère dose', desc: 'Protège contre les cancers liés au HPV.', ageLabel: '9 ans' },
+    'hpv-2': { name: 'HPV – 2ème dose', desc: 'Administrée 6 mois après la première dose.', ageLabel: '9,5 ans' },
+    'meningo-acwy': { name: 'Méningocoque ACWY', desc: 'Protège contre les sérogroupes A, C, W, Y.', ageLabel: '11 ans' },
+    'tdap': { name: 'Rappel dTca', desc: 'Rappel adolescent pour Tétanos, Diphtérie, Coqueluche.', ageLabel: '11 ans' },
+    'covid-1': { name: 'COVID-19 – 1ère dose', desc: 'Protège contre le virus de la COVID-19 (Optionnel).', ageLabel: '6 mois' },
+    'covid-2': { name: 'COVID-19 – 2ème dose', desc: 'Deuxième dose du vaccin COVID-19 (Optionnel).', ageLabel: '7 mois' },
   },
   af: {
-    'bcg':{ name:'BCG', desc:'Beskerm teen tuberkulose (TB).', ageLabel:'By geboorte' },
-    'hepb-1':{ name:'Hepatitis B – 1ste dosis', desc:'Beskerm teen lewerinfeksie veroorsaak deur Hepatitis B.', ageLabel:'By geboorte' },
-    'penta-1':{ name:'Pentavalent – 1ste dosis', desc:'Gekombineerde entstof: Difterie, Tetanus, Kinkhoes, Hepatitis B, Hib.', ageLabel:'2 maande' },
-    'ipv-1':{ name:'Polio (IPV) – 1ste dosis', desc:'Geïnaktiveerde Polio-entstof.', ageLabel:'2 maande' },
-    'rota-1':{ name:'Rotavirus – 1ste dosis', desc:'Beskerm teen erge diarree veroorsaak deur rotavirus.', ageLabel:'2 maande' },
-    'pcv-1':{ name:'Pneumokokkale – 1ste dosis', desc:'Beskerm teen longontsteking en meningitis.', ageLabel:'2 maande' },
-    'penta-2':{ name:'Pentavalent – 2de dosis', desc:'Tweede dosis van die gekombineerde entstof.', ageLabel:'4 maande' },
-    'ipv-2':{ name:'Polio (IPV) – 2de dosis', desc:'Tweede dosis van Polio-entstof.', ageLabel:'4 maande' },
-    'rota-2':{ name:'Rotavirus – 2de dosis', desc:'Tweede dosis van Rotavirus-entstof.', ageLabel:'4 maande' },
-    'pcv-2':{ name:'Pneumokokkale – 2de dosis', desc:'Tweede dosis van Pneumokokkale entstof.', ageLabel:'4 maande' },
-    'penta-3':{ name:'Pentavalent – 3de dosis', desc:'Derde en laaste primêre dosis.', ageLabel:'6 maande' },
-    'ipv-3':{ name:'Polio (IPV) – 3de dosis', desc:'Derde dosis van Polio-entstof.', ageLabel:'6 maande' },
-    'rota-3':{ name:'Rotavirus – 3de dosis', desc:'Derde dosis van Rotavirus-entstof.', ageLabel:'6 maande' },
-    'flu-1':{ name:'Griep – 1ste dosis', desc:'Jaarlikse griep-entstof. Eerste dosis vir babas ouer as 6 maande.', ageLabel:'6 maande' },
-    'yellow-fever':{ name:'Geelkoors', desc:'Enkele dosis wat lewenslange beskerming bied.', ageLabel:'9 maande' },
-    'measles-1':{ name:'Masels – 1ste dosis', desc:'Beskerm teen die maselvirus.', ageLabel:'9 maande' },
-    'mmr-1':{ name:'MMR – 1ste dosis', desc:'Gekombineerde entstof teen Masels, Pampoentjies, Rubella.', ageLabel:'12 maande' },
-    'pcv-b':{ name:'Pneumokokkale – Herhaalskoot', desc:'Herhaaldosis vir langdurige beskerming.', ageLabel:'12 maande' },
-    'meningo-c':{ name:'Meningokokkale C', desc:'Beskerm teen meningokokkale serogroep C.', ageLabel:'12 maande' },
-    'hepa-1':{ name:'Hepatitis A – 1ste dosis', desc:'Beskerm teen Hepatitis A-infeksie.', ageLabel:'12 maande' },
-    'varicella-1':{ name:'Varicella – 1ste dosis', desc:'Beskerm teen waterpokkies.', ageLabel:'12 maande' },
-    'dtp-b1':{ name:'DTP – 1ste Herhaalskoot', desc:'Herhaalskoot vir Difterie, Tetanus, Kinkhoes.', ageLabel:'15 maande' },
-    'ipv-b1':{ name:'Polio (IPV) – Herhaalskoot', desc:'Herhaaldosis van Polio-entstof.', ageLabel:'15 maande' },
-    'mmr-2':{ name:'MMR – 2de dosis', desc:'Tweede dosis vir sterker immuniteit.', ageLabel:'15 maande' },
-    'hepa-2':{ name:'Hepatitis A – 2de dosis', desc:'Tweede dosis vir langdurige beskerming.', ageLabel:'18 maande' },
-    'varicella-2':{ name:'Varicella – 2de dosis', desc:'Tweede dosis vir langdurige immuniteit.', ageLabel:'4 jaar' },
-    'dtp-b2':{ name:'DTP – 2de Herhaalskoot', desc:'Voorskoolse herhaaldosis.', ageLabel:'4 jaar' },
-    'ipv-b2':{ name:'Polio – 2de Herhaalskoot', desc:'Voorskoolse herhaaldosis.', ageLabel:'4 jaar' },
-    'hpv-1':{ name:'HPV – 1ste dosis', desc:'Beskerm teen HPV-verwante kankers.', ageLabel:'9 jaar' },
-    'hpv-2':{ name:'HPV – 2de dosis', desc:'Gegee 6 maande na die eerste dosis.', ageLabel:'9,5 jaar' },
-    'meningo-acwy':{ name:'Meningokokkale ACWY', desc:'Beskerm teen serogroepe A, C, W, Y.', ageLabel:'11 jaar' },
-    'tdap':{ name:'Tdap Herhaalskoot', desc:'Adolessent-herhaalskoot vir Tetanus, Difterie, Kinkhoes.', ageLabel:'11 jaar' },
+    'bcg': { name: 'BCG', desc: 'Beskerm teen tuberkulose (TB).', ageLabel: 'By geboorte' },
+    'hepb-1': { name: 'Hepatitis B – 1ste dosis', desc: 'Beskerm teen lewerinfeksie veroorsaak deur Hepatitis B.', ageLabel: 'By geboorte' },
+    'penta-1': { name: 'Pentavalent – 1ste dosis', desc: 'Gekombineerde entstof: Difterie, Tetanus, Kinkhoes, Hepatitis B, Hib.', ageLabel: '2 maande' },
+    'ipv-1': { name: 'Polio (IPV) – 1ste dosis', desc: 'Geïnaktiveerde Polio-entstof.', ageLabel: '2 maande' },
+    'rota-1': { name: 'Rotavirus – 1ste dosis', desc: 'Beskerm teen erge diarree veroorsaak deur rotavirus.', ageLabel: '2 maande' },
+    'pcv-1': { name: 'Pneumokokkale – 1ste dosis', desc: 'Beskerm teen longontsteking en meningitis.', ageLabel: '2 maande' },
+    'penta-2': { name: 'Pentavalent – 2de dosis', desc: 'Tweede dosis van die gekombineerde entstof.', ageLabel: '4 maande' },
+    'ipv-2': { name: 'Polio (IPV) – 2de dosis', desc: 'Tweede dosis van Polio-entstof.', ageLabel: '4 maande' },
+    'rota-2': { name: 'Rotavirus – 2de dosis', desc: 'Tweede dosis van Rotavirus-entstof.', ageLabel: '4 maande' },
+    'pcv-2': { name: 'Pneumokokkale – 2de dosis', desc: 'Tweede dosis van Pneumokokkale entstof.', ageLabel: '4 maande' },
+    'penta-3': { name: 'Pentavalent – 3de dosis', desc: 'Derde en laaste primêre dosis.', ageLabel: '6 maande' },
+    'ipv-3': { name: 'Polio (IPV) – 3de dosis', desc: 'Derde dosis van Polio-entstof.', ageLabel: '6 maande' },
+    'rota-3': { name: 'Rotavirus – 3de dosis', desc: 'Derde dosis van Rotavirus-entstof.', ageLabel: '6 maande' },
+    'flu-1': { name: 'Griep – 1ste dosis', desc: 'Jaarlikse griep-entstof. Eerste dosis vir babas ouer as 6 maande.', ageLabel: '6 maande' },
+    'yellow-fever': { name: 'Geelkoors', desc: 'Enkele dosis wat lewenslange beskerming bied.', ageLabel: '9 maande' },
+    'measles-1': { name: 'Masels – 1ste dosis', desc: 'Beskerm teen die maselvirus.', ageLabel: '9 maande' },
+    'mmr-1': { name: 'MMR – 1ste dosis', desc: 'Gekombineerde entstof teen Masels, Pampoentjies, Rubella.', ageLabel: '12 maande' },
+    'pcv-b': { name: 'Pneumokokkale – Herhaalskoot', desc: 'Herhaaldosis vir langdurige beskerming.', ageLabel: '12 maande' },
+    'meningo-c': { name: 'Meningokokkale C', desc: 'Beskerm teen meningokokkale serogroep C.', ageLabel: '12 maande' },
+    'hepa-1': { name: 'Hepatitis A – 1ste dosis', desc: 'Beskerm teen Hepatitis A-infeksie.', ageLabel: '12 maande' },
+    'varicella-1': { name: 'Varicella – 1ste dosis', desc: 'Beskerm teen waterpokkies.', ageLabel: '12 maande' },
+    'dtp-b1': { name: 'DTP – 1ste Herhaalskoot', desc: 'Herhaalskoot vir Difterie, Tetanus, Kinkhoes.', ageLabel: '15 maande' },
+    'ipv-b1': { name: 'Polio (IPV) – Herhaalskoot', desc: 'Herhaaldosis van Polio-entstof.', ageLabel: '15 maande' },
+    'mmr-2': { name: 'MMR – 2de dosis', desc: 'Tweede dosis vir sterker immuniteit.', ageLabel: '15 maande' },
+    'hepa-2': { name: 'Hepatitis A – 2de dosis', desc: 'Tweede dosis vir langdurige beskerming.', ageLabel: '18 maande' },
+    'varicella-2': { name: 'Varicella – 2de dosis', desc: 'Tweede dosis vir langdurige immuniteit.', ageLabel: '4 jaar' },
+    'dtp-b2': { name: 'DTP – 2de Herhaalskoot', desc: 'Voorskoolse herhaaldosis.', ageLabel: '4 jaar' },
+    'ipv-b2': { name: 'Polio – 2de Herhaalskoot', desc: 'Voorskoolse herhaaldosis.', ageLabel: '4 jaar' },
+    'hpv-1': { name: 'HPV – 1ste dosis', desc: 'Beskerm teen HPV-verwante kankers.', ageLabel: '9 jaar' },
+    'hpv-2': { name: 'HPV – 2de dosis', desc: 'Gegee 6 maande na die eerste dosis.', ageLabel: '9,5 jaar' },
+    'meningo-acwy': { name: 'Meningokokkale ACWY', desc: 'Beskerm teen serogroepe A, C, W, Y.', ageLabel: '11 jaar' },
+    'tdap': { name: 'Tdap Herhaalskoot', desc: 'Adolessent-herhaalskoot vir Tetanus, Difterie, Kinkhoes.', ageLabel: '11 jaar' },
+    'covid-1': { name: 'COVID-19 – 1ste dosis', desc: 'Beskerm teen COVID-19 virus (Opsioneel).', ageLabel: '6 maande' },
+    'covid-2': { name: 'COVID-19 – 2de dosis', desc: 'Tweede dosis COVID-19 entstof (Opsioneel).', ageLabel: '7 maande' },
   },
 };
 
@@ -217,9 +226,9 @@ function getVaccineBaseType(id) {
   const parts = id.split('-');
   if (parts[0] === 'custom') return 'custom';
   // Remove trailing number
-  if (parts.length > 1 && /^\d+$/.test(parts[parts.length-1])) parts.pop();
+  if (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1])) parts.pop();
   // Remove 'b' suffix (booster indicator)
-  if (parts.length > 1 && /^b\d*$/.test(parts[parts.length-1])) parts.pop();
+  if (parts.length > 1 && /^b\d*$/.test(parts[parts.length - 1])) parts.pop();
   return parts.join('-');
 }
 
@@ -294,6 +303,10 @@ const VACCINE_DETAIL = {
       pros: ['Essential adolescent booster for 3 diseases', 'Helps protect newborns from whooping cough', 'Maintains tetanus immunity for wound protection', 'Need only 1 dose as a teen'],
       cons: ['Injection site pain common', 'Body aches for 1-2 days', 'Mild fever or headache', 'Fatigue for 24-48 hours'],
     },
+    'covid': {
+      pros: ['Protects against severe COVID-19', 'Reduces transmission', 'Prevents hospitalization'],
+      cons: ['Sore arm', 'Fever or chills', 'Fatigue for 24-48 hours'],
+    },
   },
   pt: {
     'bcg': {
@@ -363,6 +376,10 @@ const VACCINE_DETAIL = {
     'tdap': {
       pros: ['Reforço essencial para adolescentes contra 3 doenças', 'Ajuda a proteger recém-nascidos da coqueluche', 'Mantém imunidade antitetânica para ferimentos', 'Necessária apenas 1 dose na adolescência'],
       cons: ['Dor no local da injeção é comum', 'Dores no corpo por 1-2 dias', 'Febre leve ou dor de cabeça', 'Fadiga por 24-48 horas'],
+    },
+    'covid': {
+      pros: ['Protege contra formas graves da COVID-19', 'Reduz a transmissão', 'Previne hospitalizações'],
+      cons: ['Dor no braço', 'Febre ou calafrios', 'Fadiga por 24-48 horas'],
     },
   },
   fr: {
@@ -434,6 +451,10 @@ const VACCINE_DETAIL = {
       pros: ['Rappel essentiel pour adolescents contre 3 maladies', 'Aide à protéger les nouveau-nés de la coqueluche', 'Maintient l\'immunité antitétanique pour les blessures', 'Une seule dose nécessaire à l\'adolescence'],
       cons: ['Douleur au point d\'injection fréquente', 'Courbatures pendant 1-2 jours', 'Fièvre légère ou mal de tête', 'Fatigue pendant 24-48 heures'],
     },
+    'covid': {
+      pros: ['Protège contre les formes graves de la COVID-19', 'Réduit la transmission', 'Prévient l\'hospitalisation'],
+      cons: ['Douleur au bras', 'Fièvre ou frissons', 'Fatigue pendant 24-48 heures'],
+    },
   },
   af: {
     'bcg': {
@@ -504,23 +525,28 @@ const VACCINE_DETAIL = {
       pros: ['Noodsaaklike adolessent-herhaalskoot teen 3 siektes', 'Help om pasgeborenes teen kinkhoes te beskerm', 'Handhaaf tetanus-immuniteit vir wondbeskerming', 'Slegs 1 dosis nodig as tiener'],
       cons: ['Inspuitplek-pyn is algemeen', 'Lyfseer vir 1-2 dae', 'Ligte koors of hoofpyn', 'Moegheid vir 24-48 uur'],
     },
+    'covid': {
+      pros: ['Beskerm teen ernstige COVID-19', 'Verminder oordrag', 'Voorkom hospitalisasie'],
+      cons: ['Seer arm', 'Koors of koue rillings', 'Moegheid vir 24-48 uur'],
+    },
   },
 };
 
 // Map vaccine IDs to their base type for pros/cons lookup
 function getVaccineBaseType(vaccineId) {
   const map = {
-    'bcg':'bcg', 'hepb-1':'hepb', 'penta-1':'penta', 'penta-2':'penta', 'penta-3':'penta',
-    'ipv-1':'ipv', 'ipv-2':'ipv', 'ipv-3':'ipv', 'ipv-b1':'ipv', 'ipv-b2':'ipv',
-    'rota-1':'rota', 'rota-2':'rota', 'rota-3':'rota',
-    'pcv-1':'pcv', 'pcv-2':'pcv', 'pcv-b':'pcv',
-    'flu-1':'flu', 'yellow-fever':'yellow-fever',
-    'measles-1':'measles', 'mmr-1':'mmr', 'mmr-2':'mmr',
-    'meningo-c':'meningo-c', 'hepa-1':'hepa', 'hepa-2':'hepa',
-    'varicella-1':'varicella', 'varicella-2':'varicella',
-    'dtp-b1':'dtp', 'dtp-b2':'dtp',
-    'hpv-1':'hpv', 'hpv-2':'hpv',
-    'meningo-acwy':'meningo-acwy', 'tdap':'tdap',
+    'bcg': 'bcg', 'hepb-1': 'hepb', 'penta-1': 'penta', 'penta-2': 'penta', 'penta-3': 'penta',
+    'ipv-1': 'ipv', 'ipv-2': 'ipv', 'ipv-3': 'ipv', 'ipv-b1': 'ipv', 'ipv-b2': 'ipv',
+    'rota-1': 'rota', 'rota-2': 'rota', 'rota-3': 'rota',
+    'pcv-1': 'pcv', 'pcv-2': 'pcv', 'pcv-b': 'pcv',
+    'flu-1': 'flu', 'yellow-fever': 'yellow-fever',
+    'measles-1': 'measles', 'mmr-1': 'mmr', 'mmr-2': 'mmr',
+    'meningo-c': 'meningo-c', 'hepa-1': 'hepa', 'hepa-2': 'hepa',
+    'varicella-1': 'varicella', 'varicella-2': 'varicella',
+    'dtp-b1': 'dtp', 'dtp-b2': 'dtp',
+    'hpv-1': 'hpv', 'hpv-2': 'hpv',
+    'meningo-acwy': 'meningo-acwy', 'tdap': 'tdap',
+    'covid-1': 'covid', 'covid-2': 'covid'
   };
   return map[vaccineId] || vaccineId;
 }
@@ -1501,7 +1527,7 @@ const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
 const esc = s => { const d = document.createElement('span'); d.textContent = s; return d.innerHTML; };
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
 function schedDate(birth, months) {
   const d = new Date(birth);
@@ -1511,8 +1537,8 @@ function schedDate(birth, months) {
 
 function vaccineStatus(v, birth) {
   if (v.completedDate) return 'completed';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const sched = new Date(v.scheduledDate); sched.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const sched = new Date(v.scheduledDate); sched.setHours(0, 0, 0, 0);
   const diff = (sched - today) / 864e5;
   if (diff < 0) return 'overdue';
   if (diff <= 30) return 'upcoming';
@@ -1521,31 +1547,31 @@ function vaccineStatus(v, birth) {
 
 function ageStr(birth) {
   const now = new Date(), b = new Date(birth);
-  let y = now.getFullYear()-b.getFullYear(), m = now.getMonth()-b.getMonth(), d = now.getDate()-b.getDate();
+  let y = now.getFullYear() - b.getFullYear(), m = now.getMonth() - b.getMonth(), d = now.getDate() - b.getDate();
   if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
   if (m < 0) { y--; m += 12; }
   if (y > 0) {
-    const yrStr = y > 1 ? t('age_years_plural', {y}) : t('age_years', {y});
-    const moStr = m > 0 ? t('age_months_and', {m}) : '';
+    const yrStr = y > 1 ? t('age_years_plural', { y }) : t('age_years', { y });
+    const moStr = m > 0 ? t('age_months_and', { m }) : '';
     return yrStr + moStr;
   }
-  if (m > 0) return m > 1 ? t('age_months', {m}) : t('age_month', {m});
+  if (m > 0) return m > 1 ? t('age_months', { m }) : t('age_month', { m });
   const days = Math.max(0, d);
-  return days !== 1 ? t('age_days', {d: days}) : t('age_day', {d: days});
+  return days !== 1 ? t('age_days', { d: days }) : t('age_day', { d: days });
 }
 
 function fmtDate(s) {
   if (!s) return '—';
-  const d = new Date(s+'T00:00:00');
-  const localeMap = { en:'en-US', pt:'pt-AO', fr:'fr-FR', af:'af-ZA' };
-  return d.toLocaleDateString(localeMap[currentLang]||'en-US', { month:'short', day:'numeric', year:'numeric' });
+  const d = new Date(s + 'T00:00:00');
+  const localeMap = { en: 'en-US', pt: 'pt-AO', fr: 'fr-FR', af: 'af-ZA' };
+  return d.toLocaleDateString(localeMap[currentLang] || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return { text: t('good_morning'), emoji:'🌅' };
-  if (h < 18) return { text: t('good_afternoon'), emoji:'☀️' };
-  return { text: t('good_evening'), emoji:'🌙' };
+  if (h < 12) return { text: t('good_morning'), emoji: '🌅' };
+  if (h < 18) return { text: t('good_afternoon'), emoji: '☀️' };
+  return { text: t('good_evening'), emoji: '🌙' };
 }
 
 // ─── Data Persistence ───────────────────────────────────
@@ -1579,7 +1605,7 @@ async function getSyncToken(interactive = true) {
   let token = localStorage.getItem('vt2_token');
   let pwd = sessionStorage.getItem('vt2_sync_pwd');
   if (token && pwd) return { token, pwd };
-  
+
   if (sessionStorage.getItem('vt2_sync_skip')) return null;
 
   if (!interactive) return null;
@@ -1617,7 +1643,7 @@ async function performSync(dataString) {
   const auth = await getSyncToken();
   if (!auth) return;
   const { token, pwd } = auth;
-  
+
   // Encrypt the payload before sending
   const encryptedPayload = CryptoJS.AES.encrypt(dataString, pwd).toString();
 
@@ -1657,8 +1683,8 @@ async function syncFromCloud(interactive = true) {
     if (!auth) return;
     const { token, pwd } = auth;
 
-    const res = await fetch(SYNC_API_URL, { 
-      headers: { 'Authorization': `Bearer ${token}` } 
+    const res = await fetch(SYNC_API_URL, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401 || res.status === 403) {
       localStorage.removeItem('vt2_token');
@@ -1678,14 +1704,14 @@ async function syncFromCloud(interactive = true) {
       if (d.users) S.users = d.users;
       if (d.adminPin) S.adminPin = d.adminPin;
       if (d.adminProfiles) S.adminProfiles = d.adminProfiles;
-      
+
       // Update local storage without recursive sync
       localStorage.setItem('vt2', JSON.stringify({
         users: S.users,
         adminPin: S.adminPin,
         adminProfiles: S.adminProfiles
       }));
-      
+
       console.log('Database sync successful');
     }
   } catch (err) {
@@ -1699,13 +1725,13 @@ function currentUser() { return S.users.find(u => u.id === S.userId); }
 function initTheme() {
   const saved = localStorage.getItem('vt2_theme');
   const dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  if (dark) document.documentElement.setAttribute('data-theme','dark');
+  if (dark) document.documentElement.setAttribute('data-theme', 'dark');
   $('toggle-theme').checked = dark;
 }
 function toggleTheme() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  if (dark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('vt2_theme','light'); }
-  else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('vt2_theme','dark'); }
+  if (dark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('vt2_theme', 'light'); }
+  else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('vt2_theme', 'dark'); }
 }
 
 // ─── Init ───────────────────────────────────────────────
@@ -1729,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }, 2200);
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
 
   window.addEventListener('online', () => {
     toast('Back online. Syncing data...');
@@ -1745,17 +1771,17 @@ function injectSVGDefs() {
   // SVG gradient for progress ring
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('width','0'); svg.setAttribute('height','0');
+  svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
   svg.style.position = 'absolute';
   const defs = document.createElementNS(ns, 'defs');
   const grad = document.createElementNS(ns, 'linearGradient');
   grad.id = 'ringGrad';
-  grad.setAttribute('x1','0%'); grad.setAttribute('y1','0%');
-  grad.setAttribute('x2','100%'); grad.setAttribute('y2','100%');
-  const s1 = document.createElementNS(ns,'stop'); s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#6366f1');
-  const s2 = document.createElementNS(ns,'stop'); s2.setAttribute('offset','50%'); s2.setAttribute('stop-color','#a855f7');
-  const s3 = document.createElementNS(ns,'stop'); s3.setAttribute('offset','100%'); s3.setAttribute('stop-color','#ec4899');
-  grad.append(s1,s2,s3); defs.append(grad); svg.append(defs);
+  grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
+  grad.setAttribute('x2', '100%'); grad.setAttribute('y2', '100%');
+  const s1 = document.createElementNS(ns, 'stop'); s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', '#6366f1');
+  const s2 = document.createElementNS(ns, 'stop'); s2.setAttribute('offset', '50%'); s2.setAttribute('stop-color', '#a855f7');
+  const s3 = document.createElementNS(ns, 'stop'); s3.setAttribute('offset', '100%'); s3.setAttribute('stop-color', '#ec4899');
+  grad.append(s1, s2, s3); defs.append(grad); svg.append(defs);
   document.body.prepend(svg);
 }
 
@@ -1924,7 +1950,7 @@ function bindEvents() {
 
 // ─── Screen Navigation ──────────────────────────────────
 function showScreen(name) {
-  ['screen-lang','screen-landing','screen-login','screen-unified-login','screen-create-parent'].forEach(id => {
+  ['screen-lang', 'screen-landing', 'screen-login', 'screen-unified-login', 'screen-create-parent'].forEach(id => {
     $(id).classList.toggle('hidden', id !== `screen-${name}`);
   });
 
@@ -1936,7 +1962,7 @@ function showScreen(name) {
 
 function enterApp(role) {
   S.role = role;
-  ['screen-lang','screen-landing','screen-login','screen-unified-login','screen-create-parent'].forEach(id => {
+  ['screen-lang', 'screen-landing', 'screen-login', 'screen-unified-login', 'screen-create-parent'].forEach(id => {
     $(id).classList.add('hidden');
   });
   $('app-shell').classList.remove('hidden');
@@ -1990,7 +2016,7 @@ function showAppView(name) {
   }
 
   const back = $('btn-nav-back');
-  const isSubView = ['child','admin-family'].includes(name);
+  const isSubView = ['child', 'admin-family'].includes(name);
   back.classList.toggle('hidden', !isSubView);
 
   // Update header per page
@@ -2061,7 +2087,7 @@ function renderParentProfiles() {
   }
   list.innerHTML = S.users.map(u => {
     const childCount = u.children ? u.children.length : 0;
-    const countLabel = childCount === 1 ? t('child_count', {n: childCount}) : t('children_count', {n: childCount});
+    const countLabel = childCount === 1 ? t('child_count', { n: childCount }) : t('children_count', { n: childCount });
     return `
       <div class="profile-item" onclick="selectParent('${u.id}')">
         <span class="profile-item-avatar">${u.avatar}</span>
@@ -2080,7 +2106,7 @@ function handleUnifiedLogin(e) {
   e.preventDefault();
   const phone = $('input-login-phone').value.trim();
   const pin = $('input-login-pin').value;
-  
+
   if (!phone || !pin) { toast(t('fill_all_fields') || 'Please fill in all fields'); return; }
 
   // Check Admin Profiles
@@ -2115,9 +2141,9 @@ function handleCreateParent(e) {
   const whatsapp = $('input-parent-whatsapp')?.value.trim() || '';
   const pin = $('input-parent-pin')?.value.trim() || '';
   const avatar = document.querySelector('input[name="avatar"]:checked')?.value || '👩';
-  
+
   if (!name || !whatsapp || !pin) { toast(t('fill_all_fields') || 'Please fill name, phone and PIN'); return; }
-  
+
   // Validate email format if provided
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     toast('⚠️ Invalid email format');
@@ -2130,7 +2156,7 @@ function handleCreateParent(e) {
   S.userId = user.id;
   $('form-create-parent').reset();
   enterApp('parent');
-  toast(t('welcome_user', {name}));
+  toast(t('welcome_user', { name }));
 }
 
 function handleLogout() {
@@ -2161,8 +2187,8 @@ function renderHome() {
     (child.vaccines || []).forEach(v => {
       if (v.completedDate) { totalDone++; return; }
       const st = vaccineStatus(v, child.birthDate);
-      if (st === 'overdue') { totalPending++; alerts.push({ child, vaccine:v }); }
-      else if (st === 'upcoming') { totalPending++; upcoming.push({ child, vaccine:v }); }
+      if (st === 'overdue') { totalPending++; alerts.push({ child, vaccine: v }); }
+      else if (st === 'upcoming') { totalPending++; upcoming.push({ child, vaccine: v }); }
       else totalPending++;
     });
   });
@@ -2175,7 +2201,7 @@ function renderHome() {
   const alertsSec = $('home-alerts');
   if (alerts.length) {
     alertsSec.classList.remove('hidden');
-    $('home-alerts-list').innerHTML = alerts.slice(0,5).map(a => `
+    $('home-alerts-list').innerHTML = alerts.slice(0, 5).map(a => `
       <div class="alert-card" onclick="goChildVaccine('${a.child.id}','${a.vaccine.id}')">
         <span class="alert-emoji">🚨</span>
         <div class="alert-text">
@@ -2198,20 +2224,20 @@ function renderHome() {
       const vaxes = child.vaccines || [];
       const done = vaxes.filter(v => v.completedDate).length;
       const total = vaxes.length;
-      const pct = total ? Math.round(done/total*100) : 0;
+      const pct = total ? Math.round(done / total * 100) : 0;
       const overdueCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'overdue').length;
       const pendingCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'pending').length;
       const upcomingCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'upcoming').length;
       const avatar = child.gender === 'female' ? '👧' : '👦';
-      
+
       // Find next upcoming vaccine
       const nextVax = vaxes
         .filter(v => !v.completedDate)
-        .sort((a,b) => new Date(a.scheduledDate) - new Date(b.scheduledDate))[0];
+        .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate))[0];
       const nextInfo = nextVax ? `${t('next_vaccine')}: ${getVaccineI18n(nextVax.id).name} (${fmtDate(nextVax.scheduledDate)})` : t('no_pending');
 
       return `
-        <div class="child-card child-card-detailed" onclick="goChild('${child.id}')" style="animation-delay:${i*0.08}s">
+        <div class="child-card child-card-detailed" onclick="goChild('${child.id}')" style="animation-delay:${i * 0.08}s">
           <div class="cc-top-row">
             <div class="cc-avatar">${avatar}</div>
             <div class="cc-info">
@@ -2236,7 +2262,7 @@ function renderHome() {
   }
 
   // Upcoming — show ALL children's upcoming/overdue vaccines
-  const upItems = [...alerts,...upcoming].sort((a,b) => new Date(a.vaccine.scheduledDate)-new Date(b.vaccine.scheduledDate)).slice(0,6);
+  const upItems = [...alerts, ...upcoming].sort((a, b) => new Date(a.vaccine.scheduledDate) - new Date(b.vaccine.scheduledDate)).slice(0, 6);
   const upSec = $('home-upcoming-section');
   if (upItems.length) {
     upSec.classList.remove('hidden');
@@ -2255,7 +2281,7 @@ function renderHome() {
       `;
     }).join('');
   } else upSec.classList.add('hidden');
-  
+
   checkNotifications();
 }
 
@@ -2288,21 +2314,21 @@ function checkNotifications() {
 }
 
 // ─── Global onclick handlers ────────────────────────────
-window.goChild = function(id) {
+window.goChild = function (id) {
   S.currentChildId = id;
   S.filter = 'all';
-  $$('.pill').forEach(p => p.classList.toggle('active', p.dataset.filter==='all'));
+  $$('.pill').forEach(p => p.classList.toggle('active', p.dataset.filter === 'all'));
   showAppView('child');
 };
 
-window.goChildVaccine = function(childId, vaccineId) {
+window.goChildVaccine = function (childId, vaccineId) {
   S.currentChildId = childId;
   S.filter = 'all';
   showAppView('child');
   setTimeout(() => openVaccineModal(vaccineId), 400);
 };
 
-window.goAdminFamily = function(userId) {
+window.goAdminFamily = function (userId) {
   S.adminViewUserId = userId;
   showAppView('admin-family');
   renderAdminFamilyDetail(userId);
@@ -2313,7 +2339,7 @@ window.openVaccineModal = openVaccineModal;
 // ─── Child Detail ───────────────────────────────────────
 function getChildById(id) {
   for (const u of S.users) {
-    const c = (u.children||[]).find(ch => ch.id === id);
+    const c = (u.children || []).find(ch => ch.id === id);
     if (c) return c;
   }
   return null;
@@ -2324,15 +2350,15 @@ function renderChildDetail() {
   if (!child) return navBack();
 
   const avatar = child.gender === 'female' ? '👧' : '👦';
-  const done = (child.vaccines||[]).filter(v=>v.completedDate).length;
-  const total = (child.vaccines||[]).length;
-  const pct = total ? Math.round(done/total*100) : 0;
+  const done = (child.vaccines || []).filter(v => v.completedDate).length;
+  const total = (child.vaccines || []).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
   const circumference = 2 * Math.PI * 42;
 
   $('child-hero-avatar').textContent = avatar;
   $('child-hero-name').textContent = child.name;
   $('child-hero-age').textContent = `${ageStr(child.birthDate)} · ${fmtDate(child.birthDate)}`;
-  $('progress-ring-fill').style.strokeDashoffset = circumference - (pct/100) * circumference;
+  $('progress-ring-fill').style.strokeDashoffset = circumference - (pct / 100) * circumference;
   $('progress-ring-text').textContent = `${pct}%`;
 
   // Hide edit/delete for admin viewing other families
@@ -2348,7 +2374,7 @@ function renderChildVaccines() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
 
-  let vaccines = (child.vaccines||[]).map(v => ({
+  let vaccines = (child.vaccines || []).map(v => ({
     ...v, status: v.completedDate ? 'completed' : vaccineStatus(v, child.birthDate)
   }));
 
@@ -2376,7 +2402,7 @@ function renderChildVaccines() {
     grouped[gk].forEach(v => {
       const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
       html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="openVaccineModal('${v.id}')">
+        <div class="vt-card ${v.status === 'completed' ? 'vt-completed' : ''}" onclick="openVaccineModal('${v.id}')">
           <span class="uc-dot dot-${v.status}"></span>
           <div class="uc-info">
             <div class="uc-name">${getVaccineI18n(v.id).name}</div>
@@ -2416,7 +2442,7 @@ function renderScheduleView() {
   const child = user.children.find(c => c.id === childId);
   if (!child) return;
 
-  const vaccines = (child.vaccines||[]).map(v => ({
+  const vaccines = (child.vaccines || []).map(v => ({
     ...v, status: v.completedDate ? 'completed' : vaccineStatus(v, child.birthDate)
   }));
 
@@ -2436,7 +2462,7 @@ function renderScheduleView() {
     grouped[gk].forEach(v => {
       const dateText = v.completedDate ? `✅ ${fmtDate(v.completedDate)}` : `📅 ${fmtDate(v.scheduledDate)}`;
       html += `
-        <div class="vt-card ${v.status==='completed'?'vt-completed':''}" onclick="goScheduleVaccine('${child.id}','${v.id}')">
+        <div class="vt-card ${v.status === 'completed' ? 'vt-completed' : ''}" onclick="goScheduleVaccine('${child.id}','${v.id}')">
           <span class="uc-dot dot-${v.status}"></span>
           <div class="uc-info">
             <div class="uc-name">${getVaccineI18n(v.id).name}</div>
@@ -2450,7 +2476,7 @@ function renderScheduleView() {
   $('schedule-timeline').innerHTML = html;
 }
 
-window.goScheduleVaccine = function(childId, vaccineId) {
+window.goScheduleVaccine = function (childId, vaccineId) {
   S.currentChildId = childId;
   openVaccineModal(vaccineId);
 };
@@ -2461,7 +2487,7 @@ function renderHistory() {
   if (!user) return;
 
   const children = user.children || [];
-  
+
   // Render filter controls
   let filterHtml = '<div class="history-filters">';
   // Child filter
@@ -2471,7 +2497,7 @@ function renderHistory() {
   filterHtml += `</select></div>`;
   // Vaccine type filter
   const uniqueTypes = new Set();
-  children.forEach(c => (c.vaccines||[]).forEach(v => { if(v.completedDate) { const bt = getVaccineBaseType(v.id); uniqueTypes.add(bt); }}));
+  children.forEach(c => (c.vaccines || []).forEach(v => { if (v.completedDate) { const bt = getVaccineBaseType(v.id); uniqueTypes.add(bt); } }));
   filterHtml += `<div class="hf-row"><label>${t('filter_by_type')}</label><select id="history-type-filter" class="select-pill" onchange="applyHistoryFilters()">`;
   filterHtml += `<option value="all">${t('all_types')}</option>`;
   [...uniqueTypes].sort().forEach(bt => { filterHtml += `<option value="${bt}">${bt.toUpperCase()}</option>`; });
@@ -2479,13 +2505,13 @@ function renderHistory() {
   // Date range
   filterHtml += `<div class="hf-row hf-dates"><label>${t('filter_by_date')}</label><div class="hf-date-inputs"><input type="date" id="history-date-from" class="select-pill" onchange="applyHistoryFilters()" placeholder="${t('date_from')}"><input type="date" id="history-date-to" class="select-pill" onchange="applyHistoryFilters()" placeholder="${t('date_to')}"></div></div>`;
   filterHtml += '</div>';
-  
+
   $('history-filters-container').innerHTML = filterHtml;
-  
+
   applyHistoryFilters();
 }
 
-window.applyHistoryFilters = function() {
+window.applyHistoryFilters = function () {
   const user = currentUser();
   if (!user) return;
 
@@ -2495,9 +2521,9 @@ window.applyHistoryFilters = function() {
   const dateTo = $('history-date-to')?.value || '';
 
   const completed = [];
-  (user.children||[]).forEach(child => {
+  (user.children || []).forEach(child => {
     if (childFilter !== 'all' && child.id !== childFilter) return;
-    (child.vaccines||[]).forEach(v => {
+    (child.vaccines || []).forEach(v => {
       if (!v.completedDate) return;
       if (typeFilter !== 'all' && getVaccineBaseType(v.id) !== typeFilter) return;
       if (dateFrom && v.completedDate < dateFrom) return;
@@ -2506,7 +2532,7 @@ window.applyHistoryFilters = function() {
     });
   });
 
-  completed.sort((a,b) => new Date(b.vaccine.completedDate) - new Date(a.vaccine.completedDate));
+  completed.sort((a, b) => new Date(b.vaccine.completedDate) - new Date(a.vaccine.completedDate));
 
   if (!completed.length) {
     $('history-empty').classList.remove('hidden');
@@ -2535,21 +2561,21 @@ function renderAdminHome() {
   const vaccineData = {};
 
   S.users.forEach(u => {
-    (u.children||[]).forEach(child => {
+    (u.children || []).forEach(child => {
       totalChildren++;
-      (child.vaccines||[]).forEach(v => {
+      (child.vaccines || []).forEach(v => {
         totalVaccines++;
         if (v.completedDate) totalVaccinesGiven++;
         const sched = VACCINE_SCHEDULE.find(s => s.id === v.id);
         const label = sched ? sched.group : 'other';
-        if (!vaccineData[label]) vaccineData[label] = { done:0, total:0 };
+        if (!vaccineData[label]) vaccineData[label] = { done: 0, total: 0 };
         vaccineData[label].total++;
         if (v.completedDate) vaccineData[label].done++;
       });
     });
   });
 
-  const rate = totalVaccines ? Math.round(totalVaccinesGiven/totalVaccines*100) : 0;
+  const rate = totalVaccines ? Math.round(totalVaccinesGiven / totalVaccines * 100) : 0;
 
   $('as-families').textContent = totalFamilies;
   $('as-children').textContent = totalChildren;
@@ -2563,12 +2589,12 @@ function renderAdminHome() {
   if (groups.length) {
     chartContainer.innerHTML = groups.map(g => {
       const d = vaccineData[g];
-      const pct = d.total ? Math.round(d.done/d.total*100) : 0;
+      const pct = d.total ? Math.round(d.done / d.total * 100) : 0;
       const maxH = 120;
       return `
         <div class="chart-bar-wrap">
           <div class="chart-value">${pct}%</div>
-          <div class="chart-bar" style="height:${Math.max(4, pct/100*maxH)}px"></div>
+          <div class="chart-bar" style="height:${Math.max(4, pct / 100 * maxH)}px"></div>
           <div class="chart-label">${g}</div>
         </div>
       `;
@@ -2581,13 +2607,13 @@ function renderAdminHome() {
   if (totalFamilies) {
     $('admin-no-families').classList.add('hidden');
     $('admin-families').innerHTML = S.users.map(u => {
-      const cc = (u.children||[]).length;
+      const cc = (u.children || []).length;
       return `
         <div class="admin-family-card" onclick="goAdminFamily('${u.id}')">
           <span class="afc-avatar">${u.avatar}</span>
           <div class="afc-info">
             <div class="afc-name">${esc(u.name)}</div>
-            <div class="afc-sub">${cc === 1 ? t('child_count', {n: cc}) : t('children_count', {n: cc})}</div>
+            <div class="afc-sub">${cc === 1 ? t('child_count', { n: cc }) : t('children_count', { n: cc })}</div>
           </div>
           <span class="afc-arrow">→</span>
         </div>
@@ -2605,8 +2631,8 @@ function renderAdminFamilyDetail(userId) {
 
   $('header-title').textContent = user.name;
 
-  const cc = (user.children||[]).length;
-  const countLabel = cc === 1 ? t('child_count', {n: cc}) : t('children_count', {n: cc});
+  const cc = (user.children || []).length;
+  const countLabel = cc === 1 ? t('child_count', { n: cc }) : t('children_count', { n: cc });
   $('admin-family-header').innerHTML = `
     <div class="ph-avatar">${user.avatar}</div>
     <h2>${esc(user.name)}</h2>
@@ -2614,15 +2640,15 @@ function renderAdminFamilyDetail(userId) {
   `;
 
   const list = $('admin-family-children');
-  if (!(user.children||[]).length) {
+  if (!(user.children || []).length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-emoji">👶</div><h3>${t('no_children_admin')}</h3><p>${t('no_children_admin_desc')}</p></div>`;
     return;
   }
 
   list.innerHTML = user.children.map(child => {
-    const done = (child.vaccines||[]).filter(v=>v.completedDate).length;
-    const total = (child.vaccines||[]).length;
-    const pct = total ? Math.round(done/total*100) : 0;
+    const done = (child.vaccines || []).filter(v => v.completedDate).length;
+    const total = (child.vaccines || []).length;
+    const pct = total ? Math.round(done / total * 100) : 0;
     const avatar = child.gender === 'female' ? '👧' : '👦';
     return `
       <div class="child-card" onclick="goChild('${child.id}')">
@@ -2675,7 +2701,7 @@ function renderAdminVaccines() {
 function openVaccineModal(vaccineId) {
   const child = getChildById(S.currentChildId);
   if (!child) return;
-  const vaccine = (child.vaccines||[]).find(v => v.id === vaccineId);
+  const vaccine = (child.vaccines || []).find(v => v.id === vaccineId);
   if (!vaccine) return;
   S.currentVaccineId = vaccineId;
 
@@ -2723,7 +2749,7 @@ function openVaccineModal(vaccineId) {
 function handleMarkVaccine() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
-  const vaccine = (child.vaccines||[]).find(v => v.id === S.currentVaccineId);
+  const vaccine = (child.vaccines || []).find(v => v.id === S.currentVaccineId);
   if (!vaccine) return;
 
   vaccine.notes = $('input-v-notes').value.trim();
@@ -2736,12 +2762,12 @@ function handleMarkVaccine() {
     const deps = VACCINE_DEPENDENCIES[vaccine.id];
     if (deps && deps.length > 0) {
       const missing = deps.filter(depId => {
-        const depVax = (child.vaccines||[]).find(v => v.id === depId);
+        const depVax = (child.vaccines || []).find(v => v.id === depId);
         return !depVax || !depVax.completedDate;
       });
       if (missing.length > 0) {
         const names = missing.map(id => getVaccineI18n(id).name).join(', ');
-        toast(`⚠️ ${t('dependency_msg', {names})}`);
+        toast(`⚠️ ${t('dependency_msg', { names })}`);
         return;
       }
     }
@@ -2782,7 +2808,7 @@ function handleSaveChild(e) {
   const name = $('input-child-name').value.trim();
   const dob = $('input-child-dob').value;
   const gender = document.querySelector('input[name="child-gender"]:checked')?.value;
-  if (!name||!dob||!gender) { toast(t('fill_all_fields')); return; }
+  if (!name || !dob || !gender) { toast(t('fill_all_fields')); return; }
 
   if (name.length < 2) { toast(t('name_too_short') || 'Name must be at least 2 characters.'); return; }
   const today = new Date().toISOString().split('T')[0];
@@ -2793,7 +2819,7 @@ function handleSaveChild(e) {
   // Find which user owns this child
   let owner;
   if (editId) {
-    owner = S.users.find(u => (u.children||[]).some(c => c.id === editId));
+    owner = S.users.find(u => (u.children || []).some(c => c.id === editId));
   } else {
     owner = currentUser();
   }
@@ -2810,7 +2836,7 @@ function handleSaveChild(e) {
           if (s) v.scheduledDate = schedDate(dob, s.ageMonths);
         });
       }
-      toast(t('child_updated', {name}));
+      toast(t('child_updated', { name }));
     }
   } else {
     const vaccines = VACCINE_SCHEDULE.map(s => ({
@@ -2819,7 +2845,7 @@ function handleSaveChild(e) {
       completedDate: null, notes: ''
     }));
     owner.children.push({ id: uid(), name, birthDate: dob, gender, vaccines });
-    toast(t('child_added', {name}));
+    toast(t('child_added', { name }));
     fireConfetti();
   }
 
@@ -2834,13 +2860,13 @@ function handleSaveChild(e) {
 function handleDeleteChild() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
-  confirm2(t('delete_child_title'), t('delete_child_msg', {name: child.name}), () => {
+  confirm2(t('delete_child_title'), t('delete_child_msg', { name: child.name }), () => {
     for (const u of S.users) {
-      const idx = (u.children||[]).findIndex(c => c.id === S.currentChildId);
+      const idx = (u.children || []).findIndex(c => c.id === S.currentChildId);
       if (idx >= 0) { u.children.splice(idx, 1); break; }
     }
     save();
-    toast(t('child_deleted', {name: child.name}));
+    toast(t('child_deleted', { name: child.name }));
     navBack();
   });
 }
@@ -2885,8 +2911,8 @@ function handleChangePin() {
 }
 
 function exportData() {
-  const data = { version:3, exported: new Date().toISOString(), users: S.users, adminPin: S.adminPin, adminProfiles: S.adminProfiles };
-  const blob = new Blob([JSON.stringify(data,null,2)], { type:'application/json' });
+  const data = { version: 3, exported: new Date().toISOString(), users: S.users, adminPin: S.adminPin, adminProfiles: S.adminProfiles };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `vax360-backup-${new Date().toISOString().split('T')[0]}.json`;
@@ -2902,7 +2928,7 @@ function importData(e) {
     try {
       const data = JSON.parse(reader.result);
       if (data.users) {
-        confirm2(t('import_data'), t('import_data_confirm', {n: data.users.length}), () => {
+        confirm2(t('import_data'), t('import_data_confirm', { n: data.users.length }), () => {
           S.users = data.users;
           if (data.adminPin) S.adminPin = data.adminPin;
           if (data.adminProfiles) S.adminProfiles = data.adminProfiles;
@@ -2924,14 +2950,14 @@ function handleClearAll() {
     toast(t('only_super_admin'));
     return;
   }
-  
+
   // Show password confirm modal
   $('pw-confirm-title').textContent = `⚠️ ${t('clear_all_title')}`;
   $('pw-confirm-msg').textContent = t('clear_all_msg');
   $('input-pw-confirm').value = '';
   $('pw-confirm-error').classList.add('hidden');
   $('modal-password-confirm').classList.remove('hidden');
-  
+
   $('btn-pw-confirm').onclick = () => {
     const pin = $('input-pw-confirm').value;
     const adminProfile = S.adminProfiles.find(a => a.id === S.currentAdminId);
@@ -2971,7 +2997,7 @@ function saveContact() {
   if (editContactField === 'email') u.email = val;
   else u.whatsapp = val;
   save();
-  toast(t('contact_updated', {field: editContactField === 'email' ? t('email') : 'WhatsApp'}));
+  toast(t('contact_updated', { field: editContactField === 'email' ? t('email') : 'WhatsApp' }));
   $('modal-edit-contact').classList.add('hidden');
   updateSettingsProfile();
 }
@@ -2996,7 +3022,7 @@ function handleEditParent(e) {
   user.email = $('input-ep-email').value.trim();
   user.whatsapp = $('input-ep-whatsapp').value.trim();
   save();
-  toast(t('profile_updated', {name: user.name}));
+  toast(t('profile_updated', { name: user.name }));
   $('modal-edit-parent').classList.add('hidden');
   renderAdminFamilyDetail(id);
 }
@@ -3004,10 +3030,10 @@ function handleEditParent(e) {
 function handleDeleteFamily(userId) {
   const user = S.users.find(u => u.id === userId);
   if (!user) return;
-  confirm2(t('delete_family_title'), t('delete_family_msg', {name: user.name}), () => {
+  confirm2(t('delete_family_title'), t('delete_family_msg', { name: user.name }), () => {
     S.users = S.users.filter(u => u.id !== userId);
     save();
-    toast(t('child_deleted', {name: user.name}));
+    toast(t('child_deleted', { name: user.name }));
     showAppView('admin-home');
   });
 }
@@ -3053,7 +3079,7 @@ function openAddAdminForm() {
   $('modal-admin-form').classList.remove('hidden');
 }
 
-window.editAdminProfile = function(id) {
+window.editAdminProfile = function (id) {
   const admin = S.adminProfiles.find(a => a.id === id);
   if (!admin) return;
   $('admin-form-title').textContent = t('edit_admin');
@@ -3065,14 +3091,14 @@ window.editAdminProfile = function(id) {
   $('modal-admin-form').classList.remove('hidden');
 };
 
-window.deleteAdminProfile = function(id) {
+window.deleteAdminProfile = function (id) {
   if (S.adminProfiles.length <= 1) {
     toast(t('cannot_delete_last'));
     return;
   }
   const admin = S.adminProfiles.find(a => a.id === id);
   if (!admin) return;
-  confirm2(t('delete_admin_title'), t('delete_admin_msg', {name: admin.name}), () => {
+  confirm2(t('delete_admin_title'), t('delete_admin_msg', { name: admin.name }), () => {
     S.adminProfiles = S.adminProfiles.filter(a => a.id !== id);
     save();
     toast(t('admin_deleted'));
@@ -3127,7 +3153,7 @@ let toastTimer;
 function toast(msg) {
   const toastEl = $('toast');
   $('toast-msg').textContent = msg;
-  toastEl.classList.remove('hidden','out');
+  toastEl.classList.remove('hidden', 'out');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     toastEl.classList.add('out');
@@ -3143,27 +3169,27 @@ function fireConfetti() {
   canvas.height = window.innerHeight;
 
   const particles = [];
-  const colors = ['#6366f1','#a855f7','#ec4899','#f59e0b','#22c55e','#06b6d4','#f472b6'];
+  const colors = ['#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#22c55e', '#06b6d4', '#f472b6'];
   const count = 80;
 
   for (let i = 0; i < count; i++) {
     particles.push({
-      x: canvas.width/2 + (Math.random()-0.5)*200,
-      y: canvas.height/2,
-      vx: (Math.random()-0.5) * 12,
+      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 12,
       vy: Math.random() * -14 - 4,
-      w: Math.random()*10+4,
-      h: Math.random()*6+3,
-      color: colors[Math.floor(Math.random()*colors.length)],
-      rot: Math.random()*360,
-      rotV: (Math.random()-0.5)*10,
+      w: Math.random() * 10 + 4,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 10,
       life: 1,
     });
   }
 
   let frame;
   function animate() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     let alive = false;
 
     particles.forEach(p => {
@@ -3177,19 +3203,19 @@ function fireConfetti() {
 
       ctx.save();
       ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot * Math.PI/180);
+      ctx.rotate(p.rot * Math.PI / 180);
       ctx.globalAlpha = p.life;
       ctx.fillStyle = p.color;
-      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
       ctx.restore();
     });
 
     if (alive) frame = requestAnimationFrame(animate);
-    else ctx.clearRect(0,0,canvas.width,canvas.height);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
   animate();
 
-  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); }, 4000);
+  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0, 0, canvas.width, canvas.height); }, 4000);
 }
 
 // ─── Admin Vaccine CRUD ─────────────────────────────────
@@ -3213,7 +3239,7 @@ function openAddVaccineModal() {
   $('modal-admin-vaccine').classList.remove('hidden');
 }
 
-window.editCustomVaccine = function(id) {
+window.editCustomVaccine = function (id) {
   const v = customVaccines.find(x => x.id === id);
   if (!v) return;
   $('admin-vaccine-form-title').textContent = t('edit_vaccine');
@@ -3225,10 +3251,10 @@ window.editCustomVaccine = function(id) {
   $('modal-admin-vaccine').classList.remove('hidden');
 };
 
-window.deleteCustomVaccine = function(id) {
+window.deleteCustomVaccine = function (id) {
   const v = customVaccines.find(x => x.id === id);
   if (!v) return;
-  confirm2(t('delete_vaccine'), t('delete_vaccine_msg', {name: v.name}), () => {
+  confirm2(t('delete_vaccine'), t('delete_vaccine_msg', { name: v.name }), () => {
     customVaccines = customVaccines.filter(x => x.id !== id);
     saveCustomVaccines();
     toast(t('vaccine_deleted'));
@@ -3242,11 +3268,11 @@ function handleSaveVaccine(e) {
   const desc = $('input-av-desc').value.trim();
   const ageMonths = parseInt($('input-av-age').value);
   const group = $('input-av-group').value.trim();
-  
+
   if (!name || !group) { toast(t('fill_all_fields')); return; }
   if (name.length < 2) { toast(t('name_too_short') || 'Name must be at least 2 characters.'); return; }
   if (isNaN(ageMonths) || ageMonths < 0 || ageMonths > 216) { toast(t('invalid_age') || 'Age must be between 0 and 216 months.'); return; }
-  
+
   const editId = $('input-av-edit-id').value;
   if (editId) {
     const v = customVaccines.find(x => x.id === editId);
@@ -3254,11 +3280,11 @@ function handleSaveVaccine(e) {
     toast(t('vaccine_updated'));
   } else {
     const id = 'custom-' + uid();
-    const ageLabel = ageMonths >= 12 ? `${Math.floor(ageMonths/12)} ${ageMonths >= 24 ? 'years' : 'year'}` : `${ageMonths} months`;
+    const ageLabel = ageMonths >= 12 ? `${Math.floor(ageMonths / 12)} ${ageMonths >= 24 ? 'years' : 'year'}` : `${ageMonths} months`;
     customVaccines.push({ id, name, desc, ageMonths, ageLabel, group, custom: true });
     toast(t('vaccine_added'));
   }
-  
+
   saveCustomVaccines();
   $('modal-admin-vaccine').classList.add('hidden');
   renderAdminVaccines();
@@ -3267,7 +3293,7 @@ function handleSaveVaccine(e) {
 // ─── Schedule View Toggle ───────────────────────────────
 let scheduleViewMode = 'list';
 
-window.setScheduleView = function(mode) {
+window.setScheduleView = function (mode) {
   scheduleViewMode = mode;
   $$('.svt-btn').forEach(b => b.classList.toggle('active', b.dataset.sview === mode));
   if (mode === 'list') {
@@ -3283,7 +3309,7 @@ window.setScheduleView = function(mode) {
 function renderScheduleCalendar() {
   const user = currentUser();
   if (!user || !user.children?.length) return;
-  
+
   const select = $('schedule-child-dropdown');
   const childId = select.value || user.children[0].id;
   const child = user.children.find(c => c.id === childId);
@@ -3292,11 +3318,11 @@ function renderScheduleCalendar() {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
-  
+
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthName = today.toLocaleDateString(currentLang === 'pt' ? 'pt-AO' : currentLang, { month: 'long', year: 'numeric' });
-  
+
   // Map vaccine dates to days
   const dayMap = {};
   (child.vaccines || []).forEach(v => {
@@ -3310,30 +3336,30 @@ function renderScheduleCalendar() {
 
   let html = `<div class="cal-header"><h3>${monthName}</h3></div>`;
   html += '<div class="cal-weekdays">';
-  const weekdays = ['S','M','T','W','T','F','S'];
+  const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   weekdays.forEach(w => html += `<div class="cal-wd">${w}</div>`);
   html += '</div><div class="cal-grid">';
-  
+
   for (let i = 0; i < firstDay; i++) html += '<div class="cal-day cal-empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = d === today.getDate();
     const vaxes = dayMap[d];
     let dots = '';
     if (vaxes) {
-      dots = vaxes.slice(0,3).map(v => `<span class="cal-dot dot-${v.status}"></span>`).join('');
+      dots = vaxes.slice(0, 3).map(v => `<span class="cal-dot dot-${v.status}"></span>`).join('');
     }
     html += `<div class="cal-day ${isToday ? 'cal-today' : ''} ${vaxes ? 'cal-has-vax' : ''}">${d}${dots ? `<div class="cal-dots">${dots}</div>` : ''}</div>`;
   }
   html += '</div>';
-  
+
   $('schedule-calendar').innerHTML = html;
 }
 
 // ─── Parent PIN Login ───────────────────────────────────
-window.selectParent = function(id) {
+window.selectParent = function (id) {
   const user = S.users.find(u => u.id === id);
   if (!user) return;
-  
+
   // If user has a PIN set, require it
   if (user.pin) {
     S._pendingLoginId = id;
