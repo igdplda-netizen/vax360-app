@@ -99,8 +99,8 @@ Built with a focus on accessibility, data privacy, and ease of use in regions wi
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/vax360.git
-cd vax360
+git clone https://github.com/igdplda-netizen/vax360-app.git
+cd vax360-app
 
 # 2. Run the full setup (installs deps + creates database)
 npm run setup
