@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 // Load environment variables from .env file (if dotenv is available)
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* dotenv not installed — using defaults */ }
@@ -16,6 +17,8 @@ const DB_PATH    = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, 'database.sqlite');
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const JWT_SECRET  = process.env.JWT_SECRET || 'fallback_secret';
+const SYNC_PASSWORD = process.env.SYNC_PASSWORD || '12345';
 
 // ─── Middleware ─────────────────────────────────────────
 app.use(cors({
@@ -59,8 +62,34 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ─── API Routes ─────────────────────────────────────────
+
+// ─── Authentication Middleware ──────────────────────────
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (token == null) return res.status(401).json({ error: 'Token missing' });
+  
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid or expired token' });
+    req.user = user;
+    next();
+  });
+}
+
+// ─── Auth Route ─────────────────────────────────────────
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === SYNC_PASSWORD) {
+    const token = jwt.sign({ role: 'sync_client' }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid password' });
+  }
+});
+
 // GET sync data by ID
-app.get('/api/sync/:id', (req, res) => {
+app.get('/api/sync/:id', authenticateToken, (req, res) => {
   const id = req.params.id;
   db.get('SELECT data FROM store WHERE id = ?', [id], (err, row) => {
     if (err) {
@@ -75,7 +104,7 @@ app.get('/api/sync/:id', (req, res) => {
 });
 
 // POST sync data by ID
-app.post('/api/sync/:id', (req, res) => {
+app.post('/api/sync/:id', authenticateToken, (req, res) => {
   const id = req.params.id;
   const data = JSON.stringify(req.body);
 

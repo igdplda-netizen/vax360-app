@@ -1547,7 +1547,69 @@ function load() {
   }
 }
 
-const SYNC_API_URL = 'https://tangy-llamas-enjoy.loca.lt/api/sync/vax360_main';
+const API_BASE_URL = 'http://localhost:5000/api';
+const SYNC_ID = 'vax360_main';
+const SYNC_API_URL = `${API_BASE_URL}/sync/${SYNC_ID}`;
+
+async function getSyncToken() {
+  let token = localStorage.getItem('vt2_token');
+  let pwd = sessionStorage.getItem('vt2_sync_pwd');
+  if (token && pwd) return { token, pwd };
+  
+  if (sessionStorage.getItem('vt2_sync_skip')) return null;
+
+  pwd = prompt('Enter the backend sync password to enable cloud sync:');
+  if (!pwd) {
+    sessionStorage.setItem('vt2_sync_skip', 'true');
+    return null;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      localStorage.setItem('vt2_token', data.token);
+      sessionStorage.setItem('vt2_sync_pwd', pwd);
+      toast('Sync authenticated successfully.');
+      return { token: data.token, pwd };
+    } else {
+      toast('Invalid sync password.');
+      sessionStorage.setItem('vt2_sync_skip', 'true');
+      return null;
+    }
+  } catch (err) {
+    console.error('Login error', err);
+    return null;
+  }
+}
+
+async function performSync(dataString) {
+  const auth = await getSyncToken();
+  if (!auth) return;
+  const { token, pwd } = auth;
+  
+  // Encrypt the payload before sending
+  const encryptedPayload = CryptoJS.AES.encrypt(dataString, pwd).toString();
+
+  try {
+    const res = await fetch(SYNC_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ payload: encryptedPayload })
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('vt2_token');
+      sessionStorage.removeItem('vt2_sync_pwd');
+      toast('Sync token expired. Next save will ask for password.');
+    }
+  } catch (err) {
+    console.log('DB Sync failed:', err);
+  }
+}
 
 function save() {
   const dataString = JSON.stringify({
@@ -1559,22 +1621,34 @@ function save() {
 
   // Background Cloud Sync
   if (navigator.onLine) {
-    fetch(SYNC_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
-      body: dataString
-    }).catch(err => console.log('DB Sync failed:', err));
+    performSync(dataString);
   }
 }
 
 async function syncFromCloud() {
   try {
-    const res = await fetch(SYNC_API_URL, { headers: { 'bypass-tunnel-reminder': 'true' } });
+    const auth = await getSyncToken();
+    if (!auth) return;
+    const { token, pwd } = auth;
+
+    const res = await fetch(SYNC_API_URL, { 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('vt2_token');
+      sessionStorage.removeItem('vt2_sync_pwd');
+      return;
+    }
     if (!res.ok) return;
     const json = await res.json();
-    if (json.success && json.data) {
+    if (json.success && json.data && json.data.payload) {
+      // Decrypt the payload
+      const bytes = CryptoJS.AES.decrypt(json.data.payload, pwd);
+      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+      if (!decryptedString) throw new Error("Decryption failed (wrong password?)");
+      const d = JSON.parse(decryptedString);
+
       // Merge cloud data over local
-      const d = json.data;
       if (d.users) S.users = d.users;
       if (d.adminPin) S.adminPin = d.adminPin;
       if (d.adminProfiles) S.adminProfiles = d.adminProfiles;
@@ -1589,7 +1663,7 @@ async function syncFromCloud() {
       console.log('Database sync successful');
     }
   } catch (err) {
-    console.log('Running offline or DB not reachable');
+    console.log('Running offline or DB not reachable:', err);
   }
 }
 
@@ -1630,6 +1704,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }, 2200);
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+  window.addEventListener('online', () => {
+    toast('Back online. Syncing data...');
+    syncFromCloud();
+    save(); // trigger sync API post
+  });
+  window.addEventListener('offline', () => {
+    toast('You are offline. Data is saved locally.');
+  });
 });
 
 function injectSVGDefs() {
@@ -1682,15 +1765,12 @@ function bindEvents() {
   };
 
   // Login flow
-  $('btn-role-parent').onclick = () => showScreen('parent-select');
-  $('btn-role-admin').onclick = () => showScreen('admin-pin');
+  $('btn-login-phone').onclick = () => showScreen('unified-login');
+  $('btn-register').onclick = () => showScreen('create-parent');
   $('btn-back-to-login').onclick = () => showScreen('login');
-  $('btn-back-to-login2').onclick = () => showScreen('login');
-  $('btn-back-to-profiles').onclick = () => showScreen('parent-select');
-  $('btn-create-parent').onclick = () => showScreen('create-parent');
-  $('btn-admin-login').onclick = handleAdminLogin;
+  $('btn-back-to-login3').onclick = () => showScreen('login');
+  $('form-unified-login').onsubmit = handleUnifiedLogin;
   $('form-create-parent').onsubmit = handleCreateParent;
-  $('input-admin-pin').addEventListener('keyup', e => { if (e.key==='Enter') handleAdminLogin(); });
 
   // Navigation
   $('btn-nav-back').onclick = navBack;
@@ -1755,6 +1835,8 @@ function bindEvents() {
   $('btn-export').onclick = exportData;
   $('btn-import').onclick = () => $('import-file').click();
   $('import-file').onchange = importData;
+  $('btn-login-import').onclick = () => $('login-import-file').click();
+  $('login-import-file').onchange = importData;
   $('btn-clear-all').onclick = handleClearAll;
   $('btn-dismiss-tip').onclick = () => $('tip-card').classList.add('hidden');
 
@@ -1816,10 +1898,10 @@ function bindEvents() {
 
 // ─── Screen Navigation ──────────────────────────────────
 function showScreen(name) {
-  ['screen-lang','screen-landing','screen-login','screen-parent-select','screen-admin-pin','screen-create-parent'].forEach(id => {
+  ['screen-lang','screen-landing','screen-login','screen-unified-login','screen-create-parent'].forEach(id => {
     $(id).classList.toggle('hidden', id !== `screen-${name}`);
   });
-  if (name === 'parent-select') renderParentProfiles();
+
   // Highlight current language button
   if (name === 'lang') {
     $$('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
@@ -1828,7 +1910,7 @@ function showScreen(name) {
 
 function enterApp(role) {
   S.role = role;
-  ['screen-lang','screen-landing','screen-login','screen-parent-select','screen-admin-pin','screen-create-parent'].forEach(id => {
+  ['screen-lang','screen-landing','screen-login','screen-unified-login','screen-create-parent'].forEach(id => {
     $(id).classList.add('hidden');
   });
   $('app-shell').classList.remove('hidden');
@@ -1968,19 +2050,36 @@ function renderParentProfiles() {
 
 // selectParent is defined at the bottom of the file with PIN support
 
-function handleAdminLogin() {
-  const pin = $('input-admin-pin').value;
-  // Check against all admin profiles
-  const matched = S.adminProfiles.find(a => a.pin === pin);
-  if (matched) {
-    S.currentAdminId = matched.id;
+function handleUnifiedLogin(e) {
+  e.preventDefault();
+  const phone = $('input-login-phone').value.trim();
+  const pin = $('input-login-pin').value;
+  
+  if (!phone || !pin) { toast(t('fill_all_fields') || 'Please fill in all fields'); return; }
+
+  // Check Admin Profiles
+  const admin = S.adminProfiles.find(a => (a.whatsapp === phone || phone === '0000') && a.pin === pin);
+  if (admin) {
+    S.currentAdminId = admin.id;
+    $('input-login-phone').value = '';
+    $('input-login-pin').value = '';
     enterApp('admin');
-    $('input-admin-pin').value = '';
-  } else {
-    toast(t('incorrect_pin'));
-    $('input-admin-pin').value = '';
-    $('input-admin-pin').focus();
+    return;
   }
+
+  // Check Parent Profiles
+  const parent = S.users.find(u => u.whatsapp === phone && u.pin === pin);
+  if (parent) {
+    S.userId = parent.id;
+    $('input-login-phone').value = '';
+    $('input-login-pin').value = '';
+    enterApp('parent');
+    return;
+  }
+
+  toast(t('incorrect_pin') || 'Incorrect phone or PIN');
+  $('input-login-pin').value = '';
+  $('input-login-pin').focus();
 }
 
 function handleCreateParent(e) {
@@ -1990,7 +2089,8 @@ function handleCreateParent(e) {
   const whatsapp = $('input-parent-whatsapp')?.value.trim() || '';
   const pin = $('input-parent-pin')?.value.trim() || '';
   const avatar = document.querySelector('input[name="avatar"]:checked')?.value || '👩';
-  if (!name) { toast(t('please_enter_name')); return; }
+  
+  if (!name || !whatsapp || !pin) { toast(t('fill_all_fields') || 'Please fill name, phone and PIN'); return; }
   
   // Validate email format if provided
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -2129,6 +2229,36 @@ function renderHome() {
       `;
     }).join('');
   } else upSec.classList.add('hidden');
+  
+  checkNotifications();
+}
+
+function checkNotifications() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+  if (Notification.permission === "granted") {
+    const user = currentUser();
+    if (!user || !user.children) return;
+    let overdueCount = 0;
+    const today = new Date().toISOString().split('T')[0];
+    user.children.forEach(c => {
+      (c.vaccines || []).forEach(v => {
+        if (!v.completedDate && v.scheduledDate && v.scheduledDate < today) overdueCount++;
+      });
+    });
+    if (overdueCount > 0) {
+      const lastNotified = localStorage.getItem('vt2_last_notified');
+      if (lastNotified !== today) {
+        new Notification("Vax360 Reminder", {
+          body: `You have ${overdueCount} overdue vaccine(s). Please check your schedule!`,
+          icon: "icons/icon-192.png"
+        });
+        localStorage.setItem('vt2_last_notified', today);
+      }
+    }
+  }
 }
 
 // ─── Global onclick handlers ────────────────────────────
@@ -2628,6 +2758,10 @@ function handleSaveChild(e) {
   const gender = document.querySelector('input[name="child-gender"]:checked')?.value;
   if (!name||!dob||!gender) { toast(t('fill_all_fields')); return; }
 
+  if (name.length < 2) { toast(t('name_too_short') || 'Name must be at least 2 characters.'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  if (dob > today) { toast(t('dob_future_error') || 'Date of birth cannot be in the future.'); return; }
+
   const editId = $('input-child-id').value;
 
   // Find which user owns this child
@@ -2783,7 +2917,7 @@ function handleClearAll() {
     $('modal-password-confirm').classList.add('hidden');
     S.users = [];
     S.adminPin = '1234';
-    S.adminProfiles = [{ id: uid(), name: 'Admin', email: '', pin: '1234' }];
+    S.adminProfiles = [{ id: uid(), name: 'Admin', email: '', whatsapp: '0000', pin: '1234' }];
     save();
     toast(t('all_data_cleared'));
     handleLogout();
@@ -2886,6 +3020,7 @@ function renderAdminProfilesList() {
 function openAddAdminForm() {
   $('admin-form-title').textContent = t('add_admin');
   $('input-admin-name').value = '';
+  $('input-admin-whatsapp').value = '';
   $('input-admin-email-f').value = '';
   $('input-admin-pin-f').value = '';
   $('input-admin-edit-id').value = '';
@@ -2897,6 +3032,7 @@ window.editAdminProfile = function(id) {
   if (!admin) return;
   $('admin-form-title').textContent = t('edit_admin');
   $('input-admin-name').value = admin.name;
+  $('input-admin-whatsapp').value = admin.whatsapp || '';
   $('input-admin-email-f').value = admin.email || '';
   $('input-admin-pin-f').value = admin.pin;
   $('input-admin-edit-id').value = admin.id;
@@ -2921,10 +3057,11 @@ window.deleteAdminProfile = function(id) {
 function handleSaveAdmin(e) {
   e.preventDefault();
   const name = $('input-admin-name').value.trim();
+  const whatsapp = $('input-admin-whatsapp').value.trim();
   const email = $('input-admin-email-f').value.trim();
   const pin = $('input-admin-pin-f').value.trim();
-  if (!name || !pin || pin.length < 4) {
-    toast(t('pin_too_short'));
+  if (!name || !whatsapp || !pin || pin.length < 4) {
+    toast(t('pin_too_short') || 'Please fill all required fields');
     return;
   }
 
@@ -2934,13 +3071,14 @@ function handleSaveAdmin(e) {
     const admin = S.adminProfiles.find(a => a.id === editId);
     if (admin) {
       admin.name = name;
+      admin.whatsapp = whatsapp;
       admin.email = email;
       admin.pin = pin;
     }
     toast(t('admin_updated'));
   } else {
     // Add new
-    S.adminProfiles.push({ id: uid(), name, email, pin });
+    S.adminProfiles.push({ id: uid(), name, whatsapp, email, pin });
     toast(t('admin_added'));
   }
 
@@ -3076,9 +3214,12 @@ function handleSaveVaccine(e) {
   e.preventDefault();
   const name = $('input-av-name').value.trim();
   const desc = $('input-av-desc').value.trim();
-  const ageMonths = parseInt($('input-av-age').value) || 0;
+  const ageMonths = parseInt($('input-av-age').value);
   const group = $('input-av-group').value.trim();
-  if (!name || !group) return;
+  
+  if (!name || !group) { toast(t('fill_all_fields')); return; }
+  if (name.length < 2) { toast(t('name_too_short') || 'Name must be at least 2 characters.'); return; }
+  if (isNaN(ageMonths) || ageMonths < 0 || ageMonths > 216) { toast(t('invalid_age') || 'Age must be between 0 and 216 months.'); return; }
   
   const editId = $('input-av-edit-id').value;
   if (editId) {

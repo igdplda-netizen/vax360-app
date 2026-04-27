@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <title>Vax360 – Vaccination Tracker</title>
 </head>
@@ -67,56 +68,50 @@
         <p data-i18n="choose_continue">Choose how you'd like to continue</p>
       </div>
       <div class="login-cards">
-        <button id="btn-role-parent" class="role-card" type="button">
-          <div class="role-icon">👨‍👩‍👧‍👦</div>
-          <div><h3 data-i18n="im_parent">I'm a Parent</h3><p data-i18n="track_vaccines">Track my children's vaccines</p></div>
+        <button id="btn-login-phone" class="role-card" type="button">
+          <div class="role-icon">📱</div>
+          <div><h3 data-i18n="login">Login</h3><p data-i18n="login_desc">I already have an account</p></div>
           <span class="role-arrow">→</span>
         </button>
-        <button id="btn-role-admin" class="role-card role-card-admin" type="button">
-          <div class="role-icon">🛡️</div>
-          <div><h3 data-i18n="administrator">Administrator</h3><p data-i18n="manage_families">Manage families & schedules</p></div>
+        <button id="btn-register" class="role-card" type="button">
+          <div class="role-icon">✨</div>
+          <div><h3 data-i18n="register">Register</h3><p data-i18n="register_desc">Create a new account</p></div>
           <span class="role-arrow">→</span>
         </button>
       </div>
       <button id="btn-change-lang-login" class="btn btn-glass btn-sm btn-block" type="button" style="margin-top:12px">🌍 <span data-i18n="change_language">Change Language</span></button>
+      <button id="btn-login-import" class="btn btn-glass btn-sm btn-block" type="button" style="margin-top:12px">📥 <span data-i18n="import_data">Restore Backup</span></button>
+      <input type="file" id="login-import-file" accept=".json" class="hidden">
     </div>
   </div>
 
-  <!-- PARENT SELECT -->
-  <div id="screen-parent-select" class="screen hidden">
+  <!-- UNIFIED LOGIN -->
+  <div id="screen-unified-login" class="screen hidden">
     <div class="login-container">
-      <button id="btn-back-to-login" class="back-link" type="button">← <span data-i18n="back">Back</span></button>
-      <div class="login-header">
-        <span class="login-logo">👋</span>
-        <h1 data-i18n="welcome">Welcome!</h1>
-        <p data-i18n="select_or_create">Select your profile or create a new one</p>
-      </div>
-      <div id="parent-profiles-list" class="profiles-list"></div>
-      <button id="btn-create-parent" class="btn btn-primary btn-block btn-lg">✨ <span data-i18n="create_profile">Create New Profile</span></button>
-    </div>
-  </div>
-
-  <!-- ADMIN PIN -->
-  <div id="screen-admin-pin" class="screen hidden">
-    <div class="login-container">
-      <button id="btn-back-to-login2" class="back-link" type="button">← <span data-i18n="back">Back</span></button>
+      <button id="btn-back-to-login3" class="back-link" type="button">← <span data-i18n="back">Back</span></button>
       <div class="login-header">
         <span class="login-logo">🔐</span>
-        <h1 data-i18n="admin_access">Admin Access</h1>
-        <p data-i18n="enter_pin">Enter the admin PIN to continue</p>
+        <h1 data-i18n="login">Login</h1>
+        <p data-i18n="enter_phone_pin">Enter your phone and PIN</p>
       </div>
-      <div class="pin-input-group">
-        <input type="password" id="input-admin-pin" class="pin-input" maxlength="6" placeholder="••••" inputmode="numeric" autocomplete="off">
-        <p class="pin-hint" data-i18n="default_pin">Default PIN: 1234</p>
-      </div>
-      <button id="btn-admin-login" class="btn btn-primary btn-block btn-lg">🔓 <span data-i18n="unlock">Unlock</span></button>
+      <form id="form-unified-login" class="form-stack">
+        <div class="form-group">
+          <label for="input-login-phone" data-i18n="phone">Phone / WhatsApp</label>
+          <input type="tel" id="input-login-phone" required autocomplete="tel" placeholder="e.g. 0000 for default admin">
+        </div>
+        <div class="form-group">
+          <label for="input-login-pin" data-i18n="pin">PIN</label>
+          <input type="password" id="input-login-pin" maxlength="6" inputmode="numeric" required autocomplete="current-password" placeholder="••••">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">🔓 <span data-i18n="unlock">Unlock</span></button>
+      </form>
     </div>
   </div>
 
   <!-- CREATE PARENT -->
   <div id="screen-create-parent" class="screen hidden">
     <div class="login-container" style="max-width:460px">
-      <button id="btn-back-to-profiles" class="back-link" type="button">← <span data-i18n="back">Back</span></button>
+      <button id="btn-back-to-login" class="back-link" type="button">← <span data-i18n="back">Back</span></button>
       <div class="login-header">
         <span class="login-logo">🌟</span>
         <h1 data-i18n="your_profile">Your Profile</h1>
@@ -125,7 +120,7 @@
       <form id="form-create-parent" class="form-stack">
         <div class="form-group"><label for="input-parent-name" data-i18n="your_name">Your Name</label><input type="text" id="input-parent-name" placeholder="" required autocomplete="name"></div>
         <div class="form-group"><label for="input-parent-email" data-i18n="email_optional">Email (optional)</label><input type="email" id="input-parent-email" placeholder="email@example.com" autocomplete="email"></div>
-        <div class="form-group"><label for="input-parent-whatsapp" data-i18n="whatsapp_optional">WhatsApp (optional)</label><input type="tel" id="input-parent-whatsapp" placeholder="+244 9XX XXX XXX" autocomplete="tel"></div>
+        <div class="form-group"><label for="input-parent-whatsapp" data-i18n="phone">Phone / WhatsApp</label><input type="tel" id="input-parent-whatsapp" placeholder="+244 9XX XXX XXX" autocomplete="tel" required></div>
         <div class="form-group"><label for="input-parent-pin" data-i18n="login_pin">Login PIN</label><input type="password" id="input-parent-pin" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off"><small style="color:var(--text-3);font-size:0.75rem" data-i18n="pin_for_security">For your security, create a 4-digit PIN</small></div>
         <div class="form-group">
           <label data-i18n="choose_avatar">Choose an Avatar</label>
@@ -358,7 +353,7 @@
 
   <div id="modal-pin" class="modal-overlay hidden"><div class="modal bottom-sheet modal-sm"><div class="modal-handle"></div><div class="modal-header"><h2 data-i18n="change_pin">Change Admin PIN</h2><button id="btn-close-pin-modal" class="btn-close" type="button">✕</button></div><div class="modal-body"><div class="form-group"><label for="input-new-pin" data-i18n="new_pin">New PIN</label><input type="password" id="input-new-pin" maxlength="6" inputmode="numeric"></div><button id="btn-save-pin" class="btn btn-primary btn-block" type="button" data-i18n="save">Save</button></div></div></div>
 
-  <div id="modal-confirm" class="modal-overlay hidden"><div class="modal bottom-sheet modal-sm"><div class="modal-handle"></div><div class="modal-header"><h2 id="confirm-title"></h2></div><div class="modal-body"><p id="confirm-msg" class="confirm-message"></p><div class="modal-actions"><button id="btn-confirm-no" class="btn btn-glass" type="button" data-i18n="cancel">Cancel</button><button id="btn-confirm-yes" class="btn btn-danger-solid" type="button" data-i18n="confirm">Confirm</button></div></div></div></div>
+  <div id="modal-confirm" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-msg"><div class="modal bottom-sheet modal-sm"><div class="modal-handle"></div><div class="modal-header"><h2 id="confirm-title"></h2></div><div class="modal-body"><p id="confirm-msg" class="confirm-message"></p><div class="modal-actions"><button id="btn-confirm-no" class="btn btn-glass" type="button" data-i18n="cancel" style="min-height:48px; font-size:1rem;">Cancel</button><button id="btn-confirm-yes" class="btn btn-danger-solid" type="button" data-i18n="confirm" style="min-height:48px; font-size:1rem;">Confirm</button></div></div></div></div>
 
   <!-- ADMIN PROFILES MODAL -->
   <div id="modal-admin-profiles" class="modal-overlay hidden"><div class="modal bottom-sheet"><div class="modal-handle"></div><div class="modal-header"><h2 data-i18n="manage_admins">Manage Admins</h2><button id="btn-close-admin-profiles" class="btn-close" type="button">✕</button></div><div class="modal-body">
@@ -369,6 +364,7 @@
   <!-- ADD/EDIT ADMIN MODAL -->
   <div id="modal-admin-form" class="modal-overlay hidden"><div class="modal bottom-sheet modal-sm"><div class="modal-handle"></div><div class="modal-header"><h2 id="admin-form-title" data-i18n="add_admin">Add Admin</h2><button id="btn-close-admin-form" class="btn-close" type="button">✕</button></div><form id="form-admin" class="modal-body">
     <div class="form-group"><label for="input-admin-name" data-i18n="admin_name">Admin Name</label><input type="text" id="input-admin-name" required autocomplete="off"></div>
+    <div class="form-group"><label for="input-admin-whatsapp" data-i18n="phone">Phone / WhatsApp</label><input type="tel" id="input-admin-whatsapp" required autocomplete="off"></div>
     <div class="form-group"><label for="input-admin-email-f" data-i18n="email_optional">Email (optional)</label><input type="email" id="input-admin-email-f" autocomplete="off"></div>
     <div class="form-group"><label for="input-admin-pin-f" data-i18n="pin">PIN</label><input type="password" id="input-admin-pin-f" maxlength="6" inputmode="numeric" required autocomplete="off" placeholder="••••"></div>
     <input type="hidden" id="input-admin-edit-id">
@@ -409,7 +405,7 @@
 
   <!-- PARENT PIN LOGIN MODAL -->
   <div id="modal-parent-pin" class="modal-overlay hidden"><div class="modal bottom-sheet modal-sm"><div class="modal-handle"></div><div class="modal-header"><h2 data-i18n="enter_your_pin">Enter your PIN</h2><button id="btn-close-parent-pin" class="btn-close" type="button">✕</button></div><div class="modal-body">
-    <div class="pin-input-group"><input type="password" id="input-parent-login-pin" class="pin-input" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="••••"></div>
+    <div class="pin-input-group"><input type="password" id="input-parent-login-pin" aria-label="PIN" class="pin-input" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="••••"></div>
     <button id="btn-parent-pin-login" class="btn btn-primary btn-block btn-lg" type="button">🔓 <span data-i18n="unlock">Unlock</span></button>
   </div></div></div>
 
