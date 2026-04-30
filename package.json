@@ -4,6 +4,7 @@
   "description": "Vax360 – Track and manage your children's vaccination schedule",
   "private": true,
   "scripts": {
+    "test": "jest",
     "dev": "npx serve . -l 3000",
     "dev:backend": "cd backend && node server.js",
     "dev:all": "npm run dev & npm run dev:backend",
