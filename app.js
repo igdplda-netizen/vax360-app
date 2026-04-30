@@ -1474,9 +1474,9 @@ let currentLang = 'en';
 function t(key, replacements) {
   let text = (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
   if (replacements) {
-    for (const [k, v] of Object.entries(replacements)) {
-      text = text.replace(`{${k}}`, v);
-    }
+    text = text.replace(/\{([^}]+)\}/g, (match, k) => {
+      return replacements[k] !== undefined ? replacements[k] : match;
+    });
   }
   return text;
 }
