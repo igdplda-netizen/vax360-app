@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "db:init": "node db-init.js",
-    "db:reset": "rm -f database.sqlite && node db-init.js"
+    "db:reset": "rm -f database.sqlite && node db-init.js",
+    "test": "jest"
   },
   "keywords": [
     "vaccination",
@@ -29,5 +30,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.2.2"
   }
 }
