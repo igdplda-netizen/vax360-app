@@ -1525,7 +1525,7 @@ const S = {
 // ─── Helpers ────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
-const esc = s => { const d = document.createElement('span'); d.textContent = s; return d.innerHTML; };
+const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
