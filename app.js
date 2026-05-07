@@ -221,15 +221,41 @@ function getVaccineI18n(vaccineId) {
   return { name: vaccineId, desc: '', ageLabel: '' };
 }
 
+const VACCINE_BASE_TYPE_CACHE = new Map();
 function getVaccineBaseType(id) {
-  // Extract base type: 'penta-2' -> 'penta', 'bcg' -> 'bcg', 'custom-abc123' -> 'custom'
-  const parts = id.split('-');
-  if (parts[0] === 'custom') return 'custom';
-  // Remove trailing number
-  if (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1])) parts.pop();
-  // Remove 'b' suffix (booster indicator)
-  if (parts.length > 1 && /^b\d*$/.test(parts[parts.length - 1])) parts.pop();
-  return parts.join('-');
+  if (VACCINE_BASE_TYPE_CACHE.has(id)) return VACCINE_BASE_TYPE_CACHE.get(id);
+
+  const map = {
+    'bcg': 'bcg', 'hepb-1': 'hepb', 'penta-1': 'penta', 'penta-2': 'penta', 'penta-3': 'penta',
+    'ipv-1': 'ipv', 'ipv-2': 'ipv', 'ipv-3': 'ipv', 'ipv-b1': 'ipv', 'ipv-b2': 'ipv',
+    'rota-1': 'rota', 'rota-2': 'rota', 'rota-3': 'rota',
+    'pcv-1': 'pcv', 'pcv-2': 'pcv', 'pcv-b': 'pcv',
+    'flu-1': 'flu', 'yellow-fever': 'yellow-fever',
+    'measles-1': 'measles', 'mmr-1': 'mmr', 'mmr-2': 'mmr',
+    'meningo-c': 'meningo-c', 'hepa-1': 'hepa', 'hepa-2': 'hepa',
+    'varicella-1': 'varicella', 'varicella-2': 'varicella',
+    'dtp-b1': 'dtp', 'dtp-b2': 'dtp',
+    'hpv-1': 'hpv', 'hpv-2': 'hpv',
+    'meningo-acwy': 'meningo-acwy', 'tdap': 'tdap',
+    'covid-1': 'covid', 'covid-2': 'covid'
+  };
+
+  let res = map[id];
+  if (!res) {
+    const parts = String(id || '').split('-');
+    if (parts[0] === 'custom') {
+      res = 'custom';
+    } else {
+      // Remove trailing number
+      if (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1])) parts.pop();
+      // Remove 'b' suffix (booster indicator)
+      if (parts.length > 1 && /^b\d*$/.test(parts[parts.length - 1])) parts.pop();
+      res = parts.join('-');
+    }
+  }
+
+  VACCINE_BASE_TYPE_CACHE.set(id, res);
+  return res;
 }
 
 // ─── Vaccine Pros & Cons (Benefits / Side Effects) ──────
@@ -532,24 +558,6 @@ const VACCINE_DETAIL = {
   },
 };
 
-// Map vaccine IDs to their base type for pros/cons lookup
-function getVaccineBaseType(vaccineId) {
-  const map = {
-    'bcg': 'bcg', 'hepb-1': 'hepb', 'penta-1': 'penta', 'penta-2': 'penta', 'penta-3': 'penta',
-    'ipv-1': 'ipv', 'ipv-2': 'ipv', 'ipv-3': 'ipv', 'ipv-b1': 'ipv', 'ipv-b2': 'ipv',
-    'rota-1': 'rota', 'rota-2': 'rota', 'rota-3': 'rota',
-    'pcv-1': 'pcv', 'pcv-2': 'pcv', 'pcv-b': 'pcv',
-    'flu-1': 'flu', 'yellow-fever': 'yellow-fever',
-    'measles-1': 'measles', 'mmr-1': 'mmr', 'mmr-2': 'mmr',
-    'meningo-c': 'meningo-c', 'hepa-1': 'hepa', 'hepa-2': 'hepa',
-    'varicella-1': 'varicella', 'varicella-2': 'varicella',
-    'dtp-b1': 'dtp', 'dtp-b2': 'dtp',
-    'hpv-1': 'hpv', 'hpv-2': 'hpv',
-    'meningo-acwy': 'meningo-acwy', 'tdap': 'tdap',
-    'covid-1': 'covid', 'covid-2': 'covid'
-  };
-  return map[vaccineId] || vaccineId;
-}
 
 function getVaccineDetail(vaccineId) {
   const baseType = getVaccineBaseType(vaccineId);
