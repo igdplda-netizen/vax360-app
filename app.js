@@ -2208,12 +2208,19 @@ function renderHome() {
     // Per-child vaccine breakdown cards
     $('home-children').innerHTML = children.map((child, i) => {
       const vaxes = child.vaccines || [];
-      const done = vaxes.filter(v => v.completedDate).length;
+      let done = 0, overdueCount = 0, pendingCount = 0, upcomingCount = 0;
+      for (const v of vaxes) {
+        if (v.completedDate) {
+          done++;
+        } else {
+          const status = vaccineStatus(v, child.birthDate);
+          if (status === 'overdue') overdueCount++;
+          else if (status === 'pending') pendingCount++;
+          else if (status === 'upcoming') upcomingCount++;
+        }
+      }
       const total = vaxes.length;
       const pct = total ? Math.round(done / total * 100) : 0;
-      const overdueCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'overdue').length;
-      const pendingCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'pending').length;
-      const upcomingCount = vaxes.filter(v => !v.completedDate && vaccineStatus(v, child.birthDate) === 'upcoming').length;
       const avatar = child.gender === 'female' ? '👧' : '👦';
 
       // Find next upcoming vaccine
@@ -3375,6 +3382,7 @@ window.selectParent = function (id) {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    getVaccineBaseType
+    getVaccineBaseType,
+    getVaccineI18n
   };
 }
