@@ -2087,28 +2087,6 @@ function navBack() {
 }
 
 // ─── Login Handlers ─────────────────────────────────────
-function renderParentProfiles() {
-  const list = $('parent-profiles-list');
-  if (S.users.length === 0) {
-    list.innerHTML = `<p style="text-align:center;color:var(--text-3);font-size:0.88rem;padding:16px 0;">${t('no_profiles_yet')}</p>`;
-    return;
-  }
-  list.innerHTML = S.users.map(u => {
-    const childCount = u.children ? u.children.length : 0;
-    const countLabel = childCount === 1 ? t('child_count', { n: childCount }) : t('children_count', { n: childCount });
-    return `
-      <div class="profile-item" onclick="selectParent('${u.id}')">
-        <span class="profile-item-avatar">${u.avatar}</span>
-        <div>
-          <div class="profile-item-name">${esc(u.name)}</div>
-          <div class="profile-item-children">${countLabel}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// selectParent is defined at the bottom of the file with PIN support
 
 function handleUnifiedLogin(e) {
   e.preventDefault();
