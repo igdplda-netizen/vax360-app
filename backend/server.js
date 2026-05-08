@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 
 // Load environment variables from .env file (if dotenv is available)
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* dotenv not installed — using defaults */ }
@@ -77,8 +78,16 @@ function authenticateToken(req, res, next) {
   });
 }
 
+
+// ─── Rate Limiting ──────────────────────────────────────
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login requests per windowMs
+  message: { success: false, message: 'Too many login attempts, please try again later' }
+});
+
 // ─── Auth Route ─────────────────────────────────────────
-app.post('/api/login', (req, res) => {
+app.post('/api/login', loginLimiter, (req, res) => {
   const { password } = req.body;
   if (password === SYNC_PASSWORD) {
     const token = jwt.sign({ role: 'sync_client' }, JWT_SECRET, { expiresIn: '7d' });
