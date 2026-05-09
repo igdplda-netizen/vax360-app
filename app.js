@@ -4350,7 +4350,7 @@ function renderAdminHome() {
         const cc = (u.children || []).length;
         return `
         <div class="admin-family-card" onclick="goAdminFamily('${u.id}')">
-          <span class="afc-avatar">${u.avatar}</span>
+          <span class="afc-avatar">${esc(u.avatar)}</span>
           <div class="afc-info">
             <div class="afc-name">${esc(u.name)}</div>
             <div class="afc-sub">${cc === 1 ? t("child_count", { n: cc }) : t("children_count", { n: cc })}</div>
@@ -4376,7 +4376,7 @@ function renderAdminFamilyDetail(userId) {
   const countLabel =
     cc === 1 ? t("child_count", { n: cc }) : t("children_count", { n: cc });
   $("admin-family-header").innerHTML = `
-    <div class="ph-avatar">${user.avatar}</div>
+    <div class="ph-avatar">${esc(user.avatar)}</div>
     <h2>${esc(user.name)}</h2>
     <p>${countLabel} ${t("registered")}</p>
   `;
