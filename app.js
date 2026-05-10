@@ -996,7 +996,7 @@ function getVaccineI18n(vaccineId) {
   if (lang && lang[vaccineId]) return lang[vaccineId];
   const base = VACCINE_SCHEDULE_MAP[vaccineId];
   // Also check custom vaccines
-  const custom = customVaccines?.find((s) => s.id === vaccineId);
+  const custom = CUSTOM_VACCINES_MAP.get(vaccineId);
   if (base)
     return { name: base.name, desc: base.desc, ageLabel: base.ageLabel };
   if (custom)
@@ -5070,8 +5070,18 @@ let customVaccines = JSON.parse(
   localStorage.getItem("vt2_custom_vaccines") || "[]",
 );
 
+const CUSTOM_VACCINES_MAP = new Map();
+function updateCustomVaccinesMap() {
+  CUSTOM_VACCINES_MAP.clear();
+  if (Array.isArray(customVaccines)) {
+    customVaccines.forEach((v) => CUSTOM_VACCINES_MAP.set(v.id, v));
+  }
+}
+updateCustomVaccinesMap();
+
 function saveCustomVaccines() {
   localStorage.setItem("vt2_custom_vaccines", JSON.stringify(customVaccines));
+  updateCustomVaccinesMap();
 }
 
 function getAllVaccines() {
