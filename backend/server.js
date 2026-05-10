@@ -22,7 +22,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const DB_PATH = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, "database.sqlite");
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
 const JWT_SECRET =
   process.env.JWT_SECRET ||
   (() => {
