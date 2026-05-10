@@ -3340,7 +3340,8 @@ function toggleTheme() {
 }
 
 // ─── Init ───────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", async () => {
   load();
   await syncFromCloud(false);
   const hasLang = loadLanguage();
@@ -3372,6 +3373,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     toast("You are offline. Data is saved locally.");
   });
 });
+}
 
 function injectSVGDefs() {
   // SVG gradient for progress ring
@@ -5282,5 +5284,6 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     getVaccineBaseType,
     getVaccineI18n,
+    schedDate,
   };
 }
