@@ -3826,6 +3826,36 @@ function handleLogout() {
 }
 
 // ─── Parent Home ────────────────────────────────────────
+function renderUpcomingCard(item) {
+  const v = item.vaccine;
+  const c = item.child;
+  const st = v.completedDate ? "completed" : vaccineStatus(v, c.birthDate);
+  const dateStr = v.completedDate
+    ? `${t("completed_label")} ${fmtDate(v.completedDate)}`
+    : fmtDate(v.scheduledDate);
+  const badgeLabel = t(
+    st === "completed"
+      ? "done"
+      : st === "overdue"
+      ? "overdue"
+      : st === "upcoming"
+      ? "upcoming_label"
+      : "pending",
+  );
+
+  return `
+    <div class="upcoming-card" onclick="goChildVaccine('${c.id}','${v.id}')">
+      <span class="uc-dot dot-${st}"></span>
+      <div class="uc-info">
+        <div class="uc-name">${getVaccineI18n(v.id).name}</div>
+        <div class="uc-child">${esc(c.name)}</div>
+        <div class="uc-date">${dateStr}</div>
+      </div>
+      <span class="uc-badge badge-${st}">${badgeLabel}</span>
+    </div>
+  `;
+}
+
 function renderHome() {
   const user = currentUser();
   if (!user) return;
@@ -3960,22 +3990,7 @@ function renderHome() {
   if (upItems.length) {
     upSec.classList.remove("hidden");
     $("home-upcoming").innerHTML = upItems
-      .map((item) => {
-        const st = item.vaccine.completedDate
-          ? "completed"
-          : vaccineStatus(item.vaccine, item.child.birthDate);
-        return `
-        <div class="upcoming-card" onclick="goChildVaccine('${item.child.id}','${item.vaccine.id}')">
-          <span class="uc-dot dot-${st}"></span>
-          <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(item.vaccine.id).name}</div>
-            <div class="uc-child">${esc(item.child.name)}</div>
-            <div class="uc-date">${fmtDate(item.vaccine.scheduledDate)}</div>
-          </div>
-          <span class="uc-badge badge-${st}">${t(st === "completed" ? "done" : st === "overdue" ? "overdue" : st === "upcoming" ? "upcoming_label" : "pending")}</span>
-        </div>
-      `;
-      })
+      .map((item) => renderUpcomingCard(item))
       .join("");
   } else upSec.classList.add("hidden");
 
@@ -4271,19 +4286,7 @@ window.applyHistoryFilters = function () {
 
   $("history-empty").classList.add("hidden");
   $("history-list").innerHTML = completed
-    .map(
-      (item) => `
-    <div class="upcoming-card" onclick="goChildVaccine('${item.child.id}','${item.vaccine.id}')">
-      <span class="uc-dot dot-completed"></span>
-      <div class="uc-info">
-        <div class="uc-name">${getVaccineI18n(item.vaccine.id).name}</div>
-        <div class="uc-child">${esc(item.child.name)}</div>
-        <div class="uc-date">${t("completed_label")} ${fmtDate(item.vaccine.completedDate)}</div>
-      </div>
-      <span class="uc-badge badge-completed">${t("done")}</span>
-    </div>
-  `,
-    )
+    .map((item) => renderUpcomingCard(item))
     .join("");
 };
 
