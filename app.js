@@ -3544,6 +3544,9 @@ function bindEvents() {
     $("modal-parent-pin").classList.add("hidden");
 
   // Contact edit modal
+  $("btn-edit-parent-profile").onclick = () => {
+    if (S.userId) openEditParentModal(S.userId);
+  };
   $("btn-edit-email").onclick = () => openEditContactModal("email");
   $("btn-edit-whatsapp").onclick = () => openEditContactModal("whatsapp");
   $("btn-close-contact-modal").onclick = () =>
@@ -3792,8 +3795,7 @@ function handleCreateParent(e) {
   const email = $("input-parent-email")?.value.trim() || "";
   const whatsapp = $("input-parent-whatsapp")?.value.trim() || "";
   const pin = $("input-parent-pin")?.value.trim() || "";
-  const avatar =
-    document.querySelector('input[name="avatar"]:checked')?.value || "👩";
+  const avatar = "👩";
 
   if (!name || !whatsapp || !pin) {
     toast(t("fill_all_fields") || "Please fill name, phone and PIN");
@@ -4675,6 +4677,8 @@ function updateSettingsProfile() {
     $("settings-role").textContent = t("parent_label");
     $("settings-parent-edit").classList.remove("hidden");
     // Show contact info
+    const avatarDisplay = document.getElementById("settings-avatar-display");
+    if (avatarDisplay) avatarDisplay.textContent = u?.avatar || "👩";
     $("settings-email-display").textContent = u?.email || "—";
     $("settings-whatsapp-display").textContent = u?.whatsapp || "—";
     // Settings contact summary
@@ -4836,6 +4840,8 @@ function openEditParentModal(userId) {
   $("input-ep-email").value = user.email || "";
   $("input-ep-whatsapp").value = user.whatsapp || "";
   $("input-ep-id").value = user.id;
+  const avatarInput = document.querySelector(`input[name="edit-avatar"][value="${user.avatar}"]`);
+  if (avatarInput) avatarInput.checked = true;
   $("modal-edit-parent").classList.remove("hidden");
 }
 
@@ -4847,10 +4853,16 @@ function handleEditParent(e) {
   user.name = $("input-ep-name").value.trim();
   user.email = $("input-ep-email").value.trim();
   user.whatsapp = $("input-ep-whatsapp").value.trim();
+  const avatarInput = document.querySelector('input[name="edit-avatar"]:checked');
+  if (avatarInput) user.avatar = avatarInput.value;
   save();
   toast(t("profile_updated", { name: user.name }));
   $("modal-edit-parent").classList.add("hidden");
-  renderAdminFamilyDetail(id);
+  if (S.role === "parent") {
+    updateSettingsProfile();
+  } else {
+    renderAdminFamilyDetail(id);
+  }
 }
 
 function handleDeleteFamily(userId) {
