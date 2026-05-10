@@ -3091,9 +3091,13 @@ const S = {
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
 const esc = (s) => {
-  const d = document.createElement("span");
-  d.textContent = s;
-  return d.innerHTML;
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
 function uid() {
@@ -3872,10 +3876,10 @@ function renderHome() {
       .slice(0, 5)
       .map(
         (a) => `
-      <div class="alert-card" onclick="goChildVaccine('${a.child.id}','${a.vaccine.id}')">
+      <div class="alert-card" onclick="goChildVaccine('${esc(a.child.id)}','${esc(a.vaccine.id)}')">
         <span class="alert-emoji">🚨</span>
         <div class="alert-text">
-          <strong>${esc(a.child.name)}</strong> — ${getVaccineI18n(a.vaccine.id).name} ${t("is_overdue")}
+          <strong>${esc(a.child.name)}</strong> — ${esc(getVaccineI18n(a.vaccine.id).name)} ${t("is_overdue")}
           <br><small>${t("scheduled")} ${fmtDate(a.vaccine.scheduledDate)}</small>
         </div>
       </div>
@@ -3920,11 +3924,11 @@ function renderHome() {
             (a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate),
           )[0];
         const nextInfo = nextVax
-          ? `${t("next_vaccine")}: ${getVaccineI18n(nextVax.id).name} (${fmtDate(nextVax.scheduledDate)})`
+          ? `${t("next_vaccine")}: ${esc(getVaccineI18n(nextVax.id).name)} (${fmtDate(nextVax.scheduledDate)})`
           : t("no_pending");
 
         return `
-        <div class="child-card child-card-detailed" onclick="goChild('${child.id}')" style="animation-delay:${i * 0.08}s">
+        <div class="child-card child-card-detailed" onclick="goChild('${esc(child.id)}')" style="animation-delay:${i * 0.08}s">
           <div class="cc-top-row">
             <div class="cc-avatar">${avatar}</div>
             <div class="cc-info">
@@ -3965,10 +3969,10 @@ function renderHome() {
           ? "completed"
           : vaccineStatus(item.vaccine, item.child.birthDate);
         return `
-        <div class="upcoming-card" onclick="goChildVaccine('${item.child.id}','${item.vaccine.id}')">
+        <div class="upcoming-card" onclick="goChildVaccine('${esc(item.child.id)}','${esc(item.vaccine.id)}')">
           <span class="uc-dot dot-${st}"></span>
           <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(item.vaccine.id).name}</div>
+            <div class="uc-name">${esc(getVaccineI18n(item.vaccine.id).name)}</div>
             <div class="uc-child">${esc(item.child.name)}</div>
             <div class="uc-date">${fmtDate(item.vaccine.scheduledDate)}</div>
           </div>
@@ -4104,16 +4108,16 @@ function renderChildVaccines() {
   const GL = getGroupLabels();
   Object.keys(GL).forEach((gk) => {
     if (!grouped[gk]) return;
-    html += `<div class="vt-group-label">${GL[gk]}</div>`;
+    html += `<div class="vt-group-label">${esc(GL[gk])}</div>`;
     grouped[gk].forEach((v) => {
       const dateText = v.completedDate
         ? `✅ ${fmtDate(v.completedDate)}`
         : `📅 ${fmtDate(v.scheduledDate)}`;
       html += `
-        <div class="vt-card ${v.status === "completed" ? "vt-completed" : ""}" onclick="openVaccineModal('${v.id}')">
+        <div class="vt-card ${v.status === "completed" ? "vt-completed" : ""}" onclick="openVaccineModal('${esc(v.id)}')">
           <span class="uc-dot dot-${v.status}"></span>
           <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
+            <div class="uc-name">${esc(getVaccineI18n(v.id).name)}</div>
             <div class="uc-date">${dateText}</div>
           </div>
           <span class="uc-badge badge-${v.status}">${t(v.status === "completed" ? "done" : v.status === "overdue" ? "overdue" : v.status === "upcoming" ? "upcoming_label" : "pending")}</span>
@@ -4141,7 +4145,7 @@ function renderScheduleView() {
     $("schedule-child-select").classList.remove("hidden");
     const currentVal = select.value;
     select.innerHTML = user.children
-      .map((c) => `<option value="${c.id}">${esc(c.name)}</option>`)
+      .map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`)
       .join("");
     if (currentVal && user.children.some((c) => c.id === currentVal))
       select.value = currentVal;
@@ -4170,16 +4174,16 @@ function renderScheduleView() {
   const GL = getGroupLabels();
   Object.keys(GL).forEach((gk) => {
     if (!grouped[gk]) return;
-    html += `<div class="vt-group-label">${GL[gk]}</div>`;
+    html += `<div class="vt-group-label">${esc(GL[gk])}</div>`;
     grouped[gk].forEach((v) => {
       const dateText = v.completedDate
         ? `✅ ${fmtDate(v.completedDate)}`
         : `📅 ${fmtDate(v.scheduledDate)}`;
       html += `
-        <div class="vt-card ${v.status === "completed" ? "vt-completed" : ""}" onclick="goScheduleVaccine('${child.id}','${v.id}')">
+        <div class="vt-card ${v.status === "completed" ? "vt-completed" : ""}" onclick="goScheduleVaccine('${esc(child.id)}','${esc(v.id)}')">
           <span class="uc-dot dot-${v.status}"></span>
           <div class="uc-info">
-            <div class="uc-name">${getVaccineI18n(v.id).name}</div>
+            <div class="uc-name">${esc(getVaccineI18n(v.id).name)}</div>
             <div class="uc-date">${dateText}</div>
           </div>
           <span class="uc-badge badge-${v.status}">${t(v.status === "completed" ? "done" : v.status === "overdue" ? "overdue" : v.status === "upcoming" ? "upcoming_label" : "pending")}</span>
@@ -4208,7 +4212,7 @@ function renderHistory() {
   filterHtml += `<div class="hf-row"><label>${t("filter_by_child")}</label><select id="history-child-filter" class="select-pill" onchange="applyHistoryFilters()">`;
   filterHtml += `<option value="all">${t("all_children")}</option>`;
   children.forEach((c) => {
-    filterHtml += `<option value="${c.id}">${esc(c.name)}</option>`;
+    filterHtml += `<option value="${esc(c.id)}">${esc(c.name)}</option>`;
   });
   filterHtml += `</select></div>`;
   // Vaccine type filter
@@ -4273,10 +4277,10 @@ window.applyHistoryFilters = function () {
   $("history-list").innerHTML = completed
     .map(
       (item) => `
-    <div class="upcoming-card" onclick="goChildVaccine('${item.child.id}','${item.vaccine.id}')">
+    <div class="upcoming-card" onclick="goChildVaccine('${esc(item.child.id)}','${esc(item.vaccine.id)}')">
       <span class="uc-dot dot-completed"></span>
       <div class="uc-info">
-        <div class="uc-name">${getVaccineI18n(item.vaccine.id).name}</div>
+        <div class="uc-name">${esc(getVaccineI18n(item.vaccine.id).name)}</div>
         <div class="uc-child">${esc(item.child.name)}</div>
         <div class="uc-date">${t("completed_label")} ${fmtDate(item.vaccine.completedDate)}</div>
       </div>
@@ -4349,7 +4353,7 @@ function renderAdminHome() {
       .map((u) => {
         const cc = (u.children || []).length;
         return `
-        <div class="admin-family-card" onclick="goAdminFamily('${u.id}')">
+        <div class="admin-family-card" onclick="goAdminFamily('${esc(u.id)}')">
           <span class="afc-avatar">${esc(u.avatar)}</span>
           <div class="afc-info">
             <div class="afc-name">${esc(u.name)}</div>
@@ -4394,7 +4398,7 @@ function renderAdminFamilyDetail(userId) {
       const pct = total ? Math.round((done / total) * 100) : 0;
       const avatar = child.gender === "female" ? "👧" : "👦";
       return `
-      <div class="child-card" onclick="goChild('${child.id}')">
+      <div class="child-card" onclick="goChild('${esc(child.id)}')">
         <div class="cc-avatar">${avatar}</div>
         <div class="cc-info">
           <div class="cc-name">${esc(child.name)}</div>
@@ -4419,7 +4423,7 @@ function renderAdminVaccines() {
   const allVaccines = getAllVaccines();
   allVaccines.forEach((v) => {
     if (v.group !== lastGroup) {
-      html += `<div class="vt-group-label">${GL[v.group] || v.group}</div>`;
+      html += `<div class="vt-group-label">${esc(GL[v.group] || v.group)}</div>`;
       lastGroup = v.group;
     }
     const vi = getVaccineI18n(v.id);
@@ -4428,14 +4432,14 @@ function renderAdminVaccines() {
       <div class="admin-vaccine-item">
         <span class="avi-dot" ${isCustom ? 'style="background:var(--secondary)"' : ""}></span>
         <div class="avi-info">
-          <div class="avi-name">${vi.name || v.name} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t("custom_vaccine")}]</span>` : ""}</div>
-          <div class="avi-age">${vi.ageLabel || v.ageLabel} · ${vi.desc || v.desc}</div>
+          <div class="avi-name">${esc(vi.name || v.name)} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t("custom_vaccine")}]</span>` : ""}</div>
+          <div class="avi-age">${esc(vi.ageLabel || v.ageLabel)} · ${esc(vi.desc || v.desc)}</div>
         </div>
         ${
           isCustom
             ? `
-          <button class="btn btn-glass btn-sm" type="button" onclick="editCustomVaccine('${v.id}')">✏️</button>
-          <button class="btn btn-glass btn-sm btn-glass-danger" type="button" onclick="deleteCustomVaccine('${v.id}')">🗑️</button>
+          <button class="btn btn-glass btn-sm" type="button" onclick="editCustomVaccine('${esc(v.id)}')">✏️</button>
+          <button class="btn btn-glass btn-sm btn-glass-danger" type="button" onclick="deleteCustomVaccine('${esc(v.id)}')">🗑️</button>
         `
             : ""
         }
@@ -4888,8 +4892,8 @@ function renderAdminProfilesList() {
           <div class="ap-email">${admin.email ? esc(admin.email) : "—"}</div>
         </div>
         <div class="admin-profile-actions">
-          <button class="btn btn-glass btn-sm" onclick="editAdminProfile('${admin.id}')" type="button">✏️</button>
-          <button class="btn btn-glass btn-sm btn-glass-danger" onclick="deleteAdminProfile('${admin.id}')" type="button">🗑️</button>
+          <button class="btn btn-glass btn-sm" onclick="editAdminProfile('${esc(admin.id)}')" type="button">✏️</button>
+          <button class="btn btn-glass btn-sm btn-glass-danger" onclick="deleteAdminProfile('${esc(admin.id)}')" type="button">🗑️</button>
         </div>
       </div>
     `;
