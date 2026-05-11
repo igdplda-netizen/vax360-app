@@ -37,9 +37,7 @@ const SYNC_AUTH_TOKEN =
   (() => {
     const pwd = crypto.randomBytes(16).toString("hex");
     console.warn(
-      "⚠️  WARNING: SYNC_AUTH_TOKEN not set. Using generated random password: " +
-        pwd +
-        "\n",
+      "\n⚠️  WARNING: SYNC_AUTH_TOKEN not set. Using generated random password.",
     );
     return pwd;
   })();
