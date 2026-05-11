@@ -3098,6 +3098,11 @@ function loadLanguage() {
 }
 
 // ─── State ──────────────────────────────────────────────
+let childCache = null;
+function invalidateChildCache() {
+  childCache = null;
+}
+
 const S = {
   role: null, // 'parent' | 'admin'
   userId: null, // current parent profile id
@@ -3194,11 +3199,13 @@ function load() {
     const d = JSON.parse(localStorage.getItem("vt2"));
     if (d) {
       S.users = d.users || [];
+      invalidateChildCache();
       S.adminPin = d.adminPin || "1234";
       S.adminProfiles = d.adminProfiles || [];
     }
   } catch {
     S.users = [];
+    invalidateChildCache();
     S.adminProfiles = [];
   }
   // Ensure at least one admin profile always exists
@@ -3319,7 +3326,10 @@ async function syncFromCloud(interactive = true) {
       const d = JSON.parse(decryptedString);
 
       // Merge cloud data over local
-      if (d.users) S.users = d.users;
+      if (d.users) {
+        S.users = d.users;
+        invalidateChildCache();
+      }
       if (d.adminPin) S.adminPin = d.adminPin;
       if (d.adminProfiles) S.adminProfiles = d.adminProfiles;
 
@@ -3840,6 +3850,7 @@ function handleCreateParent(e) {
     children: [],
   };
   S.users.push(user);
+  invalidateChildCache();
   save();
   S.userId = user.id;
   $("form-create-parent").reset();
@@ -4068,11 +4079,17 @@ window.openVaccineModal = openVaccineModal;
 
 // ─── Child Detail ───────────────────────────────────────
 function getChildById(id) {
-  for (const u of S.users) {
-    const c = (u.children || []).find((ch) => ch.id === id);
-    if (c) return c;
+  if (childCache === null) {
+    childCache = new Map();
+    for (const u of S.users) {
+      if (u.children) {
+        for (const c of u.children) {
+          childCache.set(c.id, c);
+        }
+      }
+    }
   }
-  return null;
+  return childCache.get(id) || null;
 }
 
 function renderChildDetail() {
@@ -4789,6 +4806,7 @@ function handleSaveChild(e) {
       notes: "",
     }));
     owner.children.push({ id: uid(), name, birthDate: dob, gender, vaccines });
+    invalidateChildCache();
     toast(t("child_added", { name }));
     fireConfetti();
   }
@@ -4814,6 +4832,7 @@ function handleDeleteChild() {
         );
         if (idx >= 0) {
           u.children.splice(idx, 1);
+          invalidateChildCache();
           break;
         }
       }
@@ -4903,6 +4922,7 @@ function importData(e) {
           t("import_data_confirm", { n: data.users.length }),
           () => {
             S.users = data.users;
+            invalidateChildCache();
             if (data.adminPin) S.adminPin = data.adminPin;
             if (data.adminProfiles) S.adminProfiles = data.adminProfiles;
             save();
@@ -4945,6 +4965,7 @@ function handleClearAll() {
     }
     $("modal-password-confirm").classList.add("hidden");
     S.users = [];
+    invalidateChildCache();
     S.adminPin = "1234";
     S.adminProfiles = [
       { id: uid(), name: "Admin", email: "", whatsapp: "0000", pin: "1234" },
@@ -5033,6 +5054,7 @@ function handleDeleteFamily(userId) {
     t("delete_family_msg", { name: user.name }),
     () => {
       S.users = S.users.filter((u) => u.id !== userId);
+      invalidateChildCache();
       save();
       toast(t("child_deleted", { name: user.name }));
       showAppView("admin-home");
@@ -5245,6 +5267,7 @@ let customVaccines = JSON.parse(
 );
 
 const CUSTOM_VACCINES_MAP = new Map();
+
 function updateCustomVaccinesMap() {
   CUSTOM_VACCINES_MAP.clear();
   if (Array.isArray(customVaccines)) {
