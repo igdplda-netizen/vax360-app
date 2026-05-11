@@ -4319,14 +4319,14 @@ window.applyHistoryFilters = function () {
 };
 
 // ─── Admin Home ─────────────────────────────────────────
-function renderAdminHome() {
-  let totalFamilies = S.users.length;
-  let totalChildren = 0,
-    totalVaccinesGiven = 0,
-    totalVaccines = 0;
+function calculateAdminStats(users) {
+  let totalFamilies = users.length;
+  let totalChildren = 0;
+  let totalVaccinesGiven = 0;
+  let totalVaccines = 0;
   const vaccineData = {};
 
-  S.users.forEach((u) => {
+  users.forEach((u) => {
     (u.children || []).forEach((child) => {
       totalChildren++;
       (child.vaccines || []).forEach((v) => {
@@ -4344,6 +4344,26 @@ function renderAdminHome() {
   const rate = totalVaccines
     ? Math.round((totalVaccinesGiven / totalVaccines) * 100)
     : 0;
+
+  return {
+    totalFamilies,
+    totalChildren,
+    totalVaccinesGiven,
+    totalVaccines,
+    rate,
+    vaccineData,
+  };
+}
+
+function renderAdminHome() {
+  const stats = calculateAdminStats(S.users);
+  const {
+    totalFamilies,
+    totalChildren,
+    totalVaccinesGiven,
+    rate,
+    vaccineData,
+  } = stats;
 
   $("as-families").textContent = totalFamilies;
   $("as-children").textContent = totalChildren;
