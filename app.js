@@ -3193,6 +3193,7 @@ function load() {
 const API_BASE_URL = "http://localhost:5000/api";
 const SYNC_ID = "vax360_main";
 const SYNC_API_URL = `${API_BASE_URL}/sync/${SYNC_ID}`;
+const SYNC_AUTH_TOKEN = "vax360_default_sync_token";
 
 async function getSyncToken(interactive = true) {
   let token = localStorage.getItem("vt2_token");
@@ -3203,11 +3204,7 @@ async function getSyncToken(interactive = true) {
 
   if (!interactive) return null;
 
-  pwd = prompt("Enter the backend sync password to enable cloud sync:");
-  if (!pwd) {
-    sessionStorage.setItem("vt2_sync_skip", "true");
-    return null;
-  }
+  pwd = SYNC_AUTH_TOKEN;
 
   try {
     const res = await fetch(`${API_BASE_URL}/login`, {
