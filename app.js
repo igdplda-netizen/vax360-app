@@ -4436,7 +4436,7 @@ function renderAdminVaccines() {
       <div class="admin-vaccine-item">
         <span class="avi-dot" ${isCustom ? 'style="background:var(--secondary)"' : ""}></span>
         <div class="avi-info">
-          <div class="avi-name">${esc(vi.name || v.name)} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t("custom_vaccine")}]</span>` : ""}</div>
+          <div class="avi-name">${esc(vi.name || v.name)} ${isCustom ? `<span style="font-size:0.65rem;color:var(--secondary);font-weight:800">[${t("custom_vaccine")}]</span>` : ""} ${v.isOptional ? `<span style="font-size:0.65rem;color:var(--text-3);font-weight:800">[Optional]</span>` : ""}</div>
           <div class="avi-age">${esc(vi.ageLabel || v.ageLabel)} · ${esc(vi.desc || v.desc)}</div>
         </div>
         ${
@@ -5108,6 +5108,7 @@ function openAddVaccineModal() {
   $("input-av-desc").value = "";
   $("input-av-age").value = "";
   $("input-av-group").value = "";
+  $("input-av-optional").checked = false;
   $("input-av-edit-id").value = "";
   $("modal-admin-vaccine").classList.remove("hidden");
 }
@@ -5120,6 +5121,7 @@ window.editCustomVaccine = function (id) {
   $("input-av-desc").value = v.desc;
   $("input-av-age").value = v.ageMonths;
   $("input-av-group").value = v.group;
+  $("input-av-optional").checked = v.isOptional || false;
   $("input-av-edit-id").value = v.id;
   $("modal-admin-vaccine").classList.remove("hidden");
 };
@@ -5145,6 +5147,7 @@ function handleSaveVaccine(e) {
   const desc = $("input-av-desc").value.trim();
   const ageMonths = parseInt($("input-av-age").value);
   const group = $("input-av-group").value.trim();
+  const isOptional = $("input-av-optional").checked;
 
   if (!name || !group) {
     toast(t("fill_all_fields"));
@@ -5167,6 +5170,7 @@ function handleSaveVaccine(e) {
       v.desc = desc;
       v.ageMonths = ageMonths;
       v.group = group;
+      v.isOptional = isOptional;
     }
     toast(t("vaccine_updated"));
   } else {
@@ -5183,6 +5187,7 @@ function handleSaveVaccine(e) {
       ageLabel,
       group,
       custom: true,
+      isOptional,
     });
     toast(t("vaccine_added"));
   }
