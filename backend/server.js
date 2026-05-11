@@ -49,7 +49,7 @@ app.use(
       CORS_ORIGIN === "*" ? "*" : CORS_ORIGIN.split(",").map((s) => s.trim()),
   }),
 );
-app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.json({ limit: "100kb" }));
 
 // ─── Database Setup (SQLite) ────────────────────────────
 const db = new sqlite3.Database(

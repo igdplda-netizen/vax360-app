@@ -88,9 +88,9 @@ describe("Sync Endpoints", () => {
   });
 
   it("should enforce maximum payload size (413 Payload Too Large)", async () => {
-    // Generate an 11MB string payload
+    // Generate an 200KB string payload
     const largeData = {
-      largeString: "A".repeat(11 * 1024 * 1024),
+      largeString: "A".repeat(200 * 1024),
     };
 
     const res = await request(app)
