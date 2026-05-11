@@ -2102,13 +2102,13 @@ const I18N = {
     // Admin pin
     admin_access: "Admin Access",
     enter_pin: "Enter the admin PIN to continue",
-    default_pin: "Default PIN: 1234",
+    default_pin: "Default PIN: 123456",
     unlock: "Unlock",
     incorrect_pin: "❌ Incorrect PIN",
     // Create parent
     your_profile: "Your Profile",
     enter_phone_pin: "Enter your phone and PIN",
-    pin_for_security: "For your security, create a 4-digit PIN",
+    pin_for_security: "For your security, create a 6-character password",
     tell_about: "Tell us a little about yourself",
     your_name: "Your Name",
     email_optional: "Email (optional)",
@@ -2318,7 +2318,7 @@ const I18N = {
     // Parent login
     enter_your_pin: "Enter your PIN",
     create_pin: "Create a PIN",
-    pin_for_security: "For your security, create a 4-digit PIN",
+    pin_for_security: "For your security, create a 6-character password",
     login_pin: "Login PIN",
     // Age strings
     age_years: "{y} yr",
@@ -2386,12 +2386,12 @@ const I18N = {
     children_count: "{n} filhos",
     admin_access: "Acesso Admin",
     enter_pin: "Digite o PIN de administrador para continuar",
-    default_pin: "PIN padrão: 1234",
+    default_pin: "PIN padrão: 123456",
     unlock: "Desbloquear",
     incorrect_pin: "❌ PIN incorreto",
     your_profile: "Seu Perfil",
     enter_phone_pin: "Insira seu telefone e PIN",
-    pin_for_security: "Para sua segurança, crie um PIN de 4 dígitos",
+    pin_for_security: "Para sua segurança, crie uma senha de 6 caracteres",
     tell_about: "Conte-nos um pouco sobre você",
     your_name: "Seu Nome",
     email_optional: "E-mail (opcional)",
@@ -2584,7 +2584,7 @@ const I18N = {
     no_pending: "Tudo em dia!",
     enter_your_pin: "Digite o seu PIN",
     create_pin: "Crie um PIN",
-    pin_for_security: "Para sua segurança, crie um PIN de 4 dígitos",
+    pin_for_security: "Para sua segurança, crie uma senha de 6 caracteres",
     login_pin: "PIN de Acesso",
     age_years: "{y} ano",
     age_years_plural: "{y} anos",
@@ -2650,12 +2650,12 @@ const I18N = {
     children_count: "{n} enfants",
     admin_access: "Accès Admin",
     enter_pin: "Entrez le PIN admin pour continuer",
-    default_pin: "PIN par défaut : 1234",
+    default_pin: "PIN par défaut : 123456",
     unlock: "Déverrouiller",
     incorrect_pin: "❌ PIN incorrect",
     your_profile: "Votre Profil",
     enter_phone_pin: "Entrez votre téléphone et PIN",
-    pin_for_security: "Pour votre sécurité, créez un code PIN à 4 chiffres",
+    pin_for_security: "Pour votre sécurité, créez un mot de passe à 6 caractères",
     tell_about: "Dites-nous un peu sur vous",
     your_name: "Votre Nom",
     email_optional: "E-mail (optionnel)",
@@ -2860,12 +2860,12 @@ const I18N = {
     children_count: "{n} kinders",
     admin_access: "Admin Toegang",
     enter_pin: "Voer die admin-PIN in om voort te gaan",
-    default_pin: "Verstek PIN: 1234",
+    default_pin: "Verstek PIN: 123456",
     unlock: "Ontsluit",
     incorrect_pin: "❌ Verkeerde PIN",
     your_profile: "Jou Profiel",
     enter_phone_pin: "Voer jou foon en PIN in",
-    pin_for_security: "Vir jou sekuriteit, skep 'n 4-syfer PIN",
+    pin_for_security: "Vir jou sekuriteit, skep 'n 6-karakter wagwoord",
     tell_about: "Vertel ons 'n bietjie van jouself",
     your_name: "Jou Naam",
     email_optional: "E-pos (opsioneel)",
@@ -3087,7 +3087,7 @@ const S = {
   role: null, // 'parent' | 'admin'
   userId: null, // current parent profile id
   users: [], // all parent profiles
-  adminPin: "1234", // legacy fallback
+  adminPin: "123456", // legacy fallback
   adminProfiles: [], // [{id, name, email, pin}]
   currentAdminId: null, // which admin is logged in
   currentChildId: null,
@@ -3179,7 +3179,7 @@ function load() {
     const d = JSON.parse(localStorage.getItem("vt2"));
     if (d) {
       S.users = d.users || [];
-      S.adminPin = d.adminPin || "1234";
+      S.adminPin = d.adminPin || "123456";
       S.adminProfiles = d.adminProfiles || [];
     }
   } catch {
@@ -4841,7 +4841,7 @@ function updateSettingsProfile() {
 
 function handleChangePin() {
   const pin = $("input-new-pin").value;
-  if (!pin || pin.length < 4) {
+  if (!pin || pin.length < 6) {
     toast(t("pin_too_short"));
     return;
   }
@@ -4930,9 +4930,9 @@ function handleClearAll() {
     }
     $("modal-password-confirm").classList.add("hidden");
     S.users = [];
-    S.adminPin = "1234";
+    S.adminPin = "123456";
     S.adminProfiles = [
-      { id: uid(), name: "Admin", email: "", whatsapp: "0000", pin: "1234" },
+      { id: uid(), name: "Admin", email: "", whatsapp: "0000", pin: "123456" },
     ];
     save();
     toast(t("all_data_cleared"));
@@ -5107,7 +5107,7 @@ function handleSaveAdmin(e) {
   const whatsapp = $("input-admin-whatsapp").value.trim();
   const email = $("input-admin-email-f").value.trim();
   const pin = $("input-admin-pin-f").value.trim();
-  if (!name || !whatsapp || !pin || pin.length < 4) {
+  if (!name || !whatsapp || !pin || pin.length < 6) {
     toast(t("pin_too_short") || "Please fill all required fields");
     return;
   }
