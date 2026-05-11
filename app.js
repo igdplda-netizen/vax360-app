@@ -2135,6 +2135,9 @@ const I18N = {
     // Child detail
     edit: "Edit",
     delete: "Delete",
+    export_pdf: "Export PDF",
+    certificate: "Vaccination Certificate",
+    validate_msg: "Scan to validate doses",
     all: "All",
     done: "Done",
     // Schedule
@@ -2413,6 +2416,9 @@ const I18N = {
     scheduled: "Agendada",
     edit: "Editar",
     delete: "Excluir",
+    export_pdf: "Exportar PDF",
+    certificate: "Certificado de Vacinação",
+    validate_msg: "Leia para validar as doses",
     all: "Todas",
     done: "Feita",
     showing_for: "Mostrando cronograma para:",
@@ -2674,6 +2680,9 @@ const I18N = {
     scheduled: "Programmé",
     edit: "Modifier",
     delete: "Supprimer",
+    export_pdf: "Exporter le PDF",
+    certificate: "Certificat de Vaccination",
+    validate_msg: "Scanner pour valider les doses",
     all: "Tous",
     done: "Fait",
     showing_for: "Affichage du calendrier pour :",
@@ -3343,37 +3352,37 @@ function toggleTheme() {
 // ─── Init ───────────────────────────────────────────────
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", async () => {
-  load();
-  await syncFromCloud(false);
-  const hasLang = loadLanguage();
-  applyTranslations();
-  initTheme();
-  injectSVGDefs();
-  bindEvents();
+    load();
+    await syncFromCloud(false);
+    const hasLang = loadLanguage();
+    applyTranslations();
+    initTheme();
+    injectSVGDefs();
+    bindEvents();
 
-  setTimeout(() => {
-    $("splash")?.remove();
-    if (hasLang) {
-      // Language already chosen, go to login
-      $("screen-login").classList.remove("hidden");
-    } else {
-      // First time: show landing page
-      $("screen-landing").classList.remove("hidden");
-    }
-  }, 2200);
+    setTimeout(() => {
+      $("splash")?.remove();
+      if (hasLang) {
+        // Language already chosen, go to login
+        $("screen-login").classList.remove("hidden");
+      } else {
+        // First time: show landing page
+        $("screen-landing").classList.remove("hidden");
+      }
+    }, 2200);
 
-  if ("serviceWorker" in navigator)
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    if ("serviceWorker" in navigator)
+      navigator.serviceWorker.register("sw.js").catch(() => {});
 
-  window.addEventListener("online", () => {
-    toast("Back online. Syncing data...");
-    syncFromCloud(false);
-    save(); // trigger sync API post
+    window.addEventListener("online", () => {
+      toast("Back online. Syncing data...");
+      syncFromCloud(false);
+      save(); // trigger sync API post
+    });
+    window.addEventListener("offline", () => {
+      toast("You are offline. Data is saved locally.");
+    });
   });
-  window.addEventListener("offline", () => {
-    toast("You are offline. Data is saved locally.");
-  });
-});
 }
 
 function injectSVGDefs() {
@@ -3488,6 +3497,7 @@ function bindEvents() {
 
   // Child detail actions
   $("btn-edit-child").onclick = openEditChildModal;
+  $("btn-export-pdf").onclick = exportCertificatePdf;
   $("btn-delete-child").onclick = handleDeleteChild;
 
   // Filter pills
@@ -4075,6 +4085,7 @@ function renderChildDetail() {
   const isAdmin = S.role === "admin";
   $("btn-edit-child").classList.toggle("hidden", !isOwnChild && !isAdmin);
   $("btn-delete-child").classList.toggle("hidden", !isOwnChild && !isAdmin);
+  $("btn-export-pdf").classList.toggle("hidden", !isOwnChild && !isAdmin);
 
   renderChildVaccines();
 }
@@ -4553,6 +4564,139 @@ function openAddChildModal() {
   $("modal-child").classList.remove("hidden");
 }
 
+function exportCertificatePdf() {
+  const child = getChildById(S.currentChildId);
+  if (!child) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const qrDiv = $("pdf-qr-code");
+  qrDiv.innerHTML = "";
+  const verifyUrl = window.location.origin + "/?verify=" + child.id;
+  new QRCode(qrDiv, {
+    text: verifyUrl,
+    width: 128,
+    height: 128,
+  });
+
+  const logo = new Image();
+  logo.src = "icons/icon-192.png";
+  logo.onload = function () {
+    const canvas = document.createElement("canvas");
+    canvas.width = logo.width;
+    canvas.height = logo.height;
+    canvas.getContext("2d").drawImage(logo, 0, 0);
+    const logoDataUrl = canvas.toDataURL("image/jpeg");
+
+    setTimeout(() => {
+      doc.addImage(logoDataUrl, "JPEG", 15, 15, 20, 20);
+      doc.setFontSize(22);
+      doc.text(t("certificate"), 40, 25);
+
+      doc.setFontSize(14);
+      doc.text(t("child_name") + ": " + child.name, 15, 50);
+      doc.text(
+        t("dob") +
+          ": " +
+          fmtDate(child.birthDate) +
+          " (" +
+          ageStr(child.birthDate) +
+          ")",
+        15,
+        60,
+      );
+
+      let y = 80;
+      doc.setFontSize(16);
+      doc.text(t("done") + ":", 15, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      const completed = (child.vaccines || []).filter((v) => v.completedDate);
+
+      if (completed.length === 0) {
+        doc.text("—", 15, y);
+        y += 10;
+      } else {
+        completed.forEach((v) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          const vName = getVaccineI18n(v.id).name;
+          doc.text("• " + vName + " - " + fmtDate(v.completedDate), 15, y);
+          y += 8;
+        });
+      }
+
+      const qrCanvas = qrDiv.querySelector("canvas");
+      if (qrCanvas) {
+        const qrDataUrl = qrCanvas.toDataURL("image/png");
+        doc.addImage(qrDataUrl, "PNG", 150, 15, 40, 40);
+        doc.setFontSize(8);
+        doc.text(t("validate_msg"), 150, 60);
+      }
+
+      doc.save(child.name + "_Certificate.pdf");
+      qrDiv.innerHTML = "";
+    }, 100);
+  };
+
+  logo.onerror = function () {
+    // Fallback if logo fails to load (e.g. some CORS issue even if local, though unlikely)
+    setTimeout(() => {
+      doc.setFontSize(22);
+      doc.text(t("certificate"), 15, 25);
+
+      doc.setFontSize(14);
+      doc.text(t("child_name") + ": " + child.name, 15, 50);
+      doc.text(
+        t("dob") +
+          ": " +
+          fmtDate(child.birthDate) +
+          " (" +
+          ageStr(child.birthDate) +
+          ")",
+        15,
+        60,
+      );
+
+      let y = 80;
+      doc.setFontSize(16);
+      doc.text(t("done") + ":", 15, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      const completed = (child.vaccines || []).filter((v) => v.completedDate);
+      if (completed.length === 0) {
+        doc.text("—", 15, y);
+        y += 10;
+      } else {
+        completed.forEach((v) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          const vName = getVaccineI18n(v.id).name;
+          doc.text("• " + vName + " - " + fmtDate(v.completedDate), 15, y);
+          y += 8;
+        });
+      }
+
+      const qrCanvas = qrDiv.querySelector("canvas");
+      if (qrCanvas) {
+        const qrDataUrl = qrCanvas.toDataURL("image/png");
+        doc.addImage(qrDataUrl, "PNG", 150, 15, 40, 40);
+        doc.setFontSize(8);
+        doc.text(t("validate_msg"), 150, 60);
+      }
+
+      doc.save(child.name + "_Certificate.pdf");
+      qrDiv.innerHTML = "";
+    }, 100);
+  };
+}
+
 function openEditChildModal() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
@@ -4837,7 +4981,9 @@ function openEditParentModal(userId) {
   $("input-ep-email").value = user.email || "";
   $("input-ep-whatsapp").value = user.whatsapp || "";
   $("input-ep-id").value = user.id;
-  const avatarInput = document.querySelector(`input[name="edit-avatar"][value="${user.avatar}"]`);
+  const avatarInput = document.querySelector(
+    `input[name="edit-avatar"][value="${user.avatar}"]`,
+  );
   if (avatarInput) avatarInput.checked = true;
   $("modal-edit-parent").classList.remove("hidden");
 }
@@ -4850,7 +4996,9 @@ function handleEditParent(e) {
   user.name = $("input-ep-name").value.trim();
   user.email = $("input-ep-email").value.trim();
   user.whatsapp = $("input-ep-whatsapp").value.trim();
-  const avatarInput = document.querySelector('input[name="edit-avatar"]:checked');
+  const avatarInput = document.querySelector(
+    'input[name="edit-avatar"]:checked',
+  );
   if (avatarInput) user.avatar = avatarInput.value;
   save();
   toast(t("profile_updated", { name: user.name }));
