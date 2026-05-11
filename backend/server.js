@@ -48,7 +48,7 @@ const SYNC_AUTH_TOKEN =
 app.use(
   cors({
     origin:
-      CORS_ORIGIN === "*" ? true : CORS_ORIGIN.split(",").map((s) => s.trim()),
+      CORS_ORIGIN === "*" ? "*" : CORS_ORIGIN.split(",").map((s) => s.trim()),
   }),
 );
 app.use(bodyParser.json({ limit: "10mb" }));
