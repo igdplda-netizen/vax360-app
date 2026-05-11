@@ -293,7 +293,7 @@ body {
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 12px 24px; border: none; border-radius: var(--radius-full);
-  font-family: var(--font); font-size: 0.9rem; font-weight: 700;
+  font-family: var(--font); font-size: 0.9rem; font-weight: 700; text-align: center;
   cursor: pointer; transition: all var(--transition); white-space: nowrap;
 }
 .btn:active { transform: scale(0.96); }
@@ -845,11 +845,11 @@ body {
 /* ─── Language Grid ──────────────────────────────────── */
 .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .lang-btn {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
   padding: 18px 16px; border: 2px solid var(--border);
   border-radius: var(--radius); background: var(--bg-card);
   cursor: pointer; font-family: var(--font); font-size: 1rem;
-  font-weight: 700; color: var(--text); transition: all var(--transition);
+  font-weight: 700; color: var(--text); transition: all var(--transition); text-align: center;
   backdrop-filter: blur(10px);
 }
 .lang-btn:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
