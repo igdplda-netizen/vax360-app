@@ -3340,8 +3340,24 @@ async function syncFromCloud(interactive = true) {
   }
 }
 
+let _cachedUserId = null;
+let _cachedUsersRef = null;
+let _cachedUsersLen = -1;
+let _cachedUser = null;
+
 function currentUser() {
-  return S.users.find((u) => u.id === S.userId);
+  if (
+    _cachedUserId === S.userId &&
+    _cachedUsersRef === S.users &&
+    _cachedUsersLen === S.users.length
+  ) {
+    return _cachedUser;
+  }
+  _cachedUserId = S.userId;
+  _cachedUsersRef = S.users;
+  _cachedUsersLen = S.users.length;
+  _cachedUser = S.users.find((u) => u.id === S.userId);
+  return _cachedUser;
 }
 
 // ─── Theme ──────────────────────────────────────────────
