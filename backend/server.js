@@ -54,21 +54,23 @@ app.use(
 app.use(bodyParser.json({ limit: "10mb" }));
 
 // ─── Database Setup (SQLite) ────────────────────────────
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error("❌ Error connecting to database:", err.message);
-    process.exit(1);
-  }
-  console.log(`✅ Connected to SQLite database at ${DB_PATH}`);
+const db = new sqlite3.Database(
+  process.env.DB_PATH === ":memory:" ? ":memory:" : DB_PATH,
+  (err) => {
+    if (err) {
+      console.error("❌ Error connecting to database:", err.message);
+      process.exit(1);
+    }
+    console.log(`✅ Connected to SQLite database at ${DB_PATH}`);
 
-  // Auto-create tables on first run
-  db.run(`CREATE TABLE IF NOT EXISTS store (
+    // Auto-create tables on first run
+    db.run(`CREATE TABLE IF NOT EXISTS store (
     id          TEXT PRIMARY KEY,
     data        TEXT,
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  db.run(`CREATE TABLE IF NOT EXISTS audit_log (
+    db.run(`CREATE TABLE IF NOT EXISTS audit_log (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     action      TEXT NOT NULL,
     entity_type TEXT,
@@ -77,11 +79,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  db.run(`CREATE TABLE IF NOT EXISTS app_meta (
+    db.run(`CREATE TABLE IF NOT EXISTS app_meta (
     key   TEXT PRIMARY KEY,
     value TEXT
   )`);
-});
+  },
+);
 
 // ─── Health Check ───────────────────────────────────────
 app.get("/api/health", (_req, res) => {
@@ -165,15 +168,18 @@ function shutdown() {
   console.log("\n🛑 Shutting down...");
   db.close(() => {
     console.log("🗄️  Database connection closed");
-    process.exit(0);
   });
 }
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 // ─── Start Server ───────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
-  console.log(`   Environment: ${NODE_ENV}`);
-  console.log(`   Database:    ${DB_PATH}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
+    console.log(`   Environment: ${NODE_ENV}`);
+    console.log(`   Database:    ${DB_PATH}\n`);
+  });
+}
+
+module.exports = { app, db, shutdown };

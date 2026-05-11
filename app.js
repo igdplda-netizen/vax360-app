@@ -1,3 +1,18 @@
+if (typeof window === "undefined") {
+  global.window = {};
+}
+if (typeof localStorage === "undefined") {
+  global.localStorage = { getItem: () => null, setItem: () => {} };
+}
+if (typeof document === "undefined") {
+  global.document = { addEventListener: () => {} };
+}
+if (typeof navigator === "undefined") {
+  global.navigator = {
+    language: "en-US",
+    serviceWorker: { register: () => Promise.resolve() },
+  };
+}
 /* =======================================================
    Vax360 v2.0 – Application Logic
    ======================================================= */
@@ -3099,7 +3114,7 @@ const S = {
 // ─── Helpers ────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
-const esc = (s) => {
+function esc(s) {
   if (s == null) return "";
   return String(s)
     .replace(/&/g, "&amp;")
@@ -3107,7 +3122,7 @@ const esc = (s) => {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-};
+}
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -5458,6 +5473,26 @@ window.selectParent = function (id) {
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
+    get CUSTOM_VACCINES_MAP() {
+      return CUSTOM_VACCINES_MAP;
+    },
+    set CUSTOM_VACCINES_MAP(val) {
+      CUSTOM_VACCINES_MAP = val;
+    },
+    get VACCINE_BASE_TYPE_CACHE() {
+      return VACCINE_BASE_TYPE_CACHE;
+    },
+    set VACCINE_BASE_TYPE_CACHE(val) {
+      VACCINE_BASE_TYPE_CACHE = val;
+    },
+    get currentLang() {
+      return currentLang;
+    },
+    set currentLang(val) {
+      currentLang = val;
+    },
+    esc,
+    t,
     getVaccineBaseType,
     getVaccineI18n,
     schedDate,
