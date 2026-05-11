@@ -32,12 +32,12 @@ const JWT_SECRET =
     );
     return secret;
   })();
-const SYNC_PASSWORD =
-  process.env.SYNC_PASSWORD ||
+const SYNC_AUTH_TOKEN =
+  process.env.SYNC_AUTH_TOKEN ||
   (() => {
     const pwd = crypto.randomBytes(16).toString("hex");
     console.warn(
-      "⚠️  WARNING: SYNC_PASSWORD not set. Using generated random password: " +
+      "⚠️  WARNING: SYNC_AUTH_TOKEN not set. Using generated random password: " +
         pwd +
         "\n",
     );
@@ -117,7 +117,7 @@ const loginLimiter = rateLimit({
 // ─── Auth Route ─────────────────────────────────────────
 app.post("/api/login", loginLimiter, (req, res) => {
   const { password } = req.body;
-  if (password === SYNC_PASSWORD) {
+  if (password === SYNC_AUTH_TOKEN) {
     const token = jwt.sign({ role: "sync_client" }, JWT_SECRET, {
       expiresIn: "7d",
     });
