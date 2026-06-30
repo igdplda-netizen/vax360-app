@@ -17,6 +17,7 @@ try {
 }
 
 const app = express();
+app.set('trust proxy', 1); // Required for Replit proxy
 
 // ─── Configuration (from environment) ───────────────────
 const PORT = process.env.PORT || 5000;
@@ -24,7 +25,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const DB_PATH = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, "database.sqlite");
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 
 // Enforce environment validation for production
 if (NODE_ENV === "production") {
@@ -62,11 +63,11 @@ function handleInternalError(res, err, logMessage) {
 }
 
 // ─── Middleware ─────────────────────────────────────────
-app.use(helmet());
+// Helmet disabled for Replit to allow CDN scripts
+// app.use(helmet());
 app.use(
   cors({
-    origin:
-      CORS_ORIGIN === "*" ? "*" : CORS_ORIGIN.split(",").map((s) => s.trim()),
+    origin: "*",
   }),
 );
 app.use((req, res, next) => {
@@ -1080,12 +1081,12 @@ app.post("/api/partner-logo", authenticateToken, (req, res) => {
     }
   );
 });
-// Serve static files from the 'www' directory (Replit compatibility)
-app.use(express.static(path.resolve(__dirname, "..", "www")));
+// Serve static files from the project root (Replit compatibility)
+app.use(express.static(path.resolve(__dirname, "..")));
 
 // Fallback all non-API GET requests to index.html for SPA routing (Replit compatibility)
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.resolve(__dirname, "..", "www", "index.html"));
+  res.sendFile(path.resolve(__dirname, "..", "index.html"));
 });
 
 // ─── Graceful Shutdown ──────────────────────────────────

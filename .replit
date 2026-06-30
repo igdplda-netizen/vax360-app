@@ -1,1 +1,43 @@
 run = "npm start"
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+PORT = "5000"
+NODE_ENV = "development"
+DB_PATH = "./backend/database.sqlite"
+CORS_ORIGIN = "*"
+API_URL = "http://localhost:5000"
+DEFAULT_ADMIN_PIN = "1234"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node backend/server.js"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

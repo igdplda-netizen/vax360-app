@@ -19,13 +19,43 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+      /* System font fallback instead of Google Fonts (Replit proxy blocks CDN) */
+      @font-face {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: local('Nunito'), local('Nunito-Regular'), local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial'), local('sans-serif');
+      }
+      @font-face {
+        font-family: 'Nunito';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: local('Nunito Bold'), local('Nunito-Bold'), local('Segoe UI Bold'), local('Roboto Bold'), local('Helvetica Neue Bold'), local('Arial Bold'), local('sans-serif');
+      }
+    </style>
+    <script>
+      // Replit iframe sandbox fix: polyfill localStorage when unavailable
+      (function() {
+        try {
+          if (!window.localStorage) throw new Error('no localStorage');
+          window.localStorage.setItem('_test_', '1');
+          window.localStorage.removeItem('_test_');
+        } catch (e) {
+          var data = {};
+          window.localStorage = {
+            getItem: function(k) { return data[k] || null; },
+            setItem: function(k, v) { data[k] = String(v); },
+            removeItem: function(k) { delete data[k]; },
+            clear: function() { data = {}; }
+          };
+          console.log('[Vax360] localStorage polyfilled for sandboxed iframe');
+        }
+      })();
+    </script>
+    <script src="lib/crypto-js.min.js"></script>
     <link rel="stylesheet" href="style.css" />
     <title>Vax360 – Vaccination Tracker</title>
   </head>
@@ -1965,8 +1995,8 @@
 
     <div id="toast" class="toast hidden"><span id="toast-msg"></span></div>
     <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="lib/jspdf.umd.min.js"></script>
+    <script src="lib/qrcode.min.js"></script>
     <script src="app.js"></script>
     <div id="pdf-qr-code" style="display: none"></div>
   </body>
