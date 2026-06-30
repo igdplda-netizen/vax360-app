@@ -1083,12 +1083,12 @@ app.post("/api/partner-logo", authenticateToken, (req, res) => {
     }
   );
 });
-// Serve static files from the project root (Replit compatibility)
-app.use(express.static(path.resolve(__dirname, "..")));
+// Serve static files from the 'www' directory (Replit compatibility)
+app.use(express.static(path.resolve(__dirname, "..", "www")));
 
 // Fallback all non-API GET requests to index.html for SPA routing (Replit compatibility)
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.resolve(__dirname, "..", "index.html"));
+  res.sendFile(path.resolve(__dirname, "..", "www", "index.html"));
 });
 
 // ─── Graceful Shutdown ──────────────────────────────────
