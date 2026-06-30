@@ -9,6 +9,7 @@ That means the production attack surface is the public web deployment plus the c
 ## Assets
 
 - **Vaccination and family data** — child names, birth dates, vaccine schedules, notes, and related health information. Exposure would leak sensitive family and health data.
+- **Browser-persisted application state** — locally cached vaccination records, current-child selections, and session-related client state stored by the deployed web app. Exposure on shared devices can reveal prior users' health data even when backend access is unavailable.
 - **Authentication material in repository-adjacent services** — if backend files or database contents are exposed, password hashes, TOTP secrets, roles, and audit data could be disclosed.
 - **Application source and configuration** — source files, package manifests, and any adjacent configuration or secret-bearing files in the deployment workspace.
 - **Deployment integrity** — the deployed web app must only serve the intended static export under `dist/`, not arbitrary workspace files.
@@ -18,6 +19,7 @@ That means the production attack surface is the public web deployment plus the c
 - **Public internet → deployed Node static server** — all browser requests hit `server.js`; request paths are fully attacker-controlled and must be constrained to `dist/`.
 - **Static server → workspace filesystem** — the server process can read any file the deployment user can read. This boundary is critical because a path handling bug turns file reads into public data disclosure.
 - **Browser → Expo web bundle** — client state is untrusted and should not be treated as proof of identity or authorization.
+- **Expo web bundle → browser storage** — the production web client persists state in browser-managed storage. Logout and route guards must prevent one browser user from inheriting another user's cached health data.
 - **Production deployment → dev-only or legacy repo content** — `backend/`, legacy root web assets, tests, and local development artifacts should not become reachable from the public deployment unless explicitly exposed.
 
 ## Scan Anchors
@@ -25,6 +27,7 @@ That means the production attack surface is the public web deployment plus the c
 - **Production entry points**: `.replit` deployment config, `server.js`, `dist/**`.
 - **Highest-risk code area**: custom file serving logic in `server.js` because it mediates all public requests and has direct filesystem access.
 - **Public surface**: the deployed static site and any file paths accepted by `server.js`.
+- **Client-side sensitive state handling**: `context/AppContext.tsx` plus tab routes under `app/(tabs)/**`, especially logout behavior and any screens that render cached health data without checking `state.token`.
 - **Dev-only / usually out of scope**: `backend/**`, root legacy `app.js` / `index.html`, tests, and Expo source under `app/**` unless another production deployment path is introduced or the static server exposes them.
 
 ## Threat Categories
@@ -32,6 +35,8 @@ That means the production attack surface is the public web deployment plus the c
 ### Information Disclosure
 
 The primary production risk is arbitrary disclosure of workspace files through the custom static file server. The deployed service must guarantee that untrusted request paths cannot escape `dist/` and cannot be used to retrieve backend code, SQLite databases, configuration files, or other repository content. Any violation here directly exposes sensitive health data, authentication data, and implementation details to unauthenticated internet users.
+
+The deployed web bundle also handles sensitive vaccination data in browser storage. Logout and unauthenticated navigation must not leave prior users' child records, schedules, or exportable certificate data visible to the next person using the same browser profile or device.
 
 ### Tampering
 
