@@ -11,7 +11,7 @@
     "db:init": "cd backend && node db-init.js",
     "db:reset": "cd backend && rm -f database.sqlite && node db-init.js",
     "setup": "npm install && cd backend && npm install && cd .. && npm run db:init",
-    "build": "npx expo export --platform web",
+    "build": "npx expo export --platform web && node build.js",
     "export:web": "npx expo export --platform web",
     "cap:init": "npx -y @capacitor/cli init Vax360 com.vax360.app --web-dir www",
     "cap:add:android": "npx -y @capacitor/cli add android",
