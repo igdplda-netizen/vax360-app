@@ -21,16 +21,40 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
-
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(DIST_DIR, 'index.html');
+  // 1. Decode URL to prevent percent-encoded traversal attacks (e.g. %2e%2e%2f)
+  let safeUrl = '/';
+  try {
+    safeUrl = decodeURIComponent(req.url);
+  } catch (err) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Bad Request');
+    return;
   }
 
-  const ext = path.extname(filePath).toLowerCase();
+  // Remove query parameters or hash segments
+  const cleanPath = safeUrl.split('?')[0].split('#')[0];
+
+  // 2. Resolve target file path
+  const resolvedDistDir = path.resolve(DIST_DIR);
+  let filePath = path.join(resolvedDistDir, cleanPath === '/' ? 'index.html' : cleanPath);
+  let resolvedPath = path.resolve(filePath);
+
+  // 3. Enforce strict document root check to prevent directory traversal
+  if (resolvedPath !== resolvedDistDir && !resolvedPath.startsWith(resolvedDistDir + path.sep)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
+  // 4. Fallback to index.html for SPA routing if the file does not exist
+  if (!fs.existsSync(resolvedPath)) {
+    resolvedPath = path.join(resolvedDistDir, 'index.html');
+  }
+
+  const ext = path.extname(resolvedPath).toLowerCase();
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 
-  fs.readFile(filePath, (err, content) => {
+  fs.readFile(resolvedPath, (err, content) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not Found');
