@@ -13,6 +13,9 @@ DB_PATH = "./backend/database.sqlite"
 CORS_ORIGIN = "*"
 API_URL = "http://localhost:5000"
 DEFAULT_ADMIN_PIN = "1234"
+EXPO_NO_DEV_TOOLS = "1"
+CI = "1"
+EXPO_USE_METRO_WORKSPACE_ROOT = "1"
 
 [workflows]
 runButton = "Project"
@@ -30,13 +33,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node backend/server.js"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "EXPO_NO_DEV_TOOLS=1 npx expo start --web --port 5000"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
