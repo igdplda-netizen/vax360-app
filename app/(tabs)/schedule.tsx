@@ -30,6 +30,20 @@ export default function ScheduleScreen() {
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
+  React.useEffect(() => {
+    if (!state.token) {
+      router.replace('/login');
+    }
+  }, [state.token]);
+
+  if (!state.token) {
+    return (
+      <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   if (!currentChild) {
     return (
       <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>

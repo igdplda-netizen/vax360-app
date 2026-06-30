@@ -688,11 +688,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = useCallback(async () => {
-    const next = {
-      ...state,
-      token: null,
-      userRole: null,
-      currentUser: null,
+    const next: AppState = {
+      ...DEFAULT_STATE,
+      language: state.language,
+      theme: state.theme,
+      isOnboarded: state.isOnboarded,
     };
     await saveState(next);
   }, [state, saveState]);
