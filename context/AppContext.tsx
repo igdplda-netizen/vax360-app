@@ -22,12 +22,29 @@ export interface VaccineRecord {
   notes?: string;
 }
 
+export interface User {
+  name: string;
+  whatsapp: string;
+  email: string | null;
+}
+
+export interface PartnerBranding {
+  logo: string;
+  link: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+}
+
 interface AppState {
   language: Language;
   theme: ThemeMode;
   children: Child[];
   currentChildId: string | null;
   isOnboarded: boolean;
+  token: string | null;
+  userRole: 'parent' | 'admin' | 'superadmin' | null;
+  currentUser: User | null;
+  partnerBranding: PartnerBranding | null;
 }
 
 interface AppContextType {
@@ -45,6 +62,22 @@ interface AppContextType {
   getVaccinesForChild: (child: Child) => (Vaccine & { status: VaccineStatus; scheduledDate: string })[];
   completeOnboarding: () => void;
   t: (key: string) => string;
+
+  // Connection & API
+  API_BASE_URL: string;
+  isOnline: boolean;
+  syncPending: boolean;
+  login: (whatsapp: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; tempToken?: string; error?: string }>;
+  login2FA: (tempToken: string, code: string) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (name: string, whatsapp: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  get2FAStatus: () => Promise<boolean>;
+  setup2FA: () => Promise<{ secret: string; qrCode: string }>;
+  enable2FA: (code: string) => Promise<boolean>;
+  disable2FA: (code: string) => Promise<boolean>;
+  syncData: () => Promise<boolean>;
+  updateBranding: (branding: PartnerBranding) => Promise<boolean>;
+  loadBranding: () => Promise<void>;
 }
 
 const STORAGE_KEY = 'vax360_state';
@@ -55,6 +88,10 @@ const DEFAULT_STATE: AppState = {
   children: [],
   currentChildId: null,
   isOnboarded: false,
+  token: null,
+  userRole: null,
+  currentUser: null,
+  partnerBranding: null,
 };
 
 const translations: Record<Language, Record<string, string>> = {
@@ -106,15 +143,34 @@ const translations: Record<Language, Record<string, string>> = {
     progress: 'Progress',
     getStarted: 'Get Started',
     welcomeTitle: 'Track Vaccinations',
-    welcomeDesc: 'Keep your child\'s vaccination schedule organized and never miss a dose.',
+    welcomeDesc: "Keep your child's vaccination schedule organized and never miss a dose.",
     smartScheduling: 'Smart Scheduling',
-    smartSchedulingDesc: 'Automatic vaccine schedule based on your child\'s age',
+    smartSchedulingDesc: "Automatic vaccine schedule based on your child's age",
     securePrivate: 'Secure & Private',
     securePrivateDesc: 'Your data is protected and stored locally',
     multiChild: 'Multi-Child Support',
     multiChildDesc: 'Track multiple children in one app',
     reminders: 'Reminders',
     remindersDesc: 'Get notified when vaccines are due',
+    login: 'Login',
+    register: 'Register',
+    whatsapp: 'WhatsApp / Phone',
+    password: 'Password',
+    email: 'Email',
+    name: 'Name',
+    logout: 'Logout',
+    sync: 'Sync Data',
+    syncing: 'Syncing...',
+    syncSuccess: 'Data synced successfully!',
+    syncFailed: 'Sync failed',
+    twoFactor: '2FA Authentication',
+    enable2FA: 'Enable 2FA',
+    disable2FA: 'Disable 2FA',
+    invalidCode: 'Invalid 2FA code',
+    adminDashboard: 'Clinical Dashboard',
+    brandingSettings: 'Branding Settings',
+    noAccount: "Don't have an account? Register",
+    alreadyAccount: 'Already have an account? Login',
   },
   pt: {
     appName: 'Vax360',
@@ -173,6 +229,25 @@ const translations: Record<Language, Record<string, string>> = {
     multiChildDesc: 'Acompanhe várias crianças em um só app',
     reminders: 'Lembretes',
     remindersDesc: 'Receba notificações quando as vacinas estiverem devendo',
+    login: 'Entrar',
+    register: 'Registar',
+    whatsapp: 'WhatsApp / Telefone',
+    password: 'Senha',
+    email: 'E-mail',
+    name: 'Nome',
+    logout: 'Terminar Sessão',
+    sync: 'Sincronizar',
+    syncing: 'A sincronizar...',
+    syncSuccess: 'Dados sincronizados com sucesso!',
+    syncFailed: 'Falha na sincronização',
+    twoFactor: 'Autenticação 2FA',
+    enable2FA: 'Ativar 2FA',
+    disable2FA: 'Desativar 2FA',
+    invalidCode: 'Código 2FA inválido',
+    adminDashboard: 'Painel Clínico',
+    brandingSettings: 'Definições de Marca',
+    noAccount: 'Não tem uma conta? Registe-se',
+    alreadyAccount: 'Já tem uma conta? Entre',
   },
   fr: {
     appName: 'Vax360',
@@ -181,9 +256,9 @@ const translations: Record<Language, Record<string, string>> = {
     children: 'Enfants',
     schedule: 'Calendrier',
     settings: 'Paramètres',
-    addChild: 'Ajouter un Enfant',
-    childName: "Nom de l'Enfant",
-    birthDate: 'Date de Naissance',
+    addChild: 'Ajouter Enfant',
+    childName: "Nom de l'enfant",
+    birthDate: 'Date de naissance',
     gender: 'Genre',
     male: 'Masculin',
     female: 'Féminin',
@@ -192,45 +267,64 @@ const translations: Record<Language, Record<string, string>> = {
     cancel: 'Annuler',
     edit: 'Modifier',
     delete: 'Supprimer',
-    completed: 'Terminée',
-    upcoming: 'À Venir',
-    overdue: 'En Retard',
-    pending: 'En Attente',
-    markDone: 'Marquer comme Fait',
+    completed: 'Terminé',
+    upcoming: 'À venir',
+    overdue: 'En retard',
+    pending: 'En attente',
+    markDone: 'Marquer comme fait',
     undo: 'Annuler',
-    vaccineDetails: 'Détails du Vaccin',
+    vaccineDetails: 'Détails du vaccin',
     benefits: 'Bénéfices',
-    sideEffects: 'Effets Secondaires',
-    scheduledFor: 'Prévu pour',
-    ageAtBirth: 'À la Naissance',
+    sideEffects: 'Effets secondaires',
+    scheduledFor: 'Prévu le',
+    ageAtBirth: 'À la naissance',
     months: 'mois',
-    noChildren: "Aucun enfant ajouté",
-    addFirstChild: "Ajoutez votre premier enfant pour commencer",
+    noChildren: 'Aucun enfant ajouté',
+    addFirstChild: 'Ajoutez votre premier enfant pour commencer',
     noUpcoming: 'Aucun vaccin à venir',
-    allCaughtUp: 'À jour!',
-    overdueVaccines: 'Vaccins en Retard',
+    allCaughtUp: 'Tout est à jour !',
+    overdueVaccines: 'Vaccins en retard',
     darkMode: 'Mode Sombre',
     language: 'Langue',
     english: 'Anglais',
     portuguese: 'Portugais',
     french: 'Français',
     afrikaans: 'Afrikaans',
-    about: 'À Propos',
+    about: 'À propos',
     version: 'Version 3.0.0',
-    totalVaccines: 'Total des Vaccins',
+    totalVaccines: 'Total des vaccins',
     completedVaccines: 'Terminés',
-    progress: 'Progrès',
+    progress: 'Progression',
     getStarted: 'Commencer',
-    welcomeTitle: 'Suivi des Vaccinations',
-    welcomeDesc: 'Gardez le calendrier de vaccination de votre enfant organisé et ne manquez jamais une dose.',
+    welcomeTitle: 'Suivre les Vaccinations',
+    welcomeDesc: 'Gardez le calendrier vaccinal de votre enfant organisé et ne manquez jamais une dose.',
     smartScheduling: 'Planification Intelligente',
-    smartSchedulingDesc: 'Calendrier vaccinal automatique basé sur l\'age de l\'enfant',
+    smartSchedulingDesc: 'Calendrier de vaccination automatique basé sur l\'âge',
     securePrivate: 'Sécurisé et Privé',
     securePrivateDesc: 'Vos données sont protégées et stockées localement',
-    multiChild: 'Multi-Enfants',
-    multiChildDesc: 'Suivez plusieurs enfants dans une seule app',
+    multiChild: 'Plusieurs Enfants',
+    multiChildDesc: 'Suivez plusieurs enfants dans une seule application',
     reminders: 'Rappels',
-    remindersDesc: 'Recevez des notifications quand les vaccins sont dus',
+    remindersDesc: 'Recevez des notifications pour les vaccins dus',
+    login: 'Connexion',
+    register: 'S\'inscrire',
+    whatsapp: 'WhatsApp / Téléphone',
+    password: 'Mot de passe',
+    email: 'E-mail',
+    name: 'Nom',
+    logout: 'Déconnexion',
+    sync: 'Synchroniser',
+    syncing: 'Synchro...',
+    syncSuccess: 'Données synchronisées !',
+    syncFailed: 'Échec de synchro',
+    twoFactor: 'Authentification 2FA',
+    enable2FA: 'Activer 2FA',
+    disable2FA: 'Désactiver 2FA',
+    invalidCode: 'Code 2FA invalide',
+    adminDashboard: 'Tableau Clinique',
+    brandingSettings: 'Paramètres de Marque',
+    noAccount: "Pas de compte ? S'inscrire",
+    alreadyAccount: 'Déjà un compte ? Connexion',
   },
   af: {
     appName: 'Vax360',
@@ -251,20 +345,20 @@ const translations: Record<Language, Record<string, string>> = {
     edit: 'Wysig',
     delete: 'Verwyder',
     completed: 'Voltooi',
-    upcoming: 'Komende',
+    upcoming: 'Opkomend',
     overdue: 'Agterstallig',
-    pending: 'Hangend',
-    markDone: 'Merk as Gedoen',
+    pending: 'Hangende',
+    markDone: 'Merk as Voltooi',
     undo: 'Ontdoen',
-    vaccineDetails: 'Entstof Besonderhede',
+    vaccineDetails: 'Entstofbesonderhede',
     benefits: 'Voordele',
     sideEffects: 'Newe-effekte',
     scheduledFor: 'Geskeduleer vir',
     ageAtBirth: 'By Geboorte',
     months: 'maande',
-    noChildren: 'Geen kinders bygevoeg nie',
-    addFirstChild: 'Voeg u eerste kind by om te begin',
-    noUpcoming: 'Geen komende entstowwe nie',
+    noChildren: 'Nog geen kinders bygevoeg nie',
+    addFirstChild: 'Voeg u eerste kind by om entstowwe te volg',
+    noUpcoming: 'Geen opkomende entstowwe nie',
     allCaughtUp: 'Alles op datum!',
     overdueVaccines: 'Agterstallige Entstowwe',
     darkMode: 'Donker Modus',
@@ -289,23 +383,70 @@ const translations: Record<Language, Record<string, string>> = {
     multiChildDesc: 'Volg verskeie kinders in een app',
     reminders: 'Herinnerings',
     remindersDesc: 'Kry kennisgewings wanneer entstowwe verskuldig is',
+    login: 'Meld aan',
+    register: 'Registreer',
+    whatsapp: 'WhatsApp / Telefoon',
+    password: 'Wagwoord',
+    email: 'E-pos',
+    name: 'Naam',
+    logout: 'Meld af',
+    sync: 'Sinkroniseer',
+    syncing: 'Besig om te sinkroniseer...',
+    syncSuccess: 'Data suksesvol gesinkroniseer!',
+    syncFailed: 'Sinkronisering het misluk',
+    twoFactor: '2FA-verifikasie',
+    enable2FA: 'Aktiveer 2FA',
+    disable2FA: 'Deaktiveer 2FA',
+    invalidCode: 'Ongeldige 2FA-kode',
+    adminDashboard: 'Kliniese Paneel',
+    brandingSettings: 'Branding-instellings',
+    noAccount: 'Nog nie geregistreer nie? Registreer',
+    alreadyAccount: 'Reeds geregistreer? Meld aan',
   },
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Dynamic API Base URL detection
+let API_BASE_URL = 'http://localhost:5000/api';
+
+export async function detectApiBaseUrl(): Promise<string> {
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.href.startsWith('https://localhost')) {
+    API_BASE_URL = `${window.location.origin}/api`;
+    return API_BASE_URL;
+  }
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 800);
+    const res = await fetch('http://localhost:5000/api/health', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (res.ok) {
+      API_BASE_URL = 'http://localhost:5000/api';
+      return API_BASE_URL;
+    }
+  } catch (err) {
+    // Ignore
+  }
+  API_BASE_URL = 'http://10.0.2.2:5000/api';
+  return API_BASE_URL;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [loaded, setLoaded] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [syncPending, setSyncPending] = useState(false);
 
   useEffect(() => {
-    loadState();
+    detectApiBaseUrl().then(() => {
+      loadState();
+    });
   }, []);
 
   const loadState = async () => {
     const saved = await getItem<AppState>(STORAGE_KEY);
     if (saved) {
-      setState(saved);
+      setState(prev => ({ ...prev, ...saved }));
     }
     setLoaded(true);
   };
@@ -339,6 +480,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const getScheduledDate = useCallback((birthDate: string, ageMonths: number): string => {
+    const d = new Date(birthDate);
+    d.setMonth(d.getMonth() + ageMonths);
+    return d.toISOString().split('T')[0];
+  }, []);
+
   const addChild = useCallback((child: Omit<Child, 'id' | 'vaccines'>) => {
     setState(prev => {
       const newChild: Child = {
@@ -356,9 +503,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentChildId: newChild.id,
       };
       setItem(STORAGE_KEY, next);
+      // Auto-trigger background sync
+      setTimeout(() => syncData(), 500);
       return next;
     });
-  }, []);
+  }, [getScheduledDate]);
 
   const updateChild = useCallback((id: string, updates: Partial<Child>) => {
     setState(prev => {
@@ -369,6 +518,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ),
       };
       setItem(STORAGE_KEY, next);
+      setTimeout(() => syncData(), 500);
       return next;
     });
   }, []);
@@ -378,9 +528,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const next = {
         ...prev,
         children: prev.children.filter(c => c.id !== id),
-        currentChildId: prev.currentChildId === id ? (prev.children.find(c => c.id !== id)?.id || null) : prev.currentChildId,
+        currentChildId: prev.currentChildId === id ? (prev.children[0]?.id || null) : prev.currentChildId,
       };
       setItem(STORAGE_KEY, next);
+      setTimeout(() => syncData(), 500);
       return next;
     });
   }, []);
@@ -410,6 +561,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }),
       };
       setItem(STORAGE_KEY, next);
+      setTimeout(() => syncData(), 500);
       return next;
     });
   }, []);
@@ -431,6 +583,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }),
       };
       setItem(STORAGE_KEY, next);
+      setTimeout(() => syncData(), 500);
       return next;
     });
   }, []);
@@ -449,12 +602,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return 'pending';
   }, []);
 
-  const getScheduledDate = useCallback((birthDate: string, ageMonths: number): string => {
-    const d = new Date(birthDate);
-    d.setMonth(d.getMonth() + ageMonths);
-    return d.toISOString().split('T')[0];
-  }, []);
-
   const getVaccinesForChild = useCallback((child: Child) => {
     return VACCINE_SCHEDULE.map(v => {
       const record = child.vaccines.find(rv => rv.vaccineId === v.id);
@@ -467,6 +614,232 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const t = useCallback((key: string): string => {
     return translations[state.language]?.[key] || translations.en[key] || key;
   }, [state.language]);
+
+  // Authentication logic
+  const login = async (whatsapp: string, password: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Login failed' };
+      }
+      if (data.two_factor_required) {
+        return { success: true, requires2FA: true, tempToken: data.temp_token };
+      }
+      const next = {
+        ...state,
+        token: data.token,
+        userRole: data.role,
+        currentUser: data.user,
+      };
+      await saveState(next);
+      // Trigger sync
+      setTimeout(() => syncData(), 500);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: 'Server connection failed' };
+    }
+  };
+
+  const login2FA = async (tempToken: string, code: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/login/2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_token: tempToken, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Invalid code' };
+      }
+      const next = {
+        ...state,
+        token: data.token,
+        userRole: data.role,
+        currentUser: data.user,
+      };
+      await saveState(next);
+      setTimeout(() => syncData(), 500);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Server connection failed' };
+    }
+  };
+
+  const registerUser = async (name: string, whatsapp: string, email: string, password: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, whatsapp, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Server connection failed' };
+    }
+  };
+
+  const logout = useCallback(async () => {
+    const next = {
+      ...state,
+      token: null,
+      userRole: null,
+      currentUser: null,
+    };
+    await saveState(next);
+  }, [state, saveState]);
+
+  // 2FA Security
+  const get2FAStatus = async (): Promise<boolean> => {
+    if (!state.token) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/2fa/status`, {
+        headers: { 'Authorization': `Bearer ${state.token}` },
+      });
+      const data = await res.json();
+      return !!data.twoFactorEnabled;
+    } catch {
+      return false;
+    }
+  };
+
+  const setup2FA = async (): Promise<{ secret: string; qrCode: string }> => {
+    if (!state.token) throw new Error('Not authenticated');
+    const res = await fetch(`${API_BASE_URL}/2fa/setup`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.token}` },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to setup 2FA');
+    return { secret: data.secret, qrCode: data.qrCode };
+  };
+
+  const enable2FA = async (code: string): Promise<boolean> => {
+    if (!state.token) return false;
+    const res = await fetch(`${API_BASE_URL}/2fa/enable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`,
+      },
+      body: JSON.stringify({ code }),
+    });
+    return res.ok;
+  };
+
+  const disable2FA = async (code: string): Promise<boolean> => {
+    if (!state.token) return false;
+    const res = await fetch(`${API_BASE_URL}/2fa/disable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.token}`,
+      },
+      body: JSON.stringify({ code }),
+    });
+    return res.ok;
+  };
+
+  // Sync API
+  const syncData = async (): Promise<boolean> => {
+    if (!state.token || !state.currentUser) return false;
+    setSyncPending(true);
+    try {
+      // 1. Post local children to sync
+      const pushRes = await fetch(`${API_BASE_URL}/sync/${state.currentUser.whatsapp}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify({ children: state.children }),
+      });
+
+      if (!pushRes.ok) {
+        setIsOnline(false);
+        setSyncPending(false);
+        return false;
+      }
+
+      // 2. Fetch server state to merge
+      const pullRes = await fetch(`${API_BASE_URL}/sync/${state.currentUser.whatsapp}`, {
+        headers: { 'Authorization': `Bearer ${state.token}` },
+      });
+      const pullData = await pullRes.json();
+      if (pullRes.ok && pullData.success && pullData.data) {
+        const mergedChildren = pullData.data.children || [];
+        setState(prev => {
+          const next = { ...prev, children: mergedChildren };
+          setItem(STORAGE_KEY, next);
+          return next;
+        });
+      }
+
+      setIsOnline(true);
+      setSyncPending(false);
+      return true;
+    } catch {
+      setIsOnline(false);
+      setSyncPending(false);
+      return false;
+    }
+  };
+
+  // Branding
+  const loadBranding = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/partner-logo`);
+      const data = await res.json();
+      if (res.ok && data) {
+        setState(prev => {
+          const next = { ...prev, partnerBranding: data };
+          setItem(STORAGE_KEY, next);
+          return next;
+        });
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const updateBranding = async (branding: PartnerBranding): Promise<boolean> => {
+    if (!state.token || state.userRole !== 'superadmin') return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/partner-logo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify(branding),
+      });
+      if (res.ok) {
+        setState(prev => {
+          const next = { ...prev, partnerBranding: branding };
+          setItem(STORAGE_KEY, next);
+          return next;
+        });
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (state.token) {
+      loadBranding();
+    }
+  }, [state.token]);
 
   if (!loaded) return null;
 
@@ -486,6 +859,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       getVaccinesForChild,
       completeOnboarding,
       t,
+      API_BASE_URL,
+      isOnline,
+      syncPending,
+      login,
+      login2FA,
+      registerUser,
+      logout,
+      get2FAStatus,
+      setup2FA,
+      enable2FA,
+      disable2FA,
+      syncData,
+      updateBranding,
+      loadBranding,
     }}>
       {children}
     </AppContext.Provider>

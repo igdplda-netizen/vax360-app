@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
@@ -7,19 +8,54 @@ import { VaccineStatus } from '../../context/AppContext';
 import { VACCINE_SCHEDULE } from '../../constants/vaccines';
 
 export default function HomeScreen() {
-  const { state, t, getVaccinesForChild } = useApp();
+  const { state, t, getVaccinesForChild, setCurrentChild, syncData, isOnline, syncPending } = useApp();
   const router = useRouter();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
+
+  const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
+  const logoUrl = state.partnerBranding?.logo;
+
+  useEffect(() => {
+    // If not authenticated, redirect to login
+    if (!state.token) {
+      router.replace('/login');
+    }
+  }, [state.token]);
+
+  if (!state.token) {
+    return (
+      <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
   if (state.children.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
+        {/* Header with partner branding */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {logoUrl ? (
+              <Image source={{ uri: logoUrl }} style={styles.partnerLogo} resizeMode="contain" />
+            ) : (
+              <Text style={[styles.title, { color: primaryColor }]}>{t('appName')}</Text>
+            )}
+          </View>
+          <View style={styles.headerRight}>
+            <View style={[styles.networkDot, { backgroundColor: isOnline ? Colors.success : Colors.warning }]} />
+            <TouchableOpacity style={[styles.addBtn, { backgroundColor: primaryColor }]} onPress={() => router.push('/add-child')}>
+              <Ionicons name="add" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.emptyState}>
-          <View style={[styles.emptyIcon, { backgroundColor: Colors.primary + '12' }]}>
-            <Ionicons name="people-outline" size={48} color={Colors.primary} />
+          <View style={[styles.emptyIcon, { backgroundColor: primaryColor + '12' }]}>
+            <Ionicons name="people-outline" size={48} color={primaryColor} />
           </View>
           <Text style={[styles.emptyTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
             {t('noChildren')}
@@ -27,7 +63,7 @@ export default function HomeScreen() {
           <Text style={[styles.emptyDesc, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
             {t('addFirstChild')}
           </Text>
-          <TouchableOpacity style={styles.addButton} onPress={() => router.push('/add-child')} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]} onPress={() => router.push('/add-child')} activeOpacity={0.8}>
             <Ionicons name="add" size={20} color="#fff" />
             <Text style={styles.addButtonText}>{t('addChild')}</Text>
           </TouchableOpacity>
@@ -66,29 +102,46 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-              {t('appName')}
-            </Text>
-            <Text style={[styles.title, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
-              {currentChild?.name || t('home')}
-            </Text>
+          <View style={styles.headerLeft}>
+            {logoUrl ? (
+              <Image source={{ uri: logoUrl }} style={styles.partnerLogo} resizeMode="contain" />
+            ) : (
+              <>
+                <Text style={[styles.greeting, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                  {t('appName')}
+                </Text>
+                <Text style={[styles.title, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  {currentChild?.name || t('home')}
+                </Text>
+              </>
+            )}
           </View>
-          <TouchableOpacity style={[styles.addBtn, { backgroundColor: Colors.primary }]} onPress={() => router.push('/add-child')}>
-            <Ionicons name="add" size={22} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            {/* Sync Button */}
+            <TouchableOpacity style={styles.syncBtn} onPress={syncData} disabled={syncPending} activeOpacity={0.6}>
+              {syncPending ? (
+                <ActivityIndicator size="small" color={primaryColor} />
+              ) : (
+                <Ionicons name="sync-outline" size={20} color={isOnline ? primaryColor : Colors.warning} />
+              )}
+            </TouchableOpacity>
+            <View style={[styles.networkDot, { backgroundColor: isOnline ? Colors.success : Colors.warning }]} />
+            <TouchableOpacity style={[styles.addBtn, { backgroundColor: primaryColor }]} onPress={() => router.push('/add-child')}>
+              <Ionicons name="add" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Progress Card */}
         <View style={[styles.progressCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
           <View style={styles.progressHeader}>
             <Text style={[styles.progressTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
-              {t('progress')}
+              {t('progress')} ({currentChild?.name})
             </Text>
-            <Text style={[styles.progressPercent, { color: Colors.primary }]}>{progress}%</Text>
+            <Text style={[styles.progressPercent, { color: primaryColor }]}>{progress}%</Text>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: Colors.primary }]} />
+            <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: primaryColor }]} />
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
@@ -122,9 +175,10 @@ export default function HomeScreen() {
                 key={child.id}
                 style={[
                   styles.childChip,
-                  { backgroundColor: state.currentChildId === child.id ? Colors.primary : isDark ? Colors.surface.dark : Colors.surface.light },
+                  { backgroundColor: state.currentChildId === child.id ? primaryColor : isDark ? Colors.surface.dark : Colors.surface.light },
                 ]}
-                onPress={() => {/* setCurrentChild(child.id) */}}
+                onPress={() => setCurrentChild(child.id)}
+                activeOpacity={0.8}
               >
                 <Text style={[styles.childChipText, { color: state.currentChildId === child.id ? '#fff' : isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
                   {child.name}
@@ -180,27 +234,32 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 20, paddingTop: 60 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  greeting: { fontSize: 14, fontWeight: '500' },
-  title: { fontSize: 28, fontWeight: '800', marginTop: 2 },
-  addBtn: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  headerLeft: { flex: 1 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  greeting: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  title: { fontSize: 24, fontWeight: '800', marginTop: 2 },
+  partnerLogo: { height: 45, width: 140 },
+  networkDot: { width: 10, height: 10, borderRadius: 5 },
+  syncBtn: { padding: 6 },
+  addBtn: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   progressCard: { borderRadius: 20, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  progressTitle: { fontSize: 16, fontWeight: '700' },
+  progressTitle: { fontSize: 15, fontWeight: '700' },
   progressPercent: { fontSize: 20, fontWeight: '800' },
   progressBarBg: { height: 8, backgroundColor: '#e2e8f0', borderRadius: 4, overflow: 'hidden', marginBottom: 16 },
   progressBarFill: { height: '100%', borderRadius: 4 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   stat: { alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '800' },
-  statLabel: { fontSize: 12, marginTop: 2 },
-  statDivider: { width: 1, height: 30, backgroundColor: '#e2e8f0' },
+  statValue: { fontSize: 20, fontWeight: '800' },
+  statLabel: { fontSize: 11, marginTop: 2, fontWeight: '500' },
+  statDivider: { width: 1, height: 25, backgroundColor: 'rgba(0,0,0,0.05)' },
   childSelector: { marginBottom: 16 },
   childSelectorContent: { gap: 8, paddingRight: 20 },
   childChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  childChipText: { fontSize: 14, fontWeight: '600' },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12, marginTop: 4 },
+  childChipText: { fontSize: 14, fontWeight: '700' },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginBottom: 12, marginTop: 4 },
   vaccineList: { gap: 10 },
   vaccineCard: {
     flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16,
@@ -208,16 +267,16 @@ const styles = StyleSheet.create({
   },
   vaccineIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   vaccineInfo: { flex: 1 },
-  vaccineName: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
-  vaccineDate: { fontSize: 13, fontWeight: '500' },
+  vaccineName: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
+  vaccineDate: { fontSize: 12, fontWeight: '600' },
   emptyCard: { alignItems: 'center', padding: 40, borderRadius: 20 },
-  emptyCardText: { fontSize: 15, marginTop: 12, textAlign: 'center' },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  emptyCardText: { fontSize: 14, marginTop: 12, textAlign: 'center', fontWeight: '600' },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, marginTop: 80 },
   emptyIcon: { width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8, textAlign: 'center' },
+  emptyTitle: { fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   emptyDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
   addButton: {
-    backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 14, borderRadius: 16, gap: 8,
   },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },

@@ -63,8 +63,10 @@ function handleInternalError(res, err, logMessage) {
 }
 
 // ─── Middleware ─────────────────────────────────────────
-// Helmet disabled for Replit to allow CDN scripts
-// app.use(helmet());
+// Enable Helmet but disable CSP to allow CDN scripts (Replit compatibility)
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 app.use(
   cors({
     origin: "*",
