@@ -49,6 +49,7 @@ externalPort = 80
 expertMode = true
 
 [deployment]
-deploymentTarget = "static"
+deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 publicDir = "dist"
+run = ["node", "server.js"]
