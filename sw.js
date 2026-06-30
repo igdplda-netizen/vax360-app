@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vax360-v9';
+const CACHE_NAME = 'vax360-v20';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -28,15 +28,32 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Bypass caching for API requests and non-GET requests
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
-      .then(cached => cached || fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+      .then(cached => {
+        if (cached) {
+          // Serve from cache, and update in background
+          fetch(event.request).then(response => {
+            if (response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+          }).catch(() => {});
+          return cached;
+        }
+        return fetch(event.request).then(response => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
           return response;
-        })
-      )
+        });
+      })
       .catch(() => {
         if (event.request.destination === 'document') {
           return caches.match('./index.html');

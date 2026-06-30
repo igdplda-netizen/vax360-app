@@ -2088,6 +2088,157 @@ function getVaccineDetail(vaccineId) {
 }
 
 // ─── i18n Translation Dictionaries ──────────────────────
+const FAQ_DATA = {
+  en: [
+    { q: "What are vaccines and how do they work?", a: "Vaccines train your immune system to recognize and fight pathogens (viruses or bacteria) without making you sick. They introduce harmless antigens, triggering an immune response that creates memory cells for long-term protection." },
+    { q: "Are vaccines safe?", a: "Yes, vaccines undergo rigorous clinical trials and safety testing before approval. Side effects are usually mild (like fever or sore arm) and temporary, whereas the diseases they prevent are dangerous and potentially fatal." },
+    { q: "Mandatory vs. Optional Vaccines?", a: "Mandatory vaccines are determined by local national health plans to protect the population through herd immunity. Optional or travel vaccines (like Yellow Fever or Typhoid) are recommended based on specific risk factors, travel destinations, or individual health needs." },
+    { q: "BCG Vaccine (Tuberculosis)", a: "Protects against severe tuberculosis (TB), especially TB meningitis in infants. Usually mandatory at birth in countries with high TB prevalence. Optional or not recommended in low-risk countries." },
+    { q: "Hepatitis B Vaccine", a: "Protects against Hepatitis B, a viral infection causing liver disease and cancer. Recommended worldwide, starting at birth." },
+    { q: "Pentavalent / DTP Vaccine", a: "DTP protects against Diphtheria, Tetanus, and Pertussis (Whooping Cough). Pentavalent combines DTP with Hepatitis B and Hib (haemophilus influenzae type b). Standard worldwide pediatric vaccine." },
+    { q: "Polio Vaccine (IPV / OPV)", a: "Protects against Poliomyelitis, which causes irreversible paralysis. IPV (inactivated) is given via injection, while OPV (oral) is given via drops. Crucial for global eradication." },
+    { q: "Pneumococcal Vaccine (PCV)", a: "Protects against Streptococcus pneumoniae, which causes pneumonia, blood infections, and bacterial meningitis. Highly recommended for infants." },
+    { q: "Rotavirus Vaccine", a: "Oral vaccine protecting infants against severe, dehydrating diarrhea caused by Rotavirus. Given early in infancy." },
+    { q: "MMR / Measles Vaccine", a: "Protects against Measles, Mumps, and Rubella. Measles is highly contagious and potentially fatal. MMR is a standard worldwide vaccine given in 2 doses." },
+    { q: "Yellow Fever Vaccine", a: "Mosquito-borne viral protection. Mandatory for travel to or from endemic tropical regions of Africa and South America. Single dose gives life-long protection." },
+    { q: "Meningococcal Vaccine (MenACWY / MenB)", a: "Protects against Neisseria meningitidis, which causes rapid, life-threatening meningitis and blood poisoning. Recommended for teens and toddlers." },
+    { q: "HPV Vaccine (Human Papillomavirus)", a: "Protects against viruses causing cervical, throat, and other cancers. Highly effective when administered before exposure, typically around age 9-12." },
+    { q: "Influenza Vaccine (Flu Shot)", a: "Annual vaccine updated yearly to match circulating seasonal flu strains. Recommended for children, elderly, and vulnerable populations." },
+    { q: "Varicella Vaccine (Chickenpox)", a: "Protects against the varicella-zoster virus. Prevents severe chickenpox complications and reduces the risk of shingles later in life." },
+    { q: "Hepatitis A Vaccine", a: "Protects against Hepatitis A, which spreads through contaminated food and water. Recommended for travel and children over 1 year." },
+    { q: "COVID-19 Vaccine", a: "Protects against severe coronavirus infection and complications. Recommended globally as a primary series or boosters." },
+    { q: "Typhoid Vaccine", a: "Protects against Salmonella typhi, a food/water-borne bacteria. Recommended for travelers visiting South Asia, Africa, and Latin America." },
+    { q: "Rabies Vaccine", a: "Given pre-exposure (for travelers/veterinarians) or post-exposure (after an animal bite). Rabies is 100% fatal once symptoms appear, making this vaccine life-saving." },
+    { q: "Cholera Vaccine", a: "Oral vaccine providing temporary protection against cholera outbreaks in risk areas or during humanitarian emergencies." },
+    { q: "Japanese Encephalitis Vaccine", a: "Protects against a mosquito-borne viral brain infection. Recommended for long-term travelers to rural agricultural areas in Asia." }
+  ],
+  pt: [
+    { q: "O que são vacinas e como funcionam?", a: "As vacinas treinam o sistema imunitário para reconhecer e combater agentes patogénicos (vírus ou bactérias) sem o deixar doente. Introduzem antigénios inofensivos, gerando uma resposta de defesa que cria células de memória para proteção a longo prazo." },
+    { q: "As vacinas são seguras?", a: "Sim, as vacinas passam por ensaios clínicos rigorosos e testes de segurança antes de serem aprovadas. Os efeitos secundários são geralmente ligeiros (como febre ou dor no braço) e temporários, ao passo que as doenças que previnem são perigosas e potencialmente fatais." },
+    { q: "Vacinas Obrigatórias vs. Opcionais?", a: "As vacinas obrigatórias são definidas nos planos nacionais de saúde para proteger a população através da imunidade de grupo. As vacinas opcionais ou de viagem (como Febre Amarela ou Tifoide) são recomendadas com base em fatores de risco individuais, destino de viagem ou saúde pessoal." },
+    { q: "Vacina BCG (Tuberculose)", a: "Protege contra formas graves de tuberculose (TB), como a meningite tuberculosa em bebés. Geralmente obrigatória ao nascer em países com elevada prevalência de TB. Opcional em países de baixo risco." },
+    { q: "Vacina contra Hepatite B", a: "Protege contra a Hepatite B, vírus que causa doenças crónicas do fígado e cancro hepático. Recomendada universalmente, com primeira dose administrada logo ao nascer." },
+    { q: "Vacina Pentavalente / DTP", a: "A DTP protege contra a Difteria, Tétano e Coqueluche (tosse convulsa). A Pentavalente combina a DTP com imunização contra Hepatite B e Hib (Haemophilus influenzae tipo b). Vacina pediátrica padrão a nível mundial." },
+    { q: "Vacina contra a Pólio (VIP / VOP)", a: "Protege contra a Poliomielite, que causa paralisia infantil irreversível. A VIP (inativada) é injetável; a VOP (oral) é dada em gotas. Essencial para a erradicação global." },
+    { q: "Vacina Pneumocócica (VPC)", a: "Protege contra o Streptococcus pneumoniae, causador de pneumonia, otites graves e meningite bacteriana. Altamente recomendada para lactentes." },
+    { q: "Vacina contra o Rotavírus", a: "Vacina oral que protege os bebés contra a diarreia grave e desidratação causada pelo Rotavírus. Administrada nos primeiros meses de vida." },
+    { q: "Vacina Sarampo / Tríplice Viral (MMR / VAS)", a: "Protege contra o Sarampo, Caxumba e Rubéola. O sarampo é extremamente contagioso e perigoso. A tríplice viral é padrão mundial administrada em duas doses." },
+    { q: "Vacina contra Febre Amarela", a: "Proteção contra vírus transmitido por mosquitos. Obrigatória para viajar para/de zonas tropicais endémicas da África e América do Sul. Uma dose única confere proteção vitalícia." },
+    { q: "Vacina Meningocócica (MenACWY / MenB)", a: "Protege contra a bactéria Neisseria meningitidis, causadora de meningite fulminante e septicemia (infeção do sangue). Recomendada para adolescentes e crianças pequenas." },
+    { q: "Vacina contra o HPV (Papilomavírus Humano)", a: "Previne cancros do colo do útero, garganta e outros. Muito eficaz se administrada antes da exposição ao vírus, geralmente entre os 9 e 12 anos de idade." },
+    { q: "Vacina contra a Gripe (Influenza)", a: "Vacina anual atualizada para combater as estirpes da gripe sazonal em circulação. Indicada para crianças, idosos e grupos vulneráveis." },
+    { q: "Vacina contra a Varicela", a: "Protege contra o vírus da catapora. Evita complicações graves da doença e reduz consideravelmente o risco de herpes-zóster (zona) na idade adulta." },
+    { q: "Vacina contra Hepatite A", a: "Protege contra a infecção por Hepatite A, transmitida por água ou alimentos contaminados. Recomendada para viajantes e crianças com mais de 1 ano." },
+    { q: "Vacina contra a COVID-19", a: "Protege contra formas graves e complicações do coronavírus. Recomendada globalmente como série primária ou reforços periódicos." },
+    { q: "Vacina contra a Febre Tifoide", a: "Protege contra a Salmonella typhi, transmitida por água/alimentos contaminados. Recomendada para viajantes a regiões de risco da Ásia, África e América Latina." },
+    { q: "Vacina contra a Raiva", a: "Administrada antes da exposição (viajantes de risco/veterinários) ou após a mordedura de um animal potencialmente infetado. A raiva é 100% fatal após o início dos sintomas, tornando a vacina vital." },
+    { q: "Vacina contra a Cólera", a: "Vacina oral que confere proteção temporária contra a cólera em zonas de surto ou emergências humanitárias." },
+    { q: "Vacina contra a Encefalite Japonesa", a: "Protege contra infeção cerebral grave transmitida por mosquitos. Recomendada para estadias prolongadas em zonas agrícolas e rurais da Ásia." }
+  ],
+  fr: [
+    { q: "Qu'est-ce qu'un vaccin et comment fonctionne-t-il ?", a: "Les vaccins entraînent votre système immunitaire à reconnaître et combattre les agents pathogènes (virus ou bactéries) sans vous rendre malade. Ils introduisent des antigènes inoffensifs, déclenchant une réponse immunitaire qui crée des cellules mémoire pour une protection à long terme." },
+    { q: "Les vaccins sont-ils sûrs ?", a: "Oui, les vaccins subissent des essais cliniques rigoureux et des tests de sécurité avant d'être approuvés. Les effets secondaires sont généralement légers (fièvre, douleur au bras) et temporaires." },
+    { q: "Vaccins Obligatoires vs Optionnels ?", a: "Les vaccins obligatoires protègent la population par l'immunité collective. Les vaccins optionnels (comme la fièvre jaune ou la typhoïde) sont recommandés selon les risques individuels ou les voyages." },
+    { q: "Vaccin BCG (Tuberculose)", a: "Protège contre les formes graves de tuberculose (TB) chez les nourrissons. Obligatoire à la naissance dans les pays à forte prévalence." },
+    { q: "Vaccin Hépatite B", a: "Protège contre l'hépatite B, une infection virale causant des maladies chroniques du foie. Recommandé dès la naissance partout dans le monde." },
+    { q: "Vaccin Pentavalent / DTC", a: "Protège contre la Diphtérie, le Tétanos, la Coqueluche, l'Hépatite B et le Hib. Vaccin pédiatrique standard mondial." },
+    { q: "Vaccin Poliomyélite (VPI / VPO)", a: "Protège contre la polio, qui cause des paralysies irréversibles. Essentiel pour l'éradication mondiale." },
+    { q: "Vaccin Pneumococcique (VPC)", a: "Protège contre la pneumonie, les otites et la méningite bactérienne chez les nourrissons." },
+    { q: "Vaccin Rotavirus", a: "Vaccin oral protégeant les nourrissons contre les diarrhées sévères à rotavirus." },
+    { q: "Vaccin ROR / Rougeole", a: "Protège contre la Rougeole, les Oreillons et la Rubéole. Administré en 2 doses standard." },
+    { q: "Vaccin Fièvre Jaune", a: "Obligatoire pour les voyages dans les régions tropicales d'Afrique et d'Amérique du Sud. Dose unique pour la vie." },
+    { q: "Vaccin Méningococcique", a: "Protège contre la méningite bactérienne rapide et mortelle. Recommandé pour les adolescents et les tout-petits." },
+    { q: "Vaccin HPV (VPH)", a: "Prévient les cancers du col de l'utérus, de la gorge et autres. Recommandé entre 9 et 12 ans." },
+    { q: "Vaccin Grippe (Influenza)", a: "Vaccin annuel mis à jour pour correspondre aux souches de la grippe saisonnière circulante." },
+    { q: "Vaccin Varicelle", a: "Protège contre la varicelle et ses complications, et réduit le risque de zona plus tard." },
+    { q: "Vaccin Hépatite A", a: "Recommandé pour les voyages et les enfants de plus de 1 an. Transmis par l'eau et la nourriture." },
+    { q: "Vaccin COVID-19", a: "Protège contre les formes graves du coronavirus. Recommandé à l'échelle mondiale." },
+    { q: "Vaccin Typhoïde", a: "Recommandé pour les voyageurs dans les zones à risque d'Afrique, d'Asie et d'Amérique latine." },
+    { q: "Vaccin Rage", a: "Vaccin vital administré avant ou après l'exposition (morsure d'animal). La rage est mortelle à 100% sans vaccin." },
+    { q: "Vaccin Choléra", a: "Vaccin oral temporaire recommandé lors d'épidémies de choléra ou dans des zones à haut risque." },
+    { q: "Vaccin Encéphalite Japonesa", a: "Protège contre une infection cérébrale transmise par les moustiques en Asie." }
+  ],
+  af: [
+    { q: "Wat is entstowwe en hoe werk dit?", a: "Entstowwe lei jou immuunstelsel op om patogene (virusse of bakterieë) te herken en te beveg sonder om jou siek te maak. Dit skep langtermyn-geheueselle." },
+    { q: "Is entstowwe veilig?", a: "Ja, entstowwe ondergaan streng kliniese en veiligheidstoetse. Newe-effekte is gewoonlik lig (koors of seer arm) en tydelik." },
+    { q: "Verpligte vs. Opsionele Entstowwe?", a: "Verpligte entstowwe beskerm die bevolking deur kudde-immuniteit. Opsionele of reisentstowwe word aanbeveel op grond van individuele risiko of reisbestemmings." },
+    { q: "BCG-entstof (Tuberkulose)", a: "Beskerm teen ernstige TB by babas. Gewoonlik verpligtend by geboorte in hoë-risiko lande." },
+    { q: "Hepatitis B-entstof", a: "Beskerm teen Hepatitis B wat lewersiektes en kanker veroorsaak. Aanbeveel by geboorte wêreldwyd." },
+    { q: "Pentavalent / DTP-entstof", a: "DTP beskerm teen Difterie, Tetanus, en Kinkhoes. Pentavalent kombineer DTP met Hepatitis B en Hib." },
+    { q: "Polio-entstof (IPV / OPV)", a: "Beskerm teen Poliomielitis wat verlamming veroasaak. Krities vir wêreldwye uitroeiing." },
+    { q: "Pneumokokkale Entstof (PCV)", a: "Beskerm teen pneumonie en bakteriese meningitis by babas." },
+    { q: "Rotavirus-entstof", a: "Mondelinge entstof wat babas beskerm teen ernstige dehidrerende diarree." },
+    { q: "MMR / Masels-entstof", a: "Beskerm teen Masels, Pampoentjies, en Rubella. Standaard in 2 dosisse." },
+    { q: "Geelkoors-entstof", a: "Verpligtend vir reis na endemiese gebiede in Afrika en Suid-Amerika. Enkele lewenslange beskerming." },
+    { q: "Meningokokkale Entstof", a: "Beskerm teen vinnige, lewensgevaarlike meningitis. Aanbeveel vir tieners en kleuters." },
+    { q: "HPV-entstof (Menslike Papillomavirus)", a: "Voorkom servikale en ander kankers. Gewoonlik gegee op ouderdom 9-12." },
+    { q: "Griep-entstof (Influenza)", a: "Jaarlikse entstof wat aangepas is vir die nuutste seisoenale griepstamme." },
+    { q: "Waterpokkies-entstof (Varicella)", a: "Beskerm teen waterpokkies en verminder die risiko van gordelroos later." },
+    { q: "Hepatitis A-entstof", a: "Aanbeveel vir reis en kinders ouer as 1 jaar. Versprei deur besmette kos en water." },
+    { q: "COVID-19-entstof", a: "Beskerm teen ernstige koronavirusinfeksie en komplikasies." },
+    { q: "Tifus-entstof", a: "Aanbeveel vir reis na hoë-risiko dele van Afrika, Asië en Latyns-Amerika." },
+    { q: "Hondsdolheid-entstof (Rabies)", a: "Entstof gegee voor of na 'n byt van 'n moontlike hondsdol dier. Hondsdolheid is 100% dodelik." },
+    { q: "Cholera-entstof", a: "Mondelinge entstof wat tydelike beskerming bied teen cholera tydens uitbrekings." },
+    { q: "Japannese Ensefalitis-entstof", a: "Beskerm teen 'n muskiet-oorgedraagde breininfeksie in Asië." }
+  ]
+};
+
+function renderFAQ() {
+  const container = $("faq-list-container");
+  if (!container) return;
+
+  const list = FAQ_DATA[currentLang] || FAQ_DATA.en;
+  const filterText = ($("faq-search-input")?.value || "").toLowerCase().trim();
+
+  let html = "";
+  list.forEach((item, index) => {
+    const qMatch = item.q.toLowerCase().includes(filterText);
+    const aMatch = item.a.toLowerCase().includes(filterText);
+
+    if (filterText && !qMatch && !aMatch) return;
+
+    html += `
+      <div class="faq-item" id="faq-item-${index}">
+        <button class="faq-q" type="button" onclick="toggleFaq(${index})">
+          <span class="faq-q-text">${esc(item.q)}</span>
+          <span class="faq-q-icon">➕</span>
+        </button>
+        <div class="faq-a hidden" id="faq-a-${index}">
+          <p>${esc(item.a)}</p>
+        </div>
+      </div>
+    `;
+  });
+
+  if (!html) {
+    html = `<div class="empty-state" style="padding: 20px 0;">
+      <div class="empty-emoji">🔍</div>
+      <p data-i18n="no_match_filter">${t("no_match_filter") || "No vaccines match this filter."}</p>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+window.toggleFaq = function (index) {
+  const ans = $(`faq-a-${index}`);
+  const item = $(`faq-item-${index}`);
+  if (!ans || !item) return;
+
+  const isHidden = ans.classList.contains("hidden");
+
+  // Close all other accordions first
+  $$(".faq-a").forEach((el) => el.classList.add("hidden"));
+  $$(".faq-q-icon").forEach((el) => el.textContent = "➕");
+  $$(".faq-item").forEach((el) => el.classList.remove("expanded"));
+
+  if (isHidden) {
+    ans.classList.remove("hidden");
+    item.querySelector(".faq-q-icon").textContent = "➖";
+    item.classList.add("expanded");
+  }
+};
+
 const I18N = {
   en: {
     // Splash & Lang
@@ -2114,16 +2265,16 @@ const I18N = {
     no_profiles_yet: "No profiles yet. Create one to get started!",
     child_count: "{n} child",
     children_count: "{n} children",
-    // Admin pin
+    // Admin password
     admin_access: "Admin Access",
-    enter_pin: "Enter the admin PIN to continue",
-    default_pin: "Default PIN: 1234",
+    enter_admin_password: "Enter the admin password to continue",
+    default_admin_password: "Default password: Admin@123",
     unlock: "Unlock",
-    incorrect_pin: "❌ Incorrect PIN",
+    incorrect_admin_password: "❌ Incorrect password",
     // Create parent
     your_profile: "Your Profile",
-    enter_phone_pin: "Enter your phone and PIN",
-    pin_for_security: "For your security, create a 4-digit PIN",
+    enter_phone_password: "Enter your phone and password",
+    password_for_security: "For your security, create a complex password",
     tell_about: "Tell us a little about yourself",
     your_name: "Your Name",
     email_optional: "Email (optional)",
@@ -2135,7 +2286,7 @@ const I18N = {
     // Home
     children: "Children",
     completed: "Completed",
-    pending: "Pending",
+    pending: "Scheduled",
     needs_attention: "Needs Attention",
     my_children: "My Children",
     no_children_yet: "No children yet",
@@ -2153,6 +2304,26 @@ const I18N = {
     export_pdf: "Export PDF",
     certificate: "Vaccination Certificate",
     validate_msg: "Scan to validate doses",
+    digital_health_platform: "Platform for vaccine management",
+    document_status: "Document Status",
+    document_active: "Active",
+    vaccine_dose: "Dose",
+    date_applied: "Date Administered",
+    status_label: "Status",
+    awaiting: "Awaiting",
+    done_badge: "✓ Done",
+    scan_to_validate: "Scan to validate doses",
+    electronic_validation: "Electronic Validation",
+    guaranteed_authenticity: "Guaranteed Authenticity",
+    certificate_footer_msg: "Document digitally issued. The information contained in this certificate reflects the patient's record.",
+    single_dose: "Single Dose",
+    vaccine_imunizer: "VACCINE / IMMUNIZER",
+    registry_id: "Registry ID",
+    manage_partners: "Partner Branding",
+    manage_partners_desc: "Upload partner logo and link for certificates",
+    registered_partners: "Registered Partners",
+    add_new_partner: "Add New Partner",
+    add_partner: "Add Partner",
     all: "All",
     done: "Done",
     // Schedule
@@ -2199,14 +2370,18 @@ const I18N = {
     completed_on: "Completed On",
     notes: "Notes",
     date_administered: "Date Administered",
+    reschedule_date: "Schedule / Reschedule Date",
+    save_changes: "Save Changes",
+    changes_saved: "Changes saved!",
+    vaccines_on: "Vaccines on",
     mark_completed: "Mark as Completed",
-    mark_pending: "↩️ Mark as Pending",
+    mark_pending: "↩️ Mark as Scheduled",
     email: "Email",
     cancel: "Cancel",
     confirm: "Confirm",
-    change_pin: "Change Admin PIN",
-    new_pin: "New PIN",
-    change_pin_desc: "Update the admin access code",
+    change_admin_password: "Change Admin Password",
+    new_password: "New Password",
+    change_admin_password_desc: "Update the admin access password",
     // Settings
     sign_out: "Sign Out",
     my_info: "My Info",
@@ -2257,11 +2432,11 @@ const I18N = {
       "Delete {name} and all their vaccine records? This can't be undone.",
     child_deleted: "{name} deleted",
     vaccine_completed: "🎉 Vaccine completed!",
-    marked_pending: "↩️ Marked as pending",
+    marked_pending: "↩️ Marked as scheduled",
     parent_label: "Parent",
     admin_label: "Admin",
-    pin_too_short: "PIN must be at least 4 characters",
-    pin_updated: "PIN updated! 🔐",
+    password_too_short: "Password must be between 6 and 64 characters",
+    password_updated: "Password updated! 🔐",
     data_exported: "📤 Data exported!",
     import_data_confirm: "Replace all data with {n} profiles from backup?",
     data_imported: "📥 Data imported!",
@@ -2282,7 +2457,7 @@ const I18N = {
       "Automatic vaccine schedule based on your child's age",
     landing_feature_2: "Secure & Private",
     landing_feature_2_desc:
-      "Your data is protected with PIN access and stored locally",
+      "Your data is protected with password access and stored locally",
     landing_feature_3: "Multi-Language",
     landing_feature_3_desc:
       "Available in English, Portuguese, French, and Afrikaans",
@@ -2321,20 +2496,23 @@ const I18N = {
     super_admin: "Super Admin",
     only_super_admin: "Only the super admin can perform this action",
     // Password confirm
-    enter_password_confirm: "Enter your PIN to confirm",
-    wrong_password: "Incorrect PIN",
+    enter_password_confirm: "Enter your password to confirm",
+    wrong_password: "Incorrect password",
+    forgot_password: "Forgot Password?",
+    forgot_password_desc: "Enter your WhatsApp number and choose a new password to reset your account.",
+    user_not_found: "No account found with this number",
     // Per-child dashboard
     vaccines_per_child: "Vaccines by Child",
     overdue_count: "{n} overdue",
-    pending_count: "{n} pending",
+    pending_count: "{n} scheduled",
     completed_count: "{n} completed",
     next_vaccine: "Next",
     no_pending: "All up to date!",
     // Parent login
-    enter_your_pin: "Enter your PIN",
-    create_pin: "Create a PIN",
-    pin_for_security: "For your security, create a 4-digit PIN",
-    login_pin: "Login PIN",
+    enter_your_password: "Enter your Password",
+    create_password: "Create a Password",
+    password_for_security: "For your security, create a complex password",
+    login_password: "Login Password",
     // Age strings
     age_years: "{y} yr",
     age_years_plural: "{y} yrs",
@@ -2347,7 +2525,7 @@ const I18N = {
     status_overdue: "Overdue",
     status_upcoming: "Upcoming",
     status_completed: "Completed",
-    status_pending: "Pending",
+    status_pending: "Scheduled",
     // Family delete
     delete_family_title: "Delete Family",
     delete_family_msg:
@@ -2366,15 +2544,63 @@ const I18N = {
     add_admin: "Add Admin",
     edit_admin: "Edit Admin",
     admin_name: "Admin Name",
-    pin: "PIN",
+    pin: "Password",
     default_admin: "Default",
-    admin_added: "Admin added! \ud83d\udee1\ufe0f",
+    admin_added: "Admin added! 🛡️",
     admin_updated: "Admin updated!",
     admin_deleted: "Admin deleted",
     delete_admin_title: "Delete Admin",
     delete_admin_msg: 'Delete admin "{name}"? This cannot be undone.',
     cannot_delete_last: "Cannot delete the last admin profile",
     no_admins_msg: "No admin profiles yet",
+    theme: "Theme",
+    theme_desc: "Choose your visual appearance",
+    theme_light: "Light",
+    theme_dark: "Dark",
+    faq_title: "Vaccine Guide & FAQ",
+    faq_subtitle: "Global mandatory and optional vaccines",
+    faq_vaccines: "Vaccine Guide & FAQ",
+    faq_vaccines_desc: "Search and browse global vaccine details",
+    faq_search_placeholder: "Search vaccines, categories or symptoms...",
+    calendar_search_placeholder: "Search vaccines in calendar...",
+    information: "Information",
+    view: "View",
+    password_required: "Password is required",
+    password_length_error: "Password must be between 6 and 64 characters",
+    password_repetitive_error: "Password cannot contain repetitive characters",
+    password_sequential_error: "Password cannot be a simple sequence",
+    password_complexity_error: "Password must contain both letters and numbers",
+    password: "Password",
+    confirm_password: "Confirm Password",
+    reset_password: "Reset Password",
+    enter_new_password: "Enter new password for this user:",
+    password_reset_success: "Password reset successfully",
+    passwords_dont_match: "Passwords do not match",
+    register: "Register",
+    parent_login: "Parent Login",
+    admin_login: "Admin Login",
+    dont_have_profile: "Don't have a profile? Register here",
+    already_have_profile: "Already have a profile? Login here",
+    delete_profile: "Delete Profile",
+    delete_profile_confirm: "Are you sure you want to delete this profile and all their children's records?",
+    enter_phone_password: "Enter your phone and password",
+    registration_failed: "Profile registration failed. Please verify credentials.",
+    security: "Security",
+    two_factor_auth: "Two-Factor Authentication",
+    two_factor_desc: "Add an extra layer of security to your account.",
+    two_factor_setup: "Set up Two-Factor Authentication",
+    two_factor_setup_desc: "Scan the QR code below with your authenticator app (e.g. Google Authenticator, Authy). Or enter the code manually.",
+    two_factor_code: "Verification Code",
+    verify_and_enable: "Verify and Enable",
+    verify_and_login: "Verify and Login",
+    disable_2fa: "Disable 2FA",
+    password_confirm_disable_2fa: "Enter your account password to confirm disabling Two-Factor Authentication.",
+    two_factor_login_desc: "Enter the 6-digit code from your authenticator app to complete the login.",
+    two_factor_enabled_success: "Two-Factor Authentication enabled successfully! 🛡️",
+    two_factor_disabled_success: "Two-Factor Authentication disabled successfully.",
+    invalid_2fa_code: "Invalid verification code. Please try again.",
+    enabled: "Enabled",
+    disabled: "Disabled",
   },
   pt: {
     splash_sub: "Protegendo o que mais importa",
@@ -2400,13 +2626,13 @@ const I18N = {
     child_count: "{n} filho",
     children_count: "{n} filhos",
     admin_access: "Acesso Admin",
-    enter_pin: "Digite o PIN de administrador para continuar",
-    default_pin: "PIN padrão: 1234",
+    enter_admin_password: "Digite a senha de administrador para continuar",
+    default_admin_password: "Senha padrão: Admin@123",
     unlock: "Desbloquear",
-    incorrect_pin: "❌ PIN incorreto",
+    incorrect_admin_password: "❌ Senha incorreta",
     your_profile: "Seu Perfil",
-    enter_phone_pin: "Insira seu telefone e PIN",
-    pin_for_security: "Para sua segurança, crie um PIN de 4 dígitos",
+    enter_phone_password: "Insira seu telefone e senha",
+    password_for_security: "Para sua segurança, crie uma senha complexa",
     tell_about: "Conte-nos um pouco sobre você",
     your_name: "Seu Nome",
     email_optional: "E-mail (opcional)",
@@ -2417,7 +2643,7 @@ const I18N = {
     welcome_user: "Bem-vindo(a), {name}! 🎉",
     children: "Filhos",
     completed: "Completas",
-    pending: "Pendentes",
+    pending: "Agendadas",
     needs_attention: "Precisa de Atenção",
     my_children: "Meus Filhos",
     no_children_yet: "Nenhum filho cadastrado",
@@ -2434,6 +2660,26 @@ const I18N = {
     export_pdf: "Exportar PDF",
     certificate: "Certificado de Vacinação",
     validate_msg: "Leia para validar as doses",
+    digital_health_platform: "Plataforma para gestão vacinal",
+    document_status: "Status do Documento",
+    document_active: "Ativo",
+    vaccine_dose: "Dose",
+    date_applied: "Data de Aplicação",
+    status_label: "Estado",
+    awaiting: "Aguardando",
+    done_badge: "✓ Feita",
+    scan_to_validate: "Leia para validar as doses",
+    electronic_validation: "Validação Eletrônica",
+    guaranteed_authenticity: "Autenticidade Garantida",
+    certificate_footer_msg: "Documento emitido digitalmente. As informações contidas neste certificado refletem o registro do paciente.",
+    single_dose: "Única",
+    vaccine_imunizer: "VACINA / IMUNIZANTE",
+    registry_id: "Registro ID",
+    manage_partners: "Gestão de Parceiros",
+    manage_partners_desc: "Inserir logótipo e link de parceiros para certificados",
+    registered_partners: "Parceiros Cadastrados",
+    add_new_partner: "Adicionar Novo Parceiro",
+    add_partner: "Adicionar Parceiro",
     all: "Todas",
     done: "Feita",
     showing_for: "Mostrando cronograma para:",
@@ -2475,14 +2721,18 @@ const I18N = {
     completed_on: "Concluída em",
     notes: "Observações",
     date_administered: "Data de Aplicação",
+    reschedule_date: "Agendar / Reagendar Vacina",
+    save_changes: "Salvar Alterações",
+    changes_saved: "Alterações salvas!",
+    vaccines_on: "Vacinas em",
     mark_completed: "Marcar como Concluída",
-    mark_pending: "↩️ Marcar como Pendente",
+    mark_pending: "↩️ Marcar como Agendada",
     email: "E-mail",
     cancel: "Cancelar",
     confirm: "Confirmar",
-    change_pin: "Alterar PIN Admin",
-    new_pin: "Novo PIN",
-    change_pin_desc: "Atualizar o código de acesso admin",
+    change_admin_password: "Alterar Senha Admin",
+    new_password: "Nova Senha",
+    change_admin_password_desc: "Atualizar a senha de acesso admin",
     sign_out: "Sair",
     my_info: "Minhas Informações",
     appearance: "Aparência",
@@ -2530,11 +2780,11 @@ const I18N = {
       "Excluir {name} e todos os registros de vacinas? Essa ação não pode ser desfeita.",
     child_deleted: "{name} excluído",
     vaccine_completed: "🎉 Vacina concluída!",
-    marked_pending: "↩️ Marcada como pendente",
+    marked_pending: "↩️ Marcada como agendada",
     parent_label: "Pai/Mãe",
     admin_label: "Administrador",
-    pin_too_short: "O PIN deve ter pelo menos 4 caracteres",
-    pin_updated: "PIN atualizado! 🔐",
+    password_too_short: "A senha deve ter entre 6 e 64 caracteres",
+    password_updated: "Senha atualizada! 🔐",
     data_exported: "📤 Dados exportados!",
     import_data_confirm: "Substituir todos os dados com {n} perfis do backup?",
     data_imported: "📥 Dados importados!",
@@ -2554,7 +2804,7 @@ const I18N = {
       "Calendário automático de vacinas baseado na idade do seu filho",
     landing_feature_2: "Seguro e Privado",
     landing_feature_2_desc:
-      "Os seus dados são protegidos com acesso por PIN e armazenados localmente",
+      "Os seus dados são protegidos com acesso por senha e armazenados localmente",
     landing_feature_3: "Multi-Idioma",
     landing_feature_3_desc:
       "Disponível em Inglês, Português, Francês e Afrikaans",
@@ -2589,18 +2839,21 @@ const I18N = {
     custom_vaccine: "Personalizada",
     super_admin: "Super Administrador",
     only_super_admin: "Apenas o super administrador pode realizar esta ação",
-    enter_password_confirm: "Digite o seu PIN para confirmar",
-    wrong_password: "PIN incorreto",
+    enter_password_confirm: "Digite a sua senha para confirmar",
+    wrong_password: "Senha incorreta",
+    forgot_password: "Esqueci a minha senha",
+    forgot_password_desc: "Introduza o seu número de WhatsApp e escolha uma nova senha para repor a sua conta.",
+    user_not_found: "Nenhuma conta encontrada com este número",
     vaccines_per_child: "Vacinas por Filho",
     overdue_count: "{n} atrasada(s)",
-    pending_count: "{n} pendente(s)",
+    pending_count: "{n} agendada(s)",
     completed_count: "{n} concluída(s)",
     next_vaccine: "Próxima",
     no_pending: "Tudo em dia!",
-    enter_your_pin: "Digite o seu PIN",
-    create_pin: "Crie um PIN",
-    pin_for_security: "Para sua segurança, crie um PIN de 4 dígitos",
-    login_pin: "PIN de Acesso",
+    enter_your_password: "Digite a sua senha",
+    create_password: "Crie uma senha",
+    password_for_security: "Para sua segurança, crie uma senha complexa",
+    login_password: "Senha de Acesso",
     age_years: "{y} ano",
     age_years_plural: "{y} anos",
     age_months_and: ", {m} mês",
@@ -2611,7 +2864,7 @@ const I18N = {
     status_overdue: "Atrasada",
     status_upcoming: "Em breve",
     status_completed: "Concluída",
-    status_pending: "Pendente",
+    status_pending: "Agendada",
     delete_family_title: "Excluir Família",
     delete_family_msg:
       "Excluir {name} e todos os registros dos filhos? Essa ação não pode ser desfeita.",
@@ -2627,8 +2880,8 @@ const I18N = {
     add_admin: "Adicionar Admin",
     edit_admin: "Editar Admin",
     admin_name: "Nome do Admin",
-    pin: "PIN",
-    default_admin: "Padr\u00e3o",
+    pin: "Senha",
+    default_admin: "Padrão",
     admin_added: "Admin adicionado! \ud83d\udee1\ufe0f",
     admin_updated: "Admin atualizado!",
     admin_deleted: "Admin eliminado",
@@ -2638,6 +2891,54 @@ const I18N = {
     cannot_delete_last:
       "N\u00e3o \u00e9 poss\u00edvel eliminar o \u00faltimo perfil de administrador",
     no_admins_msg: "Nenhum perfil de administrador ainda",
+    theme: "Tema",
+    theme_desc: "Escolha a sua apar\u00eancia visual",
+    theme_light: "Claro",
+    theme_dark: "Escuro",
+    faq_title: "Guia de Vacinas & FAQ",
+    faq_subtitle: "Vacinas obrigat\u00f3rias e opcionais no mundo",
+    faq_vaccines: "Guia de Vacinas & FAQ",
+    faq_vaccines_desc: "Pesquise e consulte detalhes de vacinas mundiais",
+    faq_search_placeholder: "Pesquisar vacinas, categorias ou sintomas...",
+    calendar_search_placeholder: "Pesquisar vacinas no calendário...",
+    information: "Informa\u00e7\u00e3o",
+    view: "Visualizar",
+    password_required: "A palavra-passe \u00e9 obrigat\u00f3ria",
+    password_length_error: "A palavra-passe deve ter entre 6 e 64 caracteres",
+    password_repetitive_error: "A palavra-passe n\u00e3o pode conter caracteres repetidos",
+    password_sequential_error: "A palavra-passe n\u00e3o pode ser uma sequ\u00eancia simples",
+    password_complexity_error: "A palavra-passe deve conter letras e n\u00fameros",
+    password: "Palavra-passe",
+    confirm_password: "Confirmar Palavra-passe",
+    reset_password: "Repor Senha",
+    enter_new_password: "Insira a nova senha para este utilizador:",
+    password_reset_success: "Senha reposta com sucesso",
+    passwords_dont_match: "As palavras-passe não coincidem",
+    register: "Registar",
+    parent_login: "Login de Encarregado",
+    admin_login: "Login de Administrador",
+    dont_have_profile: "N\u00e3o tem um perfil? Registe-se aqui",
+    already_have_profile: "J\u00e1 tem um perfil? Fa\u00e7a login aqui",
+    delete_profile: "Eliminar Perfil",
+    delete_profile_confirm: "Tem a certeza que deseja eliminar este perfil e todos os registos dos seus filhos?",
+    enter_phone_password: "Introduza o seu telefone e palavra-passe",
+    registration_failed: "Falha no registo do perfil. Verifique as credenciais.",
+    security: "Segurança",
+    two_factor_auth: "Autenticação de Dois Fatores (2FA)",
+    two_factor_desc: "Adicione uma camada extra de segurança à sua conta.",
+    two_factor_setup: "Configurar Autenticação de Dois Fatores",
+    two_factor_setup_desc: "Escaneie o QR code abaixo com o seu aplicativo autenticador. Ou insira a chave manualmente.",
+    two_factor_code: "Código de Verificação",
+    verify_and_enable: "Verificar e Ativar",
+    verify_and_login: "Verificar e Entrar",
+    disable_2fa: "Desativar 2FA",
+    password_confirm_disable_2fa: "Insira a password da sua conta para confirmar a desativação da Autenticação de Dois Fatores.",
+    two_factor_login_desc: "Insira o código de 6 dígitos gerado pela sua aplicação autenticadora para concluir o login.",
+    two_factor_enabled_success: "Autenticação de Dois Fatores ativada com sucesso! 🛡️",
+    two_factor_disabled_success: "Autenticação de Dois Fatores desativada com sucesso.",
+    invalid_2fa_code: "Código de verificação inválido. Por favor, tente novamente.",
+    enabled: "Ativo",
+    disabled: "Inativo",
   },
   fr: {
     splash_sub: "Protéger ce qui compte le plus",
@@ -2664,13 +2965,13 @@ const I18N = {
     child_count: "{n} enfant",
     children_count: "{n} enfants",
     admin_access: "Accès Admin",
-    enter_pin: "Entrez le PIN admin pour continuer",
-    default_pin: "PIN par défaut : 1234",
+    enter_admin_password: "Entrez le mot de passe admin pour continuer",
+    default_admin_password: "Mot de passe par défaut : Admin@123",
     unlock: "Déverrouiller",
-    incorrect_pin: "❌ PIN incorrect",
+    incorrect_admin_password: "❌ Mot de passe incorrect",
     your_profile: "Votre Profil",
-    enter_phone_pin: "Entrez votre téléphone et PIN",
-    pin_for_security: "Pour votre sécurité, créez un code PIN à 4 chiffres",
+    enter_phone_password: "Entrez votre téléphone et mot de passe",
+    password_for_security: "Pour votre sécurité, créez un mot de passe complexe",
     tell_about: "Dites-nous un peu sur vous",
     your_name: "Votre Nom",
     email_optional: "E-mail (optionnel)",
@@ -2681,7 +2982,7 @@ const I18N = {
     welcome_user: "Bienvenue, {name} ! 🎉",
     children: "Enfants",
     completed: "Terminés",
-    pending: "En attente",
+    pending: "Planifiés",
     needs_attention: "Attention Requise",
     my_children: "Mes Enfants",
     no_children_yet: "Aucun enfant encore",
@@ -2698,6 +2999,26 @@ const I18N = {
     export_pdf: "Exporter le PDF",
     certificate: "Certificat de Vaccination",
     validate_msg: "Scanner pour valider les doses",
+    digital_health_platform: "Plateforme pour la gestion vaccinale",
+    document_status: "Statut du Document",
+    document_active: "Actif",
+    vaccine_dose: "Dose",
+    date_applied: "Date Administrée",
+    status_label: "Statut",
+    awaiting: "En attente",
+    done_badge: "✓ Fait",
+    scan_to_validate: "Scanner pour valider",
+    electronic_validation: "Validation Électronique",
+    guaranteed_authenticity: "Authenticité Garantie",
+    certificate_footer_msg: "Document délivré numériquement. Les informations contenues dans ce certificat reflètent le dossier du patient.",
+    single_dose: "Unique",
+    vaccine_imunizer: "VACCIN / IMMUNISANT",
+    registry_id: "ID de Registre",
+    manage_partners: "Gestion des Partenaires",
+    manage_partners_desc: "Télécharger le logo et le lien du partenaire pour les certificats",
+    registered_partners: "Partenaires Enregistrés",
+    add_new_partner: "Ajouter un Nouveau Partenaire",
+    add_partner: "Ajouter le Partenaire",
     all: "Tous",
     done: "Fait",
     showing_for: "Affichage du calendrier pour :",
@@ -2740,14 +3061,18 @@ const I18N = {
     completed_on: "Terminé le",
     notes: "Notes",
     date_administered: "Date Administrée",
+    reschedule_date: "Planifier / Planifier à nouveau",
+    save_changes: "Enregistrer les modifications",
+    changes_saved: "Modifications enregistrées !",
+    vaccines_on: "Vaccins le",
     mark_completed: "Marquer comme Terminé",
-    mark_pending: "↩️ Marquer comme En Attente",
+    mark_pending: "↩️ Marquer comme Planifié",
     email: "E-mail",
     cancel: "Annuler",
     confirm: "Confirmer",
-    change_pin: "Changer le PIN Admin",
-    new_pin: "Nouveau PIN",
-    change_pin_desc: "Mettre à jour le code d'accès admin",
+    change_admin_password: "Changer le mot de passe Admin",
+    new_password: "Nouveau mot de passe",
+    change_admin_password_desc: "Mettre à jour le mot de passe admin",
     sign_out: "Se Déconnecter",
     my_info: "Mes Infos",
     appearance: "Apparence",
@@ -2795,11 +3120,11 @@ const I18N = {
       "Supprimer {name} et tous ses registres vaccinaux ? Cette action est irréversible.",
     child_deleted: "{name} supprimé",
     vaccine_completed: "🎉 Vaccin terminé !",
-    marked_pending: "↩️ Marqué comme en attente",
+    marked_pending: "↩️ Marqué comme planifié",
     parent_label: "Parent",
     admin_label: "Administrateur",
-    pin_too_short: "Le PIN doit comporter au moins 4 caractères",
-    pin_updated: "PIN mis à jour ! 🔐",
+    password_too_short: "Le mot de passe doit comporter entre 6 et 64 caractères",
+    password_updated: "Mot de passe mis à jour ! 🔐",
     data_exported: "📤 Données exportées !",
     import_data_confirm:
       "Remplacer toutes les données avec {n} profils de la sauvegarde ?",
@@ -2822,7 +3147,7 @@ const I18N = {
     status_overdue: "En retard",
     status_upcoming: "À venir",
     status_completed: "Terminé",
-    status_pending: "En attente",
+    status_pending: "Planifiée",
     delete_family_title: "Supprimer la Famille",
     delete_family_msg:
       "Supprimer {name} et tous les dossiers de ses enfants ? Cette action est irréversible.",
@@ -2838,7 +3163,7 @@ const I18N = {
     add_admin: "Ajouter un Admin",
     edit_admin: "Modifier l'Admin",
     admin_name: "Nom de l'Admin",
-    pin: "PIN",
+    pin: "Mot de passe",
     default_admin: "Par défaut",
     admin_added: "Admin ajouté ! 🛡️",
     admin_updated: "Admin mis à jour !",
@@ -2849,6 +3174,65 @@ const I18N = {
     cannot_delete_last:
       "Impossible de supprimer le dernier profil administrateur",
     no_admins_msg: "Aucun profil administrateur encore",
+    theme: "Thème",
+    theme_desc: "Choisissez votre apparence visuelle",
+    theme_light: "Clair",
+    theme_dark: "Sombre",
+    faq_title: "Guide des Vaccins & FAQ",
+    faq_subtitle: "Vaccins obligatoires et facultatifs dans le monde",
+    faq_vaccines: "Guide des Vaccins & FAQ",
+    faq_vaccines_desc: "Rechercher et consulter les détails des vaccins",
+    faq_search_placeholder: "Rechercher des vaccins, des catégories...",
+    calendar_search_placeholder: "Rechercher des vaccins dans le calendrier...",
+    information: "Informations",
+    view: "Voir",
+    password_required: "Le mot de passe est obligatoire",
+    password_length_error: "Le mot de passe doit comporter entre 6 et 64 caractères",
+    password_repetitive_error: "Le mot de passe ne peut pas contenir de caract\u00e8res r\u00e9p\u00e9titifs",
+    password_sequential_error: "Le mot de passe ne peut pas \u00eatre une simple s\u00e9quence",
+    password_complexity_error: "Le mot de passe doit contenir des lettres et des chiffres",
+    password: "Mot de passe",
+    confirm_password: "Confirmer le mot de passe",
+    reset_password: "Réinitialiser le mot de passe",
+    enter_new_password: "Entrez le nouveau mot de passe pour cet utilisateur :",
+    password_reset_success: "Mot de passe réinitialisé avec succès",
+    passwords_dont_match: "Les mots de passe ne correspondent pas",
+    register: "S'inscrire",
+    parent_login: "Connexion Parent",
+    admin_login: "Connexion Admin",
+    dont_have_profile: "Vous n'avez pas de profil ? Inscrivez-vous ici",
+    already_have_profile: "Vous avez d\u00e9j\u00e0 un profil ? Connectez-vous ici",
+    delete_profile: "Supprimer le profil",
+    delete_profile_confirm: "Voulez-vous vraiment supprimer ce profil et tous les dossiers de ses enfants ?",
+    enter_phone_password: "Saisissez votre t\u00e9l\u00e9phone et votre mot de passe",
+    registration_failed: "Échec de l'enregistrement du profil. Veuillez vérifier vos identifiants.",
+    enter_password_confirm: "Saisissez votre mot de passe pour confirmer",
+    wrong_password: "Mot de passe incorrect",
+    forgot_password: "Mot de passe oublié ?",
+    forgot_password_desc: "Entrez votre numéro WhatsApp et choisissez un nouveau mot de passe pour réinitialiser votre compte.",
+    user_not_found: "Aucun compte trouvé avec ce numéro",
+    enter_your_password: "Saisissez votre mot de passe",
+    create_password: "Créez un mot de passe",
+    password_for_security: "Pour votre sécurité, créez un mot de passe complexe",
+    login_password: "Mot de passe de connexion",
+    super_admin: "Super Admin",
+    only_super_admin: "Seul le super administrateur peut effectuer cette action",
+    security: "Sécurité",
+    two_factor_auth: "Authentification à Deux Facteurs (2FA)",
+    two_factor_desc: "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+    two_factor_setup: "Configurer l'authentification à deux facteurs",
+    two_factor_setup_desc: "Scannez le code QR ci-dessous avec votre application d'authentification. Ou saisissez le code manuellement.",
+    two_factor_code: "Code de vérification",
+    verify_and_enable: "Vérifier et Activer",
+    verify_and_login: "Vérifier et Se Connecter",
+    disable_2fa: "Désactiver la 2FA",
+    password_confirm_disable_2fa: "Entrez le mot de passe de votre compte pour confirmer la désactivation de l'authentification à deux facteurs.",
+    two_factor_login_desc: "Entrez le code à 6 chiffres généré par votre application d'authentification pour terminer la connexion.",
+    two_factor_enabled_success: "Authentification à deux facteurs activée avec succès ! 🛡️",
+    two_factor_disabled_success: "Authentification à deux facteurs désactivée avec succès.",
+    invalid_2fa_code: "Code de vérification invalide. Veuillez réessayer.",
+    enabled: "Activé",
+    disabled: "Désactivé",
   },
   af: {
     splash_sub: "Beskerm wat die meeste saak maak",
@@ -2874,13 +3258,13 @@ const I18N = {
     child_count: "{n} kind",
     children_count: "{n} kinders",
     admin_access: "Admin Toegang",
-    enter_pin: "Voer die admin-PIN in om voort te gaan",
-    default_pin: "Verstek PIN: 1234",
+    enter_admin_password: "Voer die admin-wagwoord in om voort te gaan",
+    default_admin_password: "Verstek wagwoord: Admin@123",
     unlock: "Ontsluit",
-    incorrect_pin: "❌ Verkeerde PIN",
+    incorrect_admin_password: "❌ Verkeerde wagwoord",
     your_profile: "Jou Profiel",
-    enter_phone_pin: "Voer jou foon en PIN in",
-    pin_for_security: "Vir jou sekuriteit, skep 'n 4-syfer PIN",
+    enter_phone_password: "Voer jou foon en wagwoord in",
+    password_for_security: "Vir jou sekuriteit, skep 'n komplekse wagwoord",
     tell_about: "Vertel ons 'n bietjie van jouself",
     your_name: "Jou Naam",
     email_optional: "E-pos (opsioneel)",
@@ -2891,7 +3275,7 @@ const I18N = {
     welcome_user: "Welkom, {name}! 🎉",
     children: "Kinders",
     completed: "Voltooi",
-    pending: "Hangend",
+    pending: "Geskeduleer",
     needs_attention: "Benodig Aandag",
     my_children: "My Kinders",
     no_children_yet: "Nog geen kinders nie",
@@ -2905,6 +3289,29 @@ const I18N = {
     scheduled: "Geskeduleer",
     edit: "Wysig",
     delete: "Verwyder",
+    export_pdf: "Voer PDF uit",
+    certificate: "Inentingsertifikaat",
+    validate_msg: "Skandeer om te valideer",
+    digital_health_platform: "Platform vir entstofbestuur",
+    document_status: "Dokumentstatus",
+    document_active: "Aktief",
+    vaccine_dose: "Dosis",
+    date_applied: "Datum Toegedien",
+    status_label: "Status",
+    awaiting: "Wagtend",
+    done_badge: "✓ Gedoen",
+    scan_to_validate: "Skandeer om te valideer",
+    electronic_validation: "Elektroniese Validering",
+    guaranteed_authenticity: "Gewaarborgde Oorspronklikheid",
+    certificate_footer_msg: "Dokument digitaal uitgereik. Die inligting in hierdie sertifikaat weerspieël die pasiënt se rekord.",
+    single_dose: "Enkel Dosis",
+    vaccine_imunizer: "ENTSTOF / IMMUNISEERDER",
+    registry_id: "Register ID",
+    manage_partners: "Vennote-handelsmerk",
+    manage_partners_desc: "Laai vennote se logo en skakel op vir sertifikate",
+    registered_partners: "Geregistreerde Vennote",
+    add_new_partner: "Voeg Nuwe Vennoot By",
+    add_partner: "Voeg Vennoot By",
     all: "Alles",
     done: "Klaar",
     showing_for: "Wys skedule vir:",
@@ -2946,14 +3353,18 @@ const I18N = {
     completed_on: "Voltooi op",
     notes: "Notas",
     date_administered: "Datum Toegedien",
+    reschedule_date: "Skeduleer / Herskeduleer Datum",
+    save_changes: "Stoor Wysigings",
+    changes_saved: "Wysigings gestoor!",
+    vaccines_on: "Inentings op",
     mark_completed: "Merk as Voltooi",
-    mark_pending: "↩️ Merk as Hangend",
+    mark_pending: "↩️ Merk as Geskeduleer",
     email: "E-pos",
     cancel: "Kanselleer",
     confirm: "Bevestig",
-    change_pin: "Verander Admin-PIN",
-    new_pin: "Nuwe PIN",
-    change_pin_desc: "Dateer die admin-toegangskode op",
+    change_admin_password: "Verander Admin-wagwoord",
+    new_password: "Nuwe wagwoord",
+    change_admin_password_desc: "Dateer die admin-toegangskode op",
     sign_out: "Teken Uit",
     my_info: "My Inligting",
     appearance: "Voorkoms",
@@ -3001,11 +3412,11 @@ const I18N = {
       "Verwyder {name} en al hul entstofrekords? Dit kan nie ongedaan gemaak word nie.",
     child_deleted: "{name} verwyder",
     vaccine_completed: "🎉 Entstof voltooi!",
-    marked_pending: "↩️ Gemerk as hangend",
+    marked_pending: "↩️ Gemerk as geskeduleer",
     parent_label: "Ouer",
     admin_label: "Administrateur",
-    pin_too_short: "PIN moet ten minste 4 karakters wees",
-    pin_updated: "PIN opgedateer! 🔐",
+    password_too_short: "Wagwoord moet tussen 6 en 64 karakters wees",
+    password_updated: "Wagwoord opgedateer! 🔐",
     data_exported: "📤 Data uitgevoer!",
     import_data_confirm: "Vervang alle data met {n} profiele van rugsteun?",
     data_imported: "📥 Data ingevoer!",
@@ -3027,7 +3438,7 @@ const I18N = {
     status_overdue: "Agterstallig",
     status_upcoming: "Komend",
     status_completed: "Voltooi",
-    status_pending: "Hangend",
+    status_pending: "Geskeduleer",
     delete_family_title: "Verwyder Gesin",
     delete_family_msg:
       "Verwyder {name} en al hul kinders se rekords? Dit kan nie ongedaan gemaak word nie.",
@@ -3043,7 +3454,7 @@ const I18N = {
     add_admin: "Voeg Admin By",
     edit_admin: "Wysig Admin",
     admin_name: "Admin Naam",
-    pin: "PIN",
+    pin: "Wagwoord",
     default_admin: "Verstek",
     admin_added: "Admin bygevoeg! \ud83d\udee1\ufe0f",
     admin_updated: "Admin opgedateer!",
@@ -3053,6 +3464,65 @@ const I18N = {
       'Verwyder admin "{name}"? Dit kan nie ongedaan gemaak word nie.',
     cannot_delete_last: "Kan nie die laaste admin-profiel verwyder nie",
     no_admins_msg: "Nog geen admin-profiele nie",
+    theme: "Tema",
+    theme_desc: "Kies jou visuele voorkoms",
+    theme_light: "Lig",
+    theme_dark: "Donker",
+    faq_title: "Inentingsgids & FAQ",
+    faq_subtitle: "Wêreldwye verpligte en opsionele inentings",
+    faq_vaccines: "Inentingsgids & FAQ",
+    faq_vaccines_desc: "Soek en bekyk inentingsbesonderhede",
+    faq_search_placeholder: "Soek inentings, kategorieë of simptome...",
+    calendar_search_placeholder: "Soek inentings in kalender...",
+    information: "Inligting",
+    view: "Sien",
+    password_required: "Wagwoord word vereis",
+    password_length_error: "Wagwoord moet tussen 6 en 64 karakters wees",
+    password_repetitive_error: "Wagwoord mag nie uit herhalende karakters bestaan nie",
+    password_sequential_error: "Wagwoord kan nie 'n eenvoudige volgorde wees nie",
+    password_complexity_error: "Wagwoord moet beide letters en getalle bevat",
+    password: "Wagwoord",
+    confirm_password: "Bevestig Wagwoord",
+    reset_password: "Herstel Wagwoord",
+    enter_new_password: "Voer nuwe wagwoord vir hierdie gebruiker in:",
+    password_reset_success: "Wagwoord suksesvol teruggestel",
+    passwords_dont_match: "Wagwoorde stem nie ooreen nie",
+    register: "Registreer",
+    parent_login: "Ouer Aanteken",
+    admin_login: "Admin Aanteken",
+    dont_have_profile: "Het jy nie 'n profiel nie? Registreer hier",
+    already_have_profile: "Het jy reeds 'n profiel? Teken hier in",
+    delete_profile: "Skrap Profiel",
+    delete_profile_confirm: "Is jy seker jy wil hierdie profiel en al hul kinders se rekords skrap?",
+    enter_phone_password: "Voer jou foon en wagwoord in",
+    registration_failed: "Profielregistrasie het misluk. Kontroleer asseblief jou besonderhede.",
+    enter_password_confirm: "Voer jou wagwoord in om te bevestig",
+    wrong_password: "Verkeerde wagwoord",
+    forgot_password: "Wagwoord vergeet?",
+    forgot_password_desc: "Voer jou WhatsApp-nommer in en kies 'n nuwe wagwoord om jou rekening te herstel.",
+    user_not_found: "Geen rekening gevind met hierdie nommer nie",
+    enter_your_password: "Voer jou wagwoord in",
+    create_password: "Skep 'n wagwoord",
+    password_for_security: "Vir jou sekuriteit, skep 'n komplekse wagwoord",
+    login_password: "Aanteken Wagwoord",
+    super_admin: "Super Admin",
+    only_super_admin: "Slegs die superadmin kan hierdie aksie uitvoer",
+    security: "Sekuriteit",
+    two_factor_auth: "Tweestap-verifikasie (2FA)",
+    two_factor_desc: "Voeg 'n ekstra laag sekuriteit by jou rekening.",
+    two_factor_setup: "Stel Tweestap-verifikasie op",
+    two_factor_setup_desc: "Skandeer die QR-kode hieronder met jou verifikasie-toepassing. Of voer die kode handmatig in.",
+    two_factor_code: "Verifikasiekode",
+    verify_and_enable: "Verifieer en Aktiveer",
+    verify_and_login: "Verifieer en Teken in",
+    disable_2fa: "Deaktiveer 2FA",
+    password_confirm_disable_2fa: "Voer jou rekeningwagwoord in om tweestap-verifikasie te deaktiveer.",
+    two_factor_login_desc: "Voer die 6-syfer kode van jou verifikasie-toepassing in om aan te teken.",
+    two_factor_enabled_success: "Tweestap-verifikasie suksesvol geaktiveer! 🛡️",
+    two_factor_disabled_success: "Tweestap-verifikasie suksesvol gedeaktiveer.",
+    invalid_2fa_code: "Ongeldige verifikasiekode. Probeer asseblief weer.",
+    enabled: "Geaktiveer",
+    disabled: "Gedeaktiveer",
   },
 };
 
@@ -3076,6 +3546,11 @@ function applyTranslations() {
     const val = t(key);
     if (val) el.textContent = val;
   });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    const val = t(key);
+    if (val) el.placeholder = val;
+  });
   // Update language display in settings
   const langDisplay = document.getElementById("current-lang-display");
   if (langDisplay) langDisplay.textContent = t("lang_name");
@@ -3097,23 +3572,221 @@ function loadLanguage() {
   return !!saved;
 }
 
+async function loadPartnerBranding() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/partner-logo`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        S.partners = data.map(p => ({
+          id: p.id || uid(),
+          logo: p.logo || "",
+          link: p.link || ""
+        }));
+      } else if (data && (data.logo || data.link)) {
+        // Legacy single partner migration
+        S.partners = [{
+          id: uid(),
+          logo: data.logo || "",
+          link: data.link || ""
+        }];
+      } else {
+        S.partners = [];
+      }
+      // Keep legacy properties synced for safety/compatibility
+      if (S.partners.length > 0) {
+        S.partnerLogo = S.partners[0].logo;
+        S.partnerLink = S.partners[0].link;
+      } else {
+        S.partnerLogo = "";
+        S.partnerLink = "";
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load partner branding:", e);
+  }
+}
+
+function renderPartnerList() {
+  const container = $("partner-list");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!S.partners || S.partners.length === 0) {
+    container.innerHTML = `<p style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Nenhum parceiro cadastrado.</p>`;
+    return;
+  }
+
+  S.partners.forEach((partner) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.justifyContent = "space-between";
+    row.style.padding = "8px";
+    row.style.border = "1px solid var(--border)";
+    row.style.borderRadius = "6px";
+    row.style.background = "var(--bg-card)";
+    row.style.gap = "10px";
+
+    const leftPart = document.createElement("div");
+    leftPart.style.display = "flex";
+    leftPart.style.alignItems = "center";
+    leftPart.style.gap = "10px";
+    leftPart.style.overflow = "hidden";
+
+    if (partner.logo) {
+      const img = document.createElement("img");
+      img.src = partner.logo;
+      img.style.maxHeight = "30px";
+      img.style.maxWidth = "80px";
+      img.style.objectFit = "contain";
+      img.style.borderRadius = "4px";
+      img.style.border = "1px solid var(--border)";
+      leftPart.appendChild(img);
+    }
+
+    const info = document.createElement("div");
+    info.style.display = "flex";
+    info.style.flexDirection = "column";
+    info.style.overflow = "hidden";
+
+    const linkText = document.createElement("span");
+    linkText.style.fontSize = "0.8rem";
+    linkText.style.color = "var(--text-muted)";
+    linkText.style.textOverflow = "ellipsis";
+    linkText.style.whiteSpace = "nowrap";
+    linkText.style.overflow = "hidden";
+    linkText.innerText = partner.link || "Sem link";
+    info.appendChild(linkText);
+    leftPart.appendChild(info);
+
+    const btnDelete = document.createElement("button");
+    btnDelete.className = "btn btn-glass btn-sm btn-glass-danger";
+    btnDelete.type = "button";
+    btnDelete.innerText = "Excluir";
+    btnDelete.style.padding = "4px 8px";
+    btnDelete.style.fontSize = "0.75rem";
+    btnDelete.onclick = () => deletePartner(partner.id);
+
+    row.appendChild(leftPart);
+    row.appendChild(btnDelete);
+    container.appendChild(row);
+  });
+}
+
+async function deletePartner(id) {
+  S.partners = S.partners.filter(p => p.id !== id);
+  await savePartnersToServer();
+  renderPartnerList();
+}
+
+async function savePartnersToServer() {
+  try {
+    const token = localStorage.getItem("vt2_token");
+    const res = await fetch(`${API_BASE_URL}/partner-logo`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(S.partners)
+    });
+    if (res.ok) {
+      if (S.partners.length > 0) {
+        S.partnerLogo = S.partners[0].logo;
+        S.partnerLink = S.partners[0].link;
+      } else {
+        S.partnerLogo = "";
+        S.partnerLink = "";
+      }
+      return true;
+    } else {
+      toast("Failed to save partner branding");
+      return false;
+    }
+  } catch (err) {
+    toast("Server connection failed");
+    return false;
+  }
+}
+
+async function addPartnerAction() {
+  const link = $("input-partner-link").value.trim();
+  const logo = $("partner-logo-preview").src;
+  
+  if (!logo && !link) {
+    toast("Forneça pelo menos o logo ou o link do parceiro");
+    return;
+  }
+
+  const newPartner = {
+    id: uid(),
+    logo: logo.startsWith("data:") ? logo : "",
+    link: link
+  };
+
+  S.partners.push(newPartner);
+  
+  const success = await savePartnersToServer();
+  if (success) {
+    $("input-partner-link").value = "";
+    $("input-partner-logo").value = "";
+    $("partner-logo-preview").src = "";
+    $("partner-logo-preview-container").classList.add("hidden");
+    
+    renderPartnerList();
+    toast(t("changes_saved"));
+  } else {
+    S.partners = S.partners.filter(p => p.id !== newPartner.id);
+  }
+}
+
 // ─── State ──────────────────────────────────────────────
 let childCache = null;
+let _cachedUserId = null;
+let _cachedUsersRef = null;
+let _cachedUsersLen = -1;
+let _cachedUser = null;
+
 function invalidateChildCache() {
   childCache = null;
+  _cachedUserId = null;
+  _cachedUsersRef = null;
+  _cachedUsersLen = -1;
+  _cachedUser = null;
+}
+
+function getChildRegistryId(childId) {
+  let hash = 0;
+  const str = String(childId);
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
+  let val = Math.abs(hash);
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(val % chars.length);
+    val = Math.floor(val / chars.length) || (val + i + 7);
+  }
+  return "VAX360-" + result;
 }
 
 const S = {
   role: null, // 'parent' | 'admin'
   userId: null, // current parent profile id
   users: [], // all parent profiles
-  adminPin: "1234", // legacy fallback
-  adminProfiles: [], // [{id, name, email, pin}]
+  adminPassword: "Admin@123", // legacy fallback
+  adminProfiles: [], // [{id, name, email, password}]
   currentAdminId: null, // which admin is logged in
   currentChildId: null,
   currentVaccineId: null,
   filter: "all",
   confirmCb: null,
+  partnerLogo: "",
+  partnerLink: "",
+  partners: [],
 };
 
 // ─── Helpers ────────────────────────────────────────────
@@ -3193,6 +3866,72 @@ function greeting() {
   return { text: t("good_evening"), emoji: "🌙" };
 }
 
+// ─── Security & Session Management ──────────────────────
+function hashPassword(password) {
+  if (!password) return "";
+  // If it's already a SHA-256 hash, return it as is
+  if (/^[a-f0-9]{64}$/i.test(password)) return password;
+  if (typeof CryptoJS !== "undefined") {
+    return CryptoJS.SHA256(password).toString();
+  }
+  // Fallback in case CryptoJS is not loaded yet (for tests)
+  return password;
+}
+
+function validatePasswordComplexity(pwd) {
+  if (!pwd) return { valid: false, msg: "password_required" };
+  if (pwd.length < 6 || pwd.length > 64) {
+    return { valid: false, msg: "password_length_error" };
+  }
+  if (/^(.)\1+$/.test(pwd)) {
+    return { valid: false, msg: "password_repetitive_error" };
+  }
+  const lower = pwd.toLowerCase();
+  if ("0123456789".includes(lower) || "9876543210".includes(lower) || "abcdefghijklmnopqrstuvwxyz".includes(lower) || "zyxwvutsrqponmlkjihgfedcba".includes(lower)) {
+    return { valid: false, msg: "password_sequential_error" };
+  }
+  const hasLetter = /[a-zA-Z]/.test(pwd);
+  const hasNumber = /[0-9]/.test(pwd);
+  if (!hasLetter || !hasNumber) {
+    return { valid: false, msg: "password_complexity_error" };
+  }
+  return { valid: true };
+}
+
+function saveSession() {
+  const session = {
+    role: S.role,
+    userId: S.userId,
+    currentAdminId: S.currentAdminId,
+  };
+  localStorage.setItem("vt2_session", JSON.stringify(session));
+}
+
+function loadSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem("vt2_session"));
+    const token = localStorage.getItem("vt2_token");
+    if (session && token) {
+      S.role = session.role;
+      S.userId = session.userId;
+      S.currentAdminId = session.currentAdminId;
+      return true;
+    }
+  } catch (err) {
+    console.error("Error loading session:", err);
+  }
+  clearSession();
+  return false;
+}
+
+function clearSession() {
+  localStorage.removeItem("vt2_session");
+  localStorage.removeItem("vt2_token");
+  S.role = null;
+  S.userId = null;
+  S.currentAdminId = null;
+}
+
 // ─── Data Persistence ───────────────────────────────────
 function load() {
   try {
@@ -3200,7 +3939,7 @@ function load() {
     if (d) {
       S.users = d.users || [];
       invalidateChildCache();
-      S.adminPin = d.adminPin || "1234";
+      S.adminPassword = d.adminPassword || d.adminPin || "Admin@123";
       S.adminProfiles = d.adminProfiles || [];
     }
   } catch {
@@ -3208,152 +3947,242 @@ function load() {
     invalidateChildCache();
     S.adminProfiles = [];
   }
+
+  let migrated = false;
+
+  // Migrate legacy pin keys and upgrade weak 1234 credentials
+  S.users.forEach((u) => {
+    if (u.pin) {
+      u.password = u.pin;
+      delete u.pin;
+      migrated = true;
+    }
+    if (u.password === "1234" || u.password === "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4") {
+      u.password = "Admin@123";
+      migrated = true;
+    }
+    if (u.password && !/^[a-f0-9]{64}$/i.test(u.password)) {
+      u.password = hashPassword(u.password);
+      migrated = true;
+    }
+  });
+
+  S.adminProfiles.forEach((a) => {
+    if (a.pin) {
+      a.password = a.pin;
+      delete a.pin;
+      migrated = true;
+    }
+    if (a.password === "1234" || a.password === "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4") {
+      a.password = "Admin@123";
+      migrated = true;
+    }
+    if (a.password && !/^[a-f0-9]{64}$/i.test(a.password)) {
+      a.password = hashPassword(a.password);
+      migrated = true;
+    }
+  });
+
+  if (S.adminPassword === "1234" || S.adminPassword === "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4") {
+    S.adminPassword = "Admin@123";
+    migrated = true;
+  }
+  if (S.adminPassword && !/^[a-f0-9]{64}$/i.test(S.adminPassword)) {
+    S.adminPassword = hashPassword(S.adminPassword);
+    migrated = true;
+  }
+
   // Ensure at least one admin profile always exists
   if (S.adminProfiles.length === 0) {
     S.adminProfiles.push({
       id: uid(),
       name: "Admin",
       email: "",
-      pin: S.adminPin,
+      password: S.adminPassword,
     });
-    // Persist the migration immediately
+    migrated = true;
+  }
+
+  if (migrated) {
     save();
   }
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
-const SYNC_ID = "vax360_main";
-const SYNC_API_URL = `${API_BASE_URL}/sync/${SYNC_ID}`;
-const SYNC_AUTH_TOKEN = "vax360_default_sync_token";
+let API_BASE_URL = "http://localhost:5000/api";
 
-async function getSyncToken(interactive = true) {
-  let token = localStorage.getItem("vt2_token");
-  let pwd = sessionStorage.getItem("vt2_sync_pwd");
-  if (token && pwd) return { token, pwd };
-
-  if (sessionStorage.getItem("vt2_sync_skip")) return null;
-
-  if (!interactive) return null;
-
-  pwd = SYNC_AUTH_TOKEN;
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: pwd }),
-    });
-    const data = await res.json();
-    if (data.success && data.token) {
-      localStorage.setItem("vt2_token", data.token);
-      sessionStorage.setItem("vt2_sync_pwd", pwd);
-      toast("Sync authenticated successfully.");
-      return { token: data.token, pwd };
+async function detectApiBaseUrl() {
+  if (typeof window !== "undefined" && window.location) {
+    const isLocal = window.location.hostname === "localhost" || 
+                    window.location.hostname === "127.0.0.1" || 
+                    window.location.protocol === "file:";
+    if (isLocal) {
+      const isAndroid = typeof window.Capacitor !== "undefined" && navigator.userAgent.toLowerCase().includes("android");
+      if (isAndroid) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 800);
+          const res = await fetch("http://localhost:5000/api/health", { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            API_BASE_URL = "http://localhost:5000/api";
+            console.log("Connected to API via localhost (adb reverse)");
+            return;
+          }
+        } catch (e) {
+          // Localhost unreachable, fallback to emulator gateway
+        }
+        API_BASE_URL = "http://10.0.2.2:5000/api";
+        console.log("Connected to API via emulator loopback (10.0.2.2)");
+      } else {
+        API_BASE_URL = "http://localhost:5000/api";
+      }
     } else {
-      toast("Invalid sync password.");
-      sessionStorage.setItem("vt2_sync_skip", "true");
-      return null;
+      API_BASE_URL = `${window.location.origin}/api`;
     }
-  } catch (err) {
-    console.error("Login error", err);
-    return null;
   }
 }
 
-async function performSync(dataString) {
-  const auth = await getSyncToken();
-  if (!auth) return;
-  const { token, pwd } = auth;
+async function performSync() {
+  let targetId = null;
+  let payload = null;
 
-  // Encrypt the payload before sending
-  const encryptedPayload = CryptoJS.AES.encrypt(dataString, pwd).toString();
+  if (S.role === "parent") {
+    const user = S.users[0];
+    if (!user) return;
+    targetId = user.whatsapp;
+    payload = user;
+  } else if (S.role === "admin" && S.adminViewUserId) {
+    const user = S.users.find(u => u.id === S.adminViewUserId || u.whatsapp === S.adminViewUserId);
+    if (!user) return;
+    targetId = user.whatsapp;
+    payload = user;
+  }
+
+  if (!targetId || !payload) return;
+
+  const token = localStorage.getItem("vt2_token");
+  if (!token) return;
 
   try {
-    const res = await fetch(SYNC_API_URL, {
+    const res = await fetch(`${API_BASE_URL}/sync/${targetId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ payload: encryptedPayload }),
+      body: JSON.stringify(payload),
     });
     if (res.status === 401 || res.status === 403) {
       localStorage.removeItem("vt2_token");
-      sessionStorage.removeItem("vt2_sync_pwd");
-      toast("Sync token expired. Next save will ask for password.");
+      toast("Session expired. Please login again.");
+      showScreen("login");
     }
   } catch (err) {
-    console.log("DB Sync failed:", err);
+    console.log("Cloud sync failed:", err);
   }
 }
 
-function save() {
+function saveLocal() {
   const dataString = JSON.stringify({
     users: S.users,
-    adminPin: S.adminPin,
+    adminPassword: S.adminPassword,
     adminProfiles: S.adminProfiles,
   });
   localStorage.setItem("vt2", dataString);
+}
+
+function save() {
+  saveLocal();
 
   // Background Cloud Sync
   if (navigator.onLine) {
-    performSync(dataString);
+    performSync();
   }
 }
 
 async function syncFromCloud(interactive = true) {
-  try {
-    const auth = await getSyncToken(interactive);
-    if (!auth) return;
-    const { token, pwd } = auth;
+  if (S.role === "parent") {
+    const user = S.users[0];
+    if (!user) return;
+    const token = localStorage.getItem("vt2_token");
+    if (!token) return;
 
-    const res = await fetch(SYNC_API_URL, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem("vt2_token");
-      sessionStorage.removeItem("vt2_sync_pwd");
-      return;
-    }
-    if (!res.ok) return;
-    const json = await res.json();
-    if (json.success && json.data && json.data.payload) {
-      // Decrypt the payload
-      const bytes = CryptoJS.AES.decrypt(json.data.payload, pwd);
-      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-      if (!decryptedString)
-        throw new Error("Decryption failed (wrong password?)");
-      const d = JSON.parse(decryptedString);
-
-      // Merge cloud data over local
-      if (d.users) {
-        S.users = d.users;
-        invalidateChildCache();
+    try {
+      const res = await fetch(`${API_BASE_URL}/sync/${user.whatsapp}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("vt2_token");
+        return;
       }
-      if (d.adminPin) S.adminPin = d.adminPin;
-      if (d.adminProfiles) S.adminProfiles = d.adminProfiles;
-
-      // Update local storage without recursive sync
-      localStorage.setItem(
-        "vt2",
-        JSON.stringify({
-          users: S.users,
-          adminPin: S.adminPin,
-          adminProfiles: S.adminProfiles,
-        }),
-      );
-
-      console.log("Database sync successful");
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && json.data) {
+        // Merge cloud data over local
+        S.users[0] = {
+          ...S.users[0],
+          children: json.data.children || [],
+          vaccines: json.data.vaccines || []
+        };
+        invalidateChildCache();
+        saveLocal();
+        console.log("Database sync successful");
+      }
+    } catch (err) {
+      console.log("Offline or sync failed:", err);
     }
-  } catch (err) {
-    console.log("Running offline or DB not reachable:", err);
+  } else if (S.role === "admin" && S.adminViewUserId) {
+    // Admin syncing active view parent profile
+    const token = localStorage.getItem("vt2_token");
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/sync/${S.adminViewUserId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.success && json.data) {
+        const idx = S.users.findIndex(u => u.id === S.adminViewUserId || u.whatsapp === S.adminViewUserId);
+        if (idx !== -1) {
+          S.users[idx] = {
+            ...S.users[idx],
+            children: json.data.children || [],
+            vaccines: json.data.vaccines || []
+          };
+          invalidateChildCache();
+          saveLocal();
+        }
+      }
+    } catch (err) {
+      console.log("Admin sync failed:", err);
+    }
   }
 }
 
-let _cachedUserId = null;
-let _cachedUsersRef = null;
-let _cachedUsersLen = -1;
-let _cachedUser = null;
+async function fetchAdminUsers() {
+  const token = localStorage.getItem("vt2_token");
+  if (!token) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.users) {
+        S.users = json.users.map(u => ({
+          ...u,
+          id: u.whatsapp,
+          avatar: "👩",
+        }));
+        invalidateChildCache();
+        localStorage.setItem("vt2", JSON.stringify({ users: S.users }));
+        renderAdminHome();
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch admin users", err);
+  }
+}
 
 function currentUser() {
   if (
@@ -3376,17 +4205,26 @@ function initTheme() {
   const dark =
     saved === "dark" ||
     (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  if (dark) document.documentElement.setAttribute("data-theme", "dark");
-  $("toggle-theme").checked = dark;
-}
-function toggleTheme() {
-  const dark = document.documentElement.getAttribute("data-theme") === "dark";
   if (dark) {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.setItem("vt2_theme", "light");
+    document.documentElement.setAttribute("data-theme", "dark");
   } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  const selectTheme = $("select-theme");
+  if (selectTheme) {
+    selectTheme.value = dark ? "dark" : "light";
+  }
+}
+function handleThemeChange() {
+  const selectTheme = $("select-theme");
+  if (!selectTheme) return;
+  const theme = selectTheme.value;
+  if (theme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
     localStorage.setItem("vt2_theme", "dark");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.setItem("vt2_theme", "light");
   }
 }
 
@@ -3394,6 +4232,8 @@ function toggleTheme() {
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", async () => {
     load();
+    await detectApiBaseUrl();
+    loadPartnerBranding();
     await syncFromCloud(false);
     const hasLang = loadLanguage();
     applyTranslations();
@@ -3401,9 +4241,48 @@ if (typeof document !== "undefined") {
     injectSVGDefs();
     bindEvents();
 
+    // Capacitor Integrations
+    if (typeof window !== "undefined" && window.Capacitor) {
+      if (window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+        window.Capacitor.Plugins.SplashScreen.hide();
+      }
+
+      if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.addListener('backButton', () => {
+          // Close open modals
+          const visibleModals = $$(".modal-overlay:not(.hidden)");
+          if (visibleModals.length > 0) {
+            const lastModal = visibleModals[visibleModals.length - 1];
+            const closeBtn = lastModal.querySelector(".btn-close");
+            if (closeBtn) {
+              closeBtn.click();
+            } else {
+              lastModal.classList.add("hidden");
+            }
+            return;
+          }
+
+          // Back navigation for views
+          const activeSubView = $$(".view.active");
+          if (activeSubView.length > 0) {
+            const currentViewName = activeSubView[0].id.replace("view-", "");
+            if (["child", "admin-family", "faq", "settings", "history"].includes(currentViewName)) {
+              navBack();
+              return;
+            }
+          }
+
+          // Default exit
+          window.Capacitor.Plugins.App.exitApp();
+        });
+      }
+    }
+
     setTimeout(() => {
       $("splash")?.remove();
-      if (hasLang) {
+      if (loadSession()) {
+        enterApp(S.role);
+      } else if (hasLang) {
         // Language already chosen, go to login
         $("screen-login").classList.remove("hidden");
       } else {
@@ -3525,6 +4404,7 @@ function bindEvents() {
   $("btn-close-vaccine-modal").onclick = () =>
     $("modal-vaccine").classList.add("hidden");
   $("btn-mark-vaccine").onclick = handleMarkVaccine;
+  $("btn-save-vaccine").onclick = handleSaveVaccineEdit;
 
   // Vaccine modal tabs
   $$(".mv-tab").forEach((tab) => {
@@ -3552,19 +4432,56 @@ function bindEvents() {
   });
 
   // Settings
-  $("toggle-theme").onchange = toggleTheme;
+  const selectTheme = $("select-theme");
+  if (selectTheme) selectTheme.onchange = handleThemeChange;
   $("btn-logout").onclick = handleLogout;
-  $("btn-change-pin").onclick = () => $("modal-pin").classList.remove("hidden");
-  $("btn-close-pin-modal").onclick = () =>
-    $("modal-pin").classList.add("hidden");
-  $("btn-save-pin").onclick = handleChangePin;
+  $("btn-change-password").onclick = () => $("modal-password").classList.remove("hidden");
+  $("btn-close-password-modal").onclick = () =>
+    $("modal-password").classList.add("hidden");
+  $("btn-save-password").onclick = handleChangePassword;
   $("btn-export").onclick = exportData;
   $("btn-import").onclick = () => $("import-file").click();
   $("import-file").onchange = importData;
-  $("btn-login-import").onclick = () => $("login-import-file").click();
-  $("login-import-file").onchange = importData;
   $("btn-clear-all").onclick = handleClearAll;
+
+  // Partner Branding
+  $("btn-manage-partners").onclick = () => {
+    $("input-partner-link").value = "";
+    $("input-partner-logo").value = "";
+    $("partner-logo-preview").src = "";
+    $("partner-logo-preview-container").classList.add("hidden");
+    renderPartnerList();
+    $("modal-partner-branding").classList.remove("hidden");
+  };
+
+  $("btn-close-partner-branding").onclick = () => {
+    $("modal-partner-branding").classList.add("hidden");
+  };
+
+  $("input-partner-logo").onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        $("partner-logo-preview").src = event.target.result;
+        $("partner-logo-preview-container").classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  $("btn-remove-partner-logo").onclick = () => {
+    $("partner-logo-preview").src = "";
+    $("partner-logo-preview-container").classList.add("hidden");
+    $("input-partner-logo").value = "";
+  };
+
+  $("btn-add-partner-action").onclick = addPartnerAction;
   $("btn-dismiss-tip").onclick = () => $("tip-card").classList.add("hidden");
+
+  // FAQ
+  $("btn-open-faq").onclick = () => showAppView("faq");
+  $("faq-search-input").oninput = renderFAQ;
 
   // Admin profile management
   $("btn-manage-admins").onclick = openAdminProfilesModal;
@@ -3587,9 +4504,26 @@ function bindEvents() {
   $("btn-pw-cancel").onclick = () =>
     $("modal-password-confirm").classList.add("hidden");
 
-  // Parent PIN login modal
-  $("btn-close-parent-pin").onclick = () =>
-    $("modal-parent-pin").classList.add("hidden");
+  // Parent Password login modal
+  $("btn-close-parent-password").onclick = () =>
+    $("modal-parent-password").classList.add("hidden");
+
+  // Forgot Password self-service modal (login screen)
+  $("btn-forgot-password").onclick = () => {
+    const phone = $("input-login-phone") ? $("input-login-phone").value.trim() : "";
+    $("input-forgot-phone").value = phone;
+    $("input-forgot-new-password").value = "";
+    $("input-forgot-confirm-password").value = "";
+    $("modal-forgot-password").classList.remove("hidden");
+  };
+  $("btn-close-forgot-password").onclick = () =>
+    $("modal-forgot-password").classList.add("hidden");
+  $("btn-forgot-submit").onclick = handleForgotPasswordSubmit;
+
+  // Admin Reset Password modal
+  $("btn-close-reset-password").onclick = () =>
+    $("modal-reset-password").classList.add("hidden");
+  $("btn-save-reset-password").onclick = handleAdminSaveResetPassword;
 
   // Contact edit modal
   $("btn-edit-parent-profile").onclick = () => {
@@ -3610,6 +4544,9 @@ function bindEvents() {
   };
   $("btn-admin-edit-family").onclick = () => {
     if (S.adminViewUserId) openEditParentModal(S.adminViewUserId);
+  };
+  $("btn-admin-reset-password").onclick = () => {
+    if (S.adminViewUserId) handleAdminResetPassword(S.adminViewUserId);
   };
   $("btn-admin-delete-family").onclick = () => {
     if (S.adminViewUserId) handleDeleteFamily(S.adminViewUserId);
@@ -3637,6 +4574,119 @@ function bindEvents() {
 
   // Schedule child dropdown
   $("schedule-child-dropdown").onchange = renderScheduleView;
+
+  // 2FA Event Bindings
+  const btnToggle2FA = $("btn-toggle-2fa");
+  if (btnToggle2FA) {
+    btnToggle2FA.onclick = async () => {
+      const isEnabled = btnToggle2FA.dataset.enabled === "true";
+      if (isEnabled) {
+        $("input-2fa-disable-password").value = "";
+        $("modal-2fa-disable").classList.remove("hidden");
+      } else {
+        // Setup 2FA
+        $("input-2fa-setup-code").value = "";
+        const token = localStorage.getItem("vt2_token");
+        if (!token) {
+          toast("Server connection required to set up 2FA");
+          return;
+        }
+        try {
+          const res = await fetch(`${API_BASE_URL}/2fa/setup`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            S._temp2FASecret = data.secret;
+            $("text-2fa-secret").textContent = data.secret;
+            const qrContainer = $("qrcode-2fa");
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+              text: data.qrUri,
+              width: 160,
+              height: 160
+            });
+            $("modal-2fa-setup").classList.remove("hidden");
+          } else {
+            toast("Failed to initialize 2FA setup");
+          }
+        } catch (err) {
+          console.error("2FA setup error", err);
+          toast("Server connection failed");
+        }
+      }
+    };
+  }
+
+  $("btn-close-2fa-setup").onclick = () => $("modal-2fa-setup").classList.add("hidden");
+  $("btn-close-2fa-disable").onclick = () => $("modal-2fa-disable").classList.add("hidden");
+  $("btn-close-login-2fa").onclick = () => $("modal-login-2fa").classList.add("hidden");
+
+  $("btn-2fa-setup-submit").onclick = async () => {
+    const code = $("input-2fa-setup-code").value.replace(/\s+/g, "");
+    if (!code || code.length !== 6) {
+      toast(t("invalid_2fa_code") || "Please enter a valid 6-digit code");
+      return;
+    }
+    const token = localStorage.getItem("vt2_token");
+    try {
+      const res = await fetch(`${API_BASE_URL}/2fa/enable`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ secret: S._temp2FASecret, code })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast(t("two_factor_enabled_success") || "2FA enabled successfully");
+        $("modal-2fa-setup").classList.add("hidden");
+        updateSettingsProfile();
+      } else {
+        toast(data.error ? t(data.error) : "Failed to enable 2FA");
+      }
+    } catch (err) {
+      console.error("Enable 2FA failed", err);
+      toast("Server connection failed");
+    }
+  };
+
+  $("btn-2fa-disable-submit").onclick = async () => {
+    const password = $("input-2fa-disable-password").value;
+    if (!password) {
+      toast(t("fill_all_fields") || "Please enter your password");
+      return;
+    }
+    const token = localStorage.getItem("vt2_token");
+    try {
+      const res = await fetch(`${API_BASE_URL}/2fa/disable`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast(t("two_factor_disabled_success") || "2FA disabled successfully");
+        $("modal-2fa-disable").classList.add("hidden");
+        updateSettingsProfile();
+      } else {
+        toast(data.error ? t(data.error) : "Failed to disable 2FA");
+      }
+    } catch (err) {
+      console.error("Disable 2FA failed", err);
+      toast("Server connection failed");
+    }
+  };
+
+  $("btn-login-2fa-submit").onclick = handleLogin2FASubmit;
+  $("input-login-2fa-code").onkeyup = (e) => {
+    if (e.key === "Enter") handleLogin2FASubmit();
+  };
 }
 
 // ─── Screen Navigation ──────────────────────────────────
@@ -3661,6 +4711,7 @@ function showScreen(name) {
 
 function enterApp(role) {
   S.role = role;
+  saveSession();
   [
     "screen-lang",
     "screen-landing",
@@ -3672,27 +4723,27 @@ function enterApp(role) {
   });
   $("app-shell").classList.remove("hidden");
 
-  if (role === "admin") {
+  if (role === "admin" || role === "superadmin") {
+    S.role = "admin";
     $("nav-parent").classList.add("hidden");
     $("nav-admin").classList.remove("hidden");
     $("settings-admin-section").classList.remove("hidden");
-    // Only super admin (first admin profile) can manage other admins
-    const isSuperAdmin =
-      S.adminProfiles.length > 0 && S.currentAdminId === S.adminProfiles[0].id;
+    const isSuperAdmin = role === "superadmin" || S.currentAdminId === "superadmin";
     const manageRow = $("btn-manage-admins")?.closest(".setting-row");
     if (manageRow) manageRow.classList.toggle("hidden", !isSuperAdmin);
-    // Only super admin sees Clear All Data
     const clearRow = $("btn-clear-all")?.closest(".setting-row");
     if (clearRow) clearRow.classList.toggle("hidden", !isSuperAdmin);
-    showAppView("admin-home");
+    const partnerRow = $("settings-partner-logo-row");
+    if (partnerRow) partnerRow.classList.toggle("hidden", !isSuperAdmin);
+    fetchAdminUsers();
   } else {
     $("nav-parent").classList.remove("hidden");
     $("nav-admin").classList.add("hidden");
     $("settings-admin-section").classList.add("hidden");
-    // Parents don't see Clear All Data
     const clearRow = $("btn-clear-all")?.closest(".setting-row");
     if (clearRow) clearRow.classList.add("hidden");
     showAppView("home");
+    syncFromCloud(false);
   }
   updateSettingsProfile();
 
@@ -3722,7 +4773,7 @@ function showAppView(name) {
   }
 
   const back = $("btn-nav-back");
-  const isSubView = ["child", "admin-family"].includes(name);
+  const isSubView = ["child", "admin-family", "faq"].includes(name);
   back.classList.toggle("hidden", !isSubView);
 
   // Update header per page
@@ -3756,12 +4807,16 @@ function showAppView(name) {
   } else if (name === "admin-family") {
     $("header-title").textContent = t("family_details");
     $("header-subtitle").textContent = "";
+  } else if (name === "faq") {
+    $("header-title").textContent = `📚 ${t("faq_title")}`;
+    $("header-subtitle").textContent = t("faq_subtitle");
   }
 
   // Update bottom nav active state
   const navBar = S.role === "admin" ? $("nav-admin") : $("nav-parent");
   navBar.querySelectorAll(".nav-item").forEach((item) => {
-    item.classList.toggle("active", item.dataset.view === name);
+    const activeViewName = name === "faq" ? "settings" : name;
+    item.classList.toggle("active", item.dataset.view === activeViewName);
   });
 
   // Render view content
@@ -3787,10 +4842,17 @@ function showAppView(name) {
     case "settings":
       updateSettingsProfile();
       break;
+    case "faq":
+      renderFAQ();
+      break;
   }
 }
 
 function navBack() {
+  if ($("view-faq") && $("view-faq").classList.contains("active")) {
+    showAppView("settings");
+    return;
+  }
   if (S.role === "admin") {
     showAppView("admin-home");
   } else {
@@ -3800,83 +4862,185 @@ function navBack() {
 
 // ─── Login Handlers ─────────────────────────────────────
 
-function handleUnifiedLogin(e) {
+async function handleUnifiedLogin(e) {
   e.preventDefault();
   const phone = $("input-login-phone").value.trim();
-  const pin = $("input-login-pin").value;
+  const password = $("input-login-password").value;
 
-  if (!phone || !pin) {
+  if (!phone || !password) {
     toast(t("fill_all_fields") || "Please fill in all fields");
     return;
   }
 
-  // Check Admin Profiles
-  const admin = S.adminProfiles.find(
-    (a) => (a.whatsapp === phone || phone === "0000") && a.pin === pin,
-  );
-  if (admin) {
-    S.currentAdminId = admin.id;
-    $("input-login-phone").value = "";
-    $("input-login-pin").value = "";
-    enterApp("admin");
-    return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ whatsapp: phone, password: password }),
+    });
+    const data = await res.json();
+    if (data.success && data.two_factor_required) {
+      S.temp_token = data.temp_token;
+      $("input-login-2fa-code").value = "";
+      $("modal-login-2fa").classList.remove("hidden");
+      return;
+    }
+    if (data.success && data.token) {
+      localStorage.setItem("vt2_token", data.token);
+      S.role = data.role;
+      $("input-login-phone").value = "";
+      $("input-login-password").value = "";
+      
+      if (data.role === "parent") {
+        S.userId = data.user.whatsapp;
+        S.users = [{
+          id: data.user.whatsapp,
+          name: data.user.name,
+          whatsapp: data.user.whatsapp,
+          email: data.user.email,
+          avatar: "👩",
+          children: []
+        }];
+        invalidateChildCache();
+        await syncFromCloud(false);
+        enterApp("parent");
+      } else if (data.role === "superadmin") {
+        S.currentAdminId = "superadmin";
+        enterApp("superadmin");
+      }
+    } else {
+      toast(data.error ? t(data.error) : t("incorrect_admin_password"));
+      $("input-login-password").value = "";
+      $("input-login-password").focus();
+    }
+  } catch (err) {
+    console.error("Login failed", err);
+    toast("Server connection failed");
   }
-
-  // Check Parent Profiles
-  const parent = S.users.find((u) => u.whatsapp === phone && u.pin === pin);
-  if (parent) {
-    S.userId = parent.id;
-    $("input-login-phone").value = "";
-    $("input-login-pin").value = "";
-    enterApp("parent");
-    return;
-  }
-
-  toast(t("incorrect_pin") || "Incorrect phone or PIN");
-  $("input-login-pin").value = "";
-  $("input-login-pin").focus();
 }
 
-function handleCreateParent(e) {
+async function handleLogin2FASubmit() {
+  const code = $("input-login-2fa-code").value.replace(/\s+/g, "");
+  if (!code || code.length !== 6) {
+    toast(t("invalid_2fa_code") || "Please enter a valid 6-digit code");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/login/2fa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ temp_token: S.temp_token, code: code }),
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      $("modal-login-2fa").classList.add("hidden");
+      localStorage.setItem("vt2_token", data.token);
+      S.role = data.role;
+      $("input-login-phone").value = "";
+      $("input-login-password").value = "";
+      
+      if (data.role === "parent") {
+        S.userId = data.user.whatsapp;
+        S.users = [{
+          id: data.user.whatsapp,
+          name: data.user.name,
+          whatsapp: data.user.whatsapp,
+          email: data.user.email,
+          avatar: "👩",
+          children: []
+        }];
+        invalidateChildCache();
+        await syncFromCloud(false);
+        enterApp("parent");
+      } else if (data.role === "superadmin") {
+        S.currentAdminId = "superadmin";
+        enterApp("superadmin");
+      }
+    } else {
+      toast(data.error ? t(data.error) : t("invalid_2fa_code"));
+      $("input-login-2fa-code").value = "";
+      $("input-login-2fa-code").focus();
+    }
+  } catch (err) {
+    console.error("2FA login failed", err);
+    toast("Server connection failed");
+  }
+}
+
+async function handleCreateParent(e) {
   e.preventDefault();
   const name = $("input-parent-name").value.trim();
   const email = $("input-parent-email")?.value.trim() || "";
   const whatsapp = $("input-parent-whatsapp")?.value.trim() || "";
-  const pin = $("input-parent-pin")?.value.trim() || "";
-  const avatar = "👩";
+  const password = $("input-parent-password")?.value.trim() || "";
+  const confirmPassword = $("input-parent-confirm-password")?.value || "";
 
-  if (!name || !whatsapp || !pin) {
-    toast(t("fill_all_fields") || "Please fill name, phone and PIN");
+  if (!name || !whatsapp || !password) {
+    toast(t("fill_all_fields"));
     return;
   }
 
-  // Validate email format if provided
+  if (password !== confirmPassword) {
+    toast(t("passwords_dont_match"));
+    return;
+  }
+
+  const check = validatePasswordComplexity(password);
+  if (!check.valid) {
+    toast(t(check.msg));
+    return;
+  }
+
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     toast("⚠️ Invalid email format");
     return;
   }
 
-  const user = {
-    id: uid(),
-    name,
-    avatar,
-    email,
-    whatsapp,
-    pin: pin || null,
-    children: [],
-  };
-  S.users.push(user);
-  invalidateChildCache();
-  save();
-  S.userId = user.id;
-  $("form-create-parent").reset();
-  enterApp("parent");
-  toast(t("welcome_user", { name }));
+  try {
+    const res = await fetch(`${API_BASE_URL}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, whatsapp, email, password: password }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Auto login
+      const loginRes = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsapp, password: password }),
+      });
+      const loginData = await loginRes.json();
+      if (loginData.success) {
+        localStorage.setItem("vt2_token", loginData.token);
+        S.userId = loginData.user.whatsapp;
+        S.users = [{
+          id: loginData.user.whatsapp,
+          name: loginData.user.name,
+          whatsapp: loginData.user.whatsapp,
+          email: loginData.user.email,
+          avatar: "👩",
+          children: []
+        }];
+        invalidateChildCache();
+        await syncFromCloud(false);
+        $("form-create-parent").reset();
+        enterApp("parent");
+        toast(t("welcome_user", { name }));
+      }
+    } else {
+      toast(data.error ? t(data.error) : "Registration failed");
+    }
+  } catch (err) {
+    console.error("Registration failed", err);
+    toast("Server connection failed");
+  }
 }
 
+
 function handleLogout() {
-  S.role = null;
-  S.userId = null;
+  clearSession();
   S.currentChildId = null;
   $("app-shell").classList.add("hidden");
   showScreen("login");
@@ -4085,8 +5249,35 @@ window.goChildVaccine = function (childId, vaccineId) {
   setTimeout(() => openVaccineModal(vaccineId), 400);
 };
 
-window.goAdminFamily = function (userId) {
+window.goAdminFamily = async function (userId) {
   S.adminViewUserId = userId;
+  const user = S.users.find((u) => u.id === userId || u.whatsapp === userId);
+  if (user) {
+    const token = localStorage.getItem("vt2_token");
+    if (token) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/sync/${user.whatsapp}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const idx = S.users.findIndex((u) => u.id === userId || u.whatsapp === userId);
+            if (idx !== -1) {
+              S.users[idx] = {
+                ...S.users[idx],
+                children: json.data.children || [],
+                vaccines: json.data.vaccines || []
+              };
+              invalidateChildCache();
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching family details", err);
+      }
+    }
+  }
   showAppView("admin-family");
   renderAdminFamilyDetail(userId);
 };
@@ -4556,10 +5747,15 @@ function openVaccineModal(vaccineId) {
     $("mv-completed-date").textContent = fmtDate(vaccine.completedDate);
     $("btn-mv-text").textContent = t("mark_pending");
     $("v-date-group").classList.add("hidden");
+    if ($("v-sched-group")) $("v-sched-group").classList.add("hidden");
   } else {
     $("mv-completed-row").classList.add("hidden");
     $("btn-mv-text").textContent = `✅ ${t("mark_completed")}`;
     $("v-date-group").classList.remove("hidden");
+    if ($("v-sched-group")) {
+      $("v-sched-group").classList.remove("hidden");
+      $("input-v-sched").value = vaccine.scheduledDate || "";
+    }
     $("input-v-date").value = new Date().toISOString().split("T")[0];
   }
 
@@ -4620,7 +5816,56 @@ function handleMarkVaccine() {
 
   save();
   $("modal-vaccine").classList.add("hidden");
-  renderChildDetail();
+
+  // Re-render the correct view depending on which view is currently active in the UI
+  const currentView = document.querySelector(".view.active")?.id;
+  if (currentView === "view-child") {
+    renderChildDetail();
+  } else if (currentView === "view-schedule") {
+    renderScheduleView();
+  } else if (currentView === "view-history") {
+    renderHistory();
+  } else if (currentView === "view-home") {
+    renderHome();
+  } else {
+    renderChildDetail();
+  }
+}
+
+function handleSaveVaccineEdit() {
+  const child = getChildById(S.currentChildId);
+  if (!child) return;
+  const vaccine = (child.vaccines || []).find(
+    (v) => v.id === S.currentVaccineId,
+  );
+  if (!vaccine) return;
+
+  vaccine.notes = $("input-v-notes").value.trim();
+
+  if (!vaccine.completedDate && $("input-v-sched")) {
+    const newSched = $("input-v-sched").value;
+    if (newSched) {
+      vaccine.scheduledDate = newSched;
+    }
+  }
+
+  save();
+  $("modal-vaccine").classList.add("hidden");
+  toast(t("changes_saved"));
+
+  // Re-render the correct view depending on which view is currently active in the UI
+  const currentView = document.querySelector(".view.active")?.id;
+  if (currentView === "view-child") {
+    renderChildDetail();
+  } else if (currentView === "view-schedule") {
+    renderScheduleView();
+  } else if (currentView === "view-history") {
+    renderHistory();
+  } else if (currentView === "view-home") {
+    renderHome();
+  } else {
+    renderChildDetail();
+  }
 }
 
 // ─── Child Modal ────────────────────────────────────────
@@ -4636,7 +5881,7 @@ function exportCertificatePdf() {
   const child = getChildById(S.currentChildId);
   if (!child) return;
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   const qrDiv = $("pdf-qr-code");
   qrDiv.innerHTML = "";
@@ -4647,122 +5892,308 @@ function exportCertificatePdf() {
     height: 128,
   });
 
-  const logo = new Image();
-  logo.src = "icons/icon-192.png";
-  logo.onload = function () {
-    const canvas = document.createElement("canvas");
-    canvas.width = logo.width;
-    canvas.height = logo.height;
-    canvas.getContext("2d").drawImage(logo, 0, 0);
-    const logoDataUrl = canvas.toDataURL("image/jpeg");
+  setTimeout(() => {
+    const sortedVaxes = [...(child.vaccines || [])].sort(
+      (a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate)
+    );
 
-    setTimeout(() => {
-      doc.addImage(logoDataUrl, "JPEG", 15, 15, 20, 20);
-      doc.setFontSize(22);
-      doc.text(t("certificate"), 40, 25);
+    // Layout configuration for portrait
+    const rowsPerPage = 22;
+    const totalPages = Math.ceil(sortedVaxes.length / rowsPerPage) || 1;
 
-      doc.setFontSize(14);
-      doc.text(t("child_name") + ": " + child.name, 15, 50);
-      doc.text(
-        t("dob") +
-          ": " +
-          fmtDate(child.birthDate) +
-          " (" +
-          ageStr(child.birthDate) +
-          ")",
-        15,
-        60,
-      );
-
-      let y = 80;
-      doc.setFontSize(16);
-      doc.text(t("done") + ":", 15, y);
-      y += 10;
-
-      doc.setFontSize(12);
-      const completed = (child.vaccines || []).filter((v) => v.completedDate);
-
-      if (completed.length === 0) {
-        doc.text("—", 15, y);
-        y += 10;
-      } else {
-        completed.forEach((v) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          const vName = getVaccineI18n(v.id).name;
-          doc.text("• " + vName + " - " + fmtDate(v.completedDate), 15, y);
-          y += 8;
-        });
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      if (pageNum > 1) {
+        doc.addPage();
       }
 
+      // 1. Draw Outer Card Container
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(218, 224, 233);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(15, 15, 180, 267, 5, 5, "FD");
+
+      // 2. Draw Teal Header Block
+      doc.setFillColor(0, 128, 148);
+      doc.roundedRect(15, 15, 180, 28, 5, 5, "F");
+      doc.rect(15, 25, 180, 18, "F");
+
+      // 3. Draw Header Text
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("Helvetica", "Bold");
+      doc.setFontSize(20);
+      doc.text(t("certificate"), 23, 26);
+
+      doc.setFont("Helvetica", "Normal");
+      doc.setFontSize(9.5);
+      doc.text(t("digital_health_platform"), 23, 37);
+
+      // 4. Draw Child Info Card
+      doc.setFillColor(240, 244, 248);
+      doc.roundedRect(23, 50, 164, 26, 3, 3, "F");
+
+      // Info card vertical accent lines (Teal)
+      doc.setFillColor(0, 128, 148);
+      doc.rect(27, 54, 1.5, 18, "F");
+      doc.rect(106, 54, 1.5, 18, "F");
+
+      // Column 1: Child Name & Registry ID
+      doc.setTextColor(0, 92, 110);
+      doc.setFont("Helvetica", "Bold");
+      doc.setFontSize(9.5);
+      doc.text(t("child_name") + ": ", 31, 60);
+      const childNameLabelWidth = doc.getTextWidth(t("child_name") + ": ");
+      doc.setTextColor(51, 51, 51);
+      doc.setFont("Helvetica", "Normal");
+      doc.text(child.name, 31 + childNameLabelWidth, 60);
+
+      doc.setTextColor(0, 92, 110);
+      doc.setFont("Helvetica", "Bold");
+      doc.text(t("registry_id") + ": ", 31, 70);
+      const registryIdLabelWidth = doc.getTextWidth(t("registry_id") + ": ");
+      doc.setTextColor(51, 51, 51);
+      doc.setFont("Helvetica", "Normal");
+      doc.text(getChildRegistryId(child.id), 31 + registryIdLabelWidth, 70);
+
+      // Column 2: Date of Birth & Document Status
+      doc.setTextColor(0, 92, 110);
+      doc.setFont("Helvetica", "Bold");
+      doc.text(t("dob") + ": ", 110, 60);
+      const dobLabelWidth = doc.getTextWidth(t("dob") + ": ");
+      doc.setTextColor(51, 51, 51);
+      doc.setFont("Helvetica", "Normal");
+      doc.text(fmtDate(child.birthDate) + " (" + ageStr(child.birthDate) + ")", 110 + dobLabelWidth, 60);
+
+      doc.setTextColor(0, 92, 110);
+      doc.setFont("Helvetica", "Bold");
+      doc.text(t("document_status") + ": ", 110, 70);
+      const statusLabelWidth = doc.getTextWidth(t("document_status") + ": ");
+      doc.setTextColor(51, 51, 51);
+      doc.setFont("Helvetica", "Normal");
+      doc.text(t("document_active"), 110 + statusLabelWidth, 70);
+
+      // 5. Draw Table Header
+      doc.setFillColor(0, 128, 148);
+      doc.rect(23, 84, 112, 9, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("Helvetica", "Bold");
+      doc.setFontSize(8);
+      doc.text(t("vaccine_imunizer"), 25, 90);
+      doc.text(t("vaccine_dose"), 75, 90);
+      doc.text(t("date_applied"), 90, 90);
+      doc.text(t("status_label"), 112, 90);
+
+      // White separators inside table header
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.3);
+      doc.line(73, 84, 73, 93);
+      doc.line(88, 84, 88, 93);
+      doc.line(110, 84, 110, 93);
+
+      // 6. Draw Table Rows
+      let yCurrent = 93;
+      const pageVaxes = sortedVaxes.slice((pageNum - 1) * rowsPerPage, pageNum * rowsPerPage);
+
+      pageVaxes.forEach((v, idx) => {
+        const isEven = idx % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 247, isEven ? 255 : 250, isEven ? 255 : 252);
+        doc.rect(23, yCurrent, 112, 7, "F");
+
+        // Light gray grid lines
+        doc.setDrawColor(218, 224, 233);
+        doc.setLineWidth(0.25);
+        doc.line(73, yCurrent, 73, yCurrent + 7);
+        doc.line(88, yCurrent, 88, yCurrent + 7);
+        doc.line(110, yCurrent, 110, yCurrent + 7);
+        doc.line(23, yCurrent + 7, 135, yCurrent + 7);
+
+        const vNameTranslated = getVaccineI18n(v.id).name;
+        const parts = vNameTranslated.split(" - ");
+        const nameOnly = parts[0];
+        const doseOnly = parts[1] || (v.id === "bcg" || v.id === "yellow-fever" ? t("single_dose") : "—");
+
+        // Draw row texts
+        doc.setTextColor(51, 51, 51);
+        doc.setFont("Helvetica", "Bold");
+        doc.setFontSize(7.5);
+        doc.text(nameOnly, 25, yCurrent + 4.8);
+
+        doc.setFont("Helvetica", "Normal");
+        doc.text(doseOnly, 75, yCurrent + 4.8);
+
+        const dateText = v.completedDate ? fmtDate(v.completedDate) : t("awaiting");
+        doc.text(dateText, 90, yCurrent + 4.8);
+
+        // Status Badge
+        const st = v.completedDate ? "completed" : vaccineStatus(v, child.birthDate);
+        if (st === "completed") {
+          doc.setFillColor(220, 252, 231);
+          doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, "F");
+          doc.setTextColor(21, 128, 61);
+          doc.setFont("Helvetica", "Bold");
+          doc.setFontSize(6.5);
+          doc.text(t("done_badge"), 122.5, yCurrent + 4.4, { align: "center" });
+        } else if (st === "overdue") {
+          doc.setFillColor(254, 226, 226);
+          doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, "F");
+          doc.setTextColor(185, 28, 28);
+          doc.setFont("Helvetica", "Bold");
+          doc.setFontSize(6.5);
+          doc.text(t("status_overdue"), 122.5, yCurrent + 4.4, { align: "center" });
+        } else if (st === "upcoming") {
+          doc.setFillColor(254, 243, 199);
+          doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, "F");
+          doc.setTextColor(180, 83, 9);
+          doc.setFont("Helvetica", "Bold");
+          doc.setFontSize(6.5);
+          doc.text(t("status_upcoming"), 122.5, yCurrent + 4.4, { align: "center" });
+        } else {
+          doc.setFillColor(224, 231, 255);
+          doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, "F");
+          doc.setTextColor(67, 56, 202);
+          doc.setFont("Helvetica", "Bold");
+          doc.setFontSize(6.5);
+          doc.text(t("status_pending"), 122.5, yCurrent + 4.4, { align: "center" });
+        }
+
+        yCurrent += 7;
+      });
+
+      // Fill empty rows to make layout uniform
+      const emptyRowsCount = rowsPerPage - pageVaxes.length;
+      for (let i = 0; i < emptyRowsCount; i++) {
+        const isEven = (pageVaxes.length + i) % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 247, isEven ? 255 : 250, isEven ? 255 : 252);
+        doc.rect(23, yCurrent, 112, 7, "F");
+
+        doc.setDrawColor(218, 224, 233);
+        doc.line(73, yCurrent, 73, yCurrent + 7);
+        doc.line(88, yCurrent, 88, yCurrent + 7);
+        doc.line(110, yCurrent, 110, yCurrent + 7);
+        doc.line(23, yCurrent + 7, 135, yCurrent + 7);
+
+        yCurrent += 7;
+      }
+
+      // 7. Draw QR Code Box Card (right side)
+      doc.setDrawColor(180, 200, 215);
+      doc.setLineWidth(0.35);
+      doc.setLineDash([1.5, 1.5], 0);
+      doc.roundedRect(139, 84, 48, 65, 4, 4, "D");
+      doc.setLineDash([], 0);
+
+      // Draw QR Canvas
       const qrCanvas = qrDiv.querySelector("canvas");
       if (qrCanvas) {
         const qrDataUrl = qrCanvas.toDataURL("image/png");
-        doc.addImage(qrDataUrl, "PNG", 150, 15, 40, 40);
-        doc.setFontSize(8);
-        doc.text(t("validate_msg"), 150, 60);
+        doc.addImage(qrDataUrl, "PNG", 145, 90, 36, 36);
       }
 
-      doc.save(child.name + "_Certificate.pdf");
-      qrDiv.innerHTML = "";
-    }, 100);
-  };
+      // QR Text
+      doc.setTextColor(0, 128, 148);
+      doc.setFont("Helvetica", "Bold");
+      doc.setFontSize(7.5);
+      doc.text(t("scan_to_validate"), 163, 132, { align: "center" });
 
-  logo.onerror = function () {
-    // Fallback if logo fails to load (e.g. some CORS issue even if local, though unlikely)
-    setTimeout(() => {
-      doc.setFontSize(22);
-      doc.text(t("certificate"), 15, 25);
+      doc.setTextColor(119, 119, 119);
+      doc.setFont("Helvetica", "Normal");
+      doc.setFontSize(6.5);
+      doc.text(t("electronic_validation"), 163, 138, { align: "center" });
+      doc.text(t("guaranteed_authenticity"), 163, 142, { align: "center" });
 
-      doc.setFontSize(14);
-      doc.text(t("child_name") + ": " + child.name, 15, 50);
-      doc.text(
-        t("dob") +
-          ": " +
-          fmtDate(child.birthDate) +
-          " (" +
-          ageStr(child.birthDate) +
-          ")",
-        15,
-        60,
-      );
+      // 8. Draw Footer
+      doc.setDrawColor(218, 224, 233);
+      doc.setLineWidth(0.4);
+      doc.line(23, 262, 187, 262);
 
-      let y = 80;
-      doc.setFontSize(16);
-      doc.text(t("done") + ":", 15, y);
-      y += 10;
+      doc.setTextColor(136, 136, 136);
+      doc.setFont("Helvetica", "Normal");
+      doc.setFontSize(6.5);
+      doc.text(t("certificate_footer_msg"), 23, 268, { maxWidth: 105 });
 
-      doc.setFontSize(12);
-      const completed = (child.vaccines || []).filter((v) => v.completedDate);
-      if (completed.length === 0) {
-        doc.text("—", 15, y);
-        y += 10;
-      } else {
-        completed.forEach((v) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
+      // Partner logo info on the right
+      doc.setFontSize(7);
+      doc.text("Logo parceiras:", 132, 268);
+
+      // Draw Partner Branding (Logo & Link) dynamically
+      if (S.partners && S.partners.length > 0) {
+        let currentX = 152;
+        const logoWidth = 9;
+        const logoHeight = 4.7;
+        const gap = 1.5;
+        for (const partner of S.partners) {
+          if (partner.logo) {
+            doc.addImage(partner.logo, "PNG", currentX, 264.5, logoWidth, logoHeight, undefined, "FAST");
+            if (partner.link) {
+              doc.link(currentX, 264.5, logoWidth, logoHeight, { url: partner.link });
+            }
+            currentX += logoWidth + gap;
+          } else if (partner.link) {
+            doc.setTextColor(0, 128, 148);
+            doc.setFont("Helvetica", "Normal");
+            doc.setFontSize(5);
+            doc.text(partner.link.replace(/^https?:\/\//, ""), currentX, 268);
+            doc.link(currentX, 264.5, logoWidth, logoHeight, { url: partner.link });
+            currentX += logoWidth + gap;
           }
-          const vName = getVaccineI18n(v.id).name;
-          doc.text("• " + vName + " - " + fmtDate(v.completedDate), 15, y);
-          y += 8;
-        });
+        }
+      } else {
+        // Fallback default logo indicator
+        doc.setFillColor(0, 128, 148);
+        doc.roundedRect(152, 265.5, 3, 3, 0.8, 0.8, "F");
+
+        doc.setTextColor(0, 128, 148);
+        doc.setFont("Helvetica", "Bold");
+        doc.setFontSize(7.5);
+        doc.text("HealthTech Connect", 156.5, 267.8);
+        if (S.partnerLink) {
+          doc.link(152, 265.5, 30, 3.5, { url: S.partnerLink });
+        }
       }
 
-      const qrCanvas = qrDiv.querySelector("canvas");
-      if (qrCanvas) {
-        const qrDataUrl = qrCanvas.toDataURL("image/png");
-        doc.addImage(qrDataUrl, "PNG", 150, 15, 40, 40);
-        doc.setFontSize(8);
-        doc.text(t("validate_msg"), 150, 60);
-      }
+      // Page numbers
+      doc.setTextColor(136, 136, 136);
+      doc.setFont("Helvetica", "Normal");
+      doc.setFontSize(7);
+      doc.text(pageNum + " / " + totalPages, 187, 268, { align: "right" });
+    }
 
+    if (typeof window !== "undefined" && window.Capacitor && window.Capacitor.Plugins) {
+      (async () => {
+        try {
+          const base64DataUri = doc.output("datauristring");
+          const base64Content = base64DataUri.split(",")[1];
+          const filesystem = window.Capacitor.Plugins.Filesystem;
+          const share = window.Capacitor.Plugins.Share;
+
+          if (filesystem && share) {
+            const fileName = `${child.name.replace(/[^a-z0-9]/gi, "_")}_Certificate.pdf`;
+            const writeResult = await filesystem.writeFile({
+              path: fileName,
+              data: base64Content,
+              directory: "CACHE",
+            });
+            await share.share({
+              title: t("certificate") || "Certificate",
+              text: `Vaccination Certificate for ${child.name}`,
+              url: writeResult.uri,
+              dialogTitle: t("certificate") || "Certificate",
+            });
+          } else {
+            doc.save(child.name + "_Certificate.pdf");
+          }
+        } catch (err) {
+          console.error("Capacitor PDF sharing failed, falling back to download:", err);
+          doc.save(child.name + "_Certificate.pdf");
+        } finally {
+          qrDiv.innerHTML = "";
+        }
+      })();
+    } else {
       doc.save(child.name + "_Certificate.pdf");
       qrDiv.innerHTML = "";
-    }, 100);
-  };
+    }
+  }, 150);
 }
 
 function openEditChildModal() {
@@ -4907,22 +6338,153 @@ function updateSettingsProfile() {
     $("settings-role").textContent = t("admin_label");
     $("settings-parent-edit").classList.add("hidden");
   }
+
+  // Update 2FA status label & button text
+  const token = localStorage.getItem("vt2_token");
+  if (token) {
+    fetch(`${API_BASE_URL}/2fa/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const isEnabled = data.two_factor_enabled;
+        const statusEl = $("settings-2fa-status");
+        const btnEl = $("btn-toggle-2fa");
+        if (statusEl && btnEl) {
+          statusEl.textContent = isEnabled ? t("enabled") : t("disabled");
+          statusEl.style.color = isEnabled ? "var(--success)" : "var(--text-3)";
+          btnEl.textContent = isEnabled ? t("disable_2fa") : t("enable") || "Enable";
+          btnEl.dataset.enabled = isEnabled ? "true" : "false";
+          btnEl.className = isEnabled ? "btn btn-glass btn-glass-danger btn-sm" : "btn btn-glass btn-sm";
+        }
+      })
+      .catch(err => console.error("Error fetching 2FA status:", err));
+  } else {
+    const statusEl = $("settings-2fa-status");
+    const btnEl = $("btn-toggle-2fa");
+    if (statusEl && btnEl) {
+      statusEl.textContent = t("disabled");
+      btnEl.textContent = t("enable") || "Enable";
+      btnEl.dataset.enabled = "false";
+      btnEl.className = "btn btn-glass btn-sm";
+    }
+  }
 }
 
-function handleChangePin() {
-  const pin = $("input-new-pin").value;
-  if (!pin || pin.length < 4) {
-    toast(t("pin_too_short"));
+async function handleChangePassword() {
+  const password = $("input-new-password").value;
+  const check = validatePasswordComplexity(password);
+  if (!check.valid) {
+    toast(t(check.msg));
     return;
   }
-  // Update current admin's PIN
-  const adminProfile = S.adminProfiles.find((a) => a.id === S.currentAdminId);
-  if (adminProfile) adminProfile.pin = pin;
-  S.adminPin = pin;
-  save();
-  toast(t("pin_updated"));
-  $("modal-pin").classList.add("hidden");
-  $("input-new-pin").value = "";
+
+  const token = localStorage.getItem("vt2_token");
+  if (token) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/user/change-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword: password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        localStorage.setItem("vt2_token", data.token);
+        toast(t("password_updated") || "Password updated successfully");
+      } else {
+        toast(data.error ? t(data.error) : "Failed to update password");
+        return;
+      }
+    } catch (err) {
+      console.error("Change password failed", err);
+      toast("Server connection failed");
+      return;
+    }
+  } else {
+    if (S.role === "parent") {
+      const user = currentUser();
+      if (user) {
+        user.password = hashPassword(password);
+      }
+    } else {
+      const adminProfile = S.adminProfiles.find((a) => a.id === S.currentAdminId);
+      if (adminProfile) adminProfile.password = hashPassword(password);
+      S.adminPassword = hashPassword(password);
+    }
+    save();
+    toast(t("password_updated") || "Password updated successfully");
+  }
+
+  $("modal-password").classList.add("hidden");
+  $("input-new-password").value = "";
+}
+
+// ─── Self-Service Forgot Password (Login Screen) ────────
+async function handleForgotPasswordSubmit() {
+  const phone = $("input-forgot-phone").value.trim();
+  const newPassword = $("input-forgot-new-password").value;
+  const confirmPassword = $("input-forgot-confirm-password").value;
+
+  if (!phone) {
+    toast(t("fill_all_fields") || "Please fill in all fields");
+    $("input-forgot-phone").focus();
+    return;
+  }
+
+  if (!newPassword || !confirmPassword) {
+    toast(t("fill_all_fields") || "Please fill in all fields");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    toast(t("passwords_dont_match") || "Passwords do not match");
+    $("input-forgot-confirm-password").value = "";
+    $("input-forgot-confirm-password").focus();
+    return;
+  }
+
+  const check = validatePasswordComplexity(newPassword);
+  if (!check.valid) {
+    toast(t(check.msg));
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ whatsapp: phone, newPassword }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      toast(t("password_reset_success") || "Password reset successfully");
+      $("modal-forgot-password").classList.add("hidden");
+      // Pre-fill login form for convenience
+      $("input-login-phone").value = phone;
+      $("input-login-password").value = "";
+      $("input-login-password").focus();
+    } else {
+      toast(t(data.error) || data.error || "Failed to reset password");
+    }
+  } catch (err) {
+    console.error("Self-service reset failed", err);
+    // Offline fallback: try local reset
+    const user = S.users.find(u => u.whatsapp === phone || u.id === phone);
+    if (user) {
+      user.password = hashPassword(newPassword);
+      save();
+      toast(t("password_reset_success") || "Password reset successfully");
+      $("modal-forgot-password").classList.add("hidden");
+      $("input-login-phone").value = phone;
+      $("input-login-password").value = "";
+      $("input-login-password").focus();
+    } else {
+      toast(t("user_not_found") || "No account found with this number");
+    }
+  }
 }
 
 function exportData() {
@@ -4930,7 +6492,7 @@ function exportData() {
     version: 3,
     exported: new Date().toISOString(),
     users: S.users,
-    adminPin: S.adminPin,
+    adminPassword: S.adminPassword,
     adminProfiles: S.adminProfiles,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -4959,8 +6521,18 @@ function importData(e) {
           () => {
             S.users = data.users;
             invalidateChildCache();
-            if (data.adminPin) S.adminPin = data.adminPin;
-            if (data.adminProfiles) S.adminProfiles = data.adminProfiles;
+            if (data.adminPassword || data.adminPin) {
+              S.adminPassword = data.adminPassword || data.adminPin;
+            }
+            if (data.adminProfiles) {
+              S.adminProfiles = data.adminProfiles.map(a => {
+                if (a.pin) {
+                  a.password = a.pin;
+                  delete a.pin;
+                }
+                return a;
+              });
+            }
             save();
             toast(t("data_imported"));
             handleLogout();
@@ -4992,9 +6564,9 @@ function handleClearAll() {
   $("modal-password-confirm").classList.remove("hidden");
 
   $("btn-pw-confirm").onclick = () => {
-    const pin = $("input-pw-confirm").value;
+    const pwdInput = $("input-pw-confirm").value;
     const adminProfile = S.adminProfiles.find((a) => a.id === S.currentAdminId);
-    if (!adminProfile || pin !== adminProfile.pin) {
+    if (!adminProfile || hashPassword(pwdInput) !== adminProfile.password) {
       $("pw-confirm-error").textContent = t("wrong_password");
       $("pw-confirm-error").classList.remove("hidden");
       return;
@@ -5002,9 +6574,9 @@ function handleClearAll() {
     $("modal-password-confirm").classList.add("hidden");
     S.users = [];
     invalidateChildCache();
-    S.adminPin = "1234";
+    S.adminPassword = hashPassword("Admin@123");
     S.adminProfiles = [
-      { id: uid(), name: "Admin", email: "", whatsapp: "0000", pin: "1234" },
+      { id: uid(), name: "Admin", email: "", whatsapp: "0000", password: hashPassword("Admin@123") },
     ];
     save();
     toast(t("all_data_cleared"));
@@ -5083,19 +6655,73 @@ function handleEditParent(e) {
 }
 
 function handleDeleteFamily(userId) {
-  const user = S.users.find((u) => u.id === userId);
+  const user = S.users.find((u) => u.id === userId || u.whatsapp === userId);
   if (!user) return;
   confirm2(
-    t("delete_family_title"),
-    t("delete_family_msg", { name: user.name }),
-    () => {
-      S.users = S.users.filter((u) => u.id !== userId);
-      invalidateChildCache();
-      save();
-      toast(t("child_deleted", { name: user.name }));
-      showAppView("admin-home");
+    t("delete_profile"),
+    t("delete_profile_confirm"),
+    async () => {
+      const token = localStorage.getItem("vt2_token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/users/${user.whatsapp}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          S.users = S.users.filter((u) => u.id !== userId && u.whatsapp !== userId);
+          invalidateChildCache();
+          saveLocal();
+          toast(t("admin_deleted") || "Profile deleted successfully");
+          showAppView("admin-home");
+        } else {
+          toast("Failed to delete profile");
+        }
+      } catch (err) {
+        console.error("Error deleting family", err);
+        toast("Failed to delete profile");
+      }
     },
   );
+}
+
+function handleAdminResetPassword(userId) {
+  const user = S.users.find((u) => u.id === userId || u.whatsapp === userId);
+  if (!user) return;
+  $("input-reset-password").value = "";
+  $("modal-reset-password").classList.remove("hidden");
+}
+
+async function handleAdminSaveResetPassword() {
+  const password = $("input-reset-password").value.trim();
+  const check = validatePasswordComplexity(password);
+  if (!check.valid) {
+    toast(t(check.msg));
+    return;
+  }
+
+  const token = localStorage.getItem("vt2_token");
+  if (!token) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/users/${S.adminViewUserId}/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      toast(t("password_reset_success") || "Password reset successfully");
+      $("modal-reset-password").classList.add("hidden");
+    } else {
+      toast(data.error ? t(data.error) : "Failed to reset password");
+    }
+  } catch (err) {
+    console.error("Reset password failed", err);
+    toast("Server connection failed");
+  }
 }
 
 // ─── Admin Profile Management ───────────────────────────
@@ -5138,7 +6764,7 @@ function openAddAdminForm() {
   $("input-admin-name").value = "";
   $("input-admin-whatsapp").value = "";
   $("input-admin-email-f").value = "";
-  $("input-admin-pin-f").value = "";
+  $("input-admin-password-f").value = "";
   $("input-admin-edit-id").value = "";
   $("modal-admin-form").classList.remove("hidden");
 }
@@ -5150,7 +6776,7 @@ window.editAdminProfile = function (id) {
   $("input-admin-name").value = admin.name;
   $("input-admin-whatsapp").value = admin.whatsapp || "";
   $("input-admin-email-f").value = admin.email || "";
-  $("input-admin-pin-f").value = admin.pin;
+  $("input-admin-password-f").value = admin.password;
   $("input-admin-edit-id").value = admin.id;
   $("modal-admin-form").classList.remove("hidden");
 };
@@ -5179,13 +6805,24 @@ function handleSaveAdmin(e) {
   const name = $("input-admin-name").value.trim();
   const whatsapp = $("input-admin-whatsapp").value.trim();
   const email = $("input-admin-email-f").value.trim();
-  const pin = $("input-admin-pin-f").value.trim();
-  if (!name || !whatsapp || !pin || pin.length < 4) {
-    toast(t("pin_too_short") || "Please fill all required fields");
+  const password = $("input-admin-password-f").value.trim();
+  if (!name || !whatsapp || !password) {
+    toast(t("fill_all_fields"));
     return;
   }
 
+  const isHash = /^[a-f0-9]{64}$/i.test(password);
+  if (!isHash) {
+    const complexity = validatePasswordComplexity(password);
+    if (!complexity.valid) {
+      toast(t(complexity.msg));
+      return;
+    }
+  }
+
+  const targetPassword = isHash ? password : hashPassword(password);
   const editId = $("input-admin-edit-id").value;
+
   if (editId) {
     // Edit existing
     const admin = S.adminProfiles.find((a) => a.id === editId);
@@ -5193,12 +6830,12 @@ function handleSaveAdmin(e) {
       admin.name = name;
       admin.whatsapp = whatsapp;
       admin.email = email;
-      admin.pin = pin;
+      admin.password = targetPassword;
     }
     toast(t("admin_updated"));
   } else {
     // Add new
-    S.adminProfiles.push({ id: uid(), name, whatsapp, email, pin });
+    S.adminProfiles.push({ id: uid(), name, whatsapp, email, password: targetPassword });
     toast(t("admin_added"));
   }
 
@@ -5418,6 +7055,81 @@ function handleSaveVaccine(e) {
 
 // ─── Schedule View Toggle ───────────────────────────────
 let scheduleViewMode = "list";
+let calendarViewYear = new Date().getFullYear();
+let calendarViewMonth = new Date().getMonth();
+let selectedCalendarDay = null;
+
+window.changeCalendarMonth = function (dir) {
+  calendarViewMonth += dir;
+  if (calendarViewMonth < 0) {
+    calendarViewMonth = 11;
+    calendarViewYear--;
+  } else if (calendarViewMonth > 11) {
+    calendarViewMonth = 0;
+    calendarViewYear++;
+  }
+  renderScheduleCalendar();
+};
+
+window.onCalendarSelectChange = function () {
+  calendarViewMonth = parseInt($("cal-select-month").value);
+  calendarViewYear = parseInt($("cal-select-year").value);
+  renderScheduleCalendar();
+};
+
+window.selectCalendarDay = function (day) {
+  selectedCalendarDay = day;
+  renderScheduleCalendar();
+  renderCalendarDayDetails(day);
+};
+
+function renderCalendarDayDetails(day) {
+  const user = currentUser();
+  if (!user || !user.children?.length) return;
+
+  const select = $("schedule-child-dropdown");
+  const childId = select.value || user.children[0].id;
+  const child = user.children.find((c) => c.id === childId);
+  if (!child) return;
+
+  const vaxes = (child.vaccines || []).filter(v => {
+    const d = new Date((v.completedDate || v.scheduledDate) + "T00:00:00");
+    return d.getFullYear() === calendarViewYear && d.getMonth() === calendarViewMonth && d.getDate() === day;
+  });
+
+  const container = $("schedule-calendar-details");
+  if (!container) return;
+
+  if (!vaxes || vaxes.length === 0) {
+    container.classList.add("hidden");
+    return;
+  }
+
+  container.classList.remove("hidden");
+  let html = `<div class="section-title" style="margin-bottom: 8px; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+    📅 <span>${t("vaccines_on")} ${day}/${calendarViewMonth + 1}/${calendarViewYear}</span>
+  </div>
+  <div class="vaccine-timeline">`;
+  
+  vaxes.forEach(v => {
+    const st = v.completedDate ? "completed" : vaccineStatus(v, child.birthDate);
+    const statusLabel = t(`status_${st}`);
+    html += `
+      <div class="vt-card ${v.completedDate ? "vt-completed" : ""}" onclick="openVaccineModal('${esc(v.id)}')" style="margin-bottom: 6px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="uc-dot dot-${st}" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
+          <div>
+            <div class="vt-name" style="font-weight: 700; font-size: 0.88rem;">${esc(getVaccineI18n(v.id).name)}</div>
+            <div class="vt-status" style="font-size: 0.72rem; opacity: 0.8;">${statusLabel}</div>
+          </div>
+        </div>
+        <span class="role-arrow">→</span>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
 
 window.setScheduleView = function (mode) {
   scheduleViewMode = mode;
@@ -5427,6 +7139,7 @@ window.setScheduleView = function (mode) {
   if (mode === "list") {
     $("schedule-timeline").classList.remove("hidden");
     $("schedule-calendar").classList.add("hidden");
+    if ($("schedule-calendar-details")) $("schedule-calendar-details").classList.add("hidden");
   } else {
     $("schedule-timeline").classList.add("hidden");
     $("schedule-calendar").classList.remove("hidden");
@@ -5444,15 +7157,34 @@ function renderScheduleCalendar() {
   if (!child) return;
 
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const year = calendarViewYear;
+  const month = calendarViewMonth;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const monthName = today.toLocaleDateString(
-    currentLang === "pt" ? "pt-AO" : currentLang,
-    { month: "long", year: "numeric" },
-  );
+
+  // Create Month & Year Dropdown Options
+  const monthsPT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const monthsEN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthsFR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  const monthsAF = ["Januarie", "Februarie", "Maart", "April", "Mei", "Junie", "Julie", "Augustus", "September", "Oktober", "November", "Desember"];
+
+  let monthList = monthsEN;
+  if (currentLang === "pt") monthList = monthsPT;
+  else if (currentLang === "fr") monthList = monthsFR;
+  else if (currentLang === "af") monthList = monthsAF;
+
+  let monthOptions = "";
+  monthList.forEach((mName, idx) => {
+    monthOptions += `<option value="${idx}" ${idx === month ? "selected" : ""}>${mName}</option>`;
+  });
+
+  let yearOptions = "";
+  const startYear = today.getFullYear() - 15;
+  const endYear = today.getFullYear() + 15;
+  for (let y = startYear; y <= endYear; y++) {
+    yearOptions += `<option value="${y}" ${y === year ? "selected" : ""}>${y}</option>`;
+  }
 
   // Map vaccine dates to days
   const dayMap = {};
@@ -5470,7 +7202,19 @@ function renderScheduleCalendar() {
     }
   });
 
-  let html = `<div class="cal-header"><h3>${monthName}</h3></div>`;
+  let html = `
+    <div class="cal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
+      <button type="button" class="btn btn-glass btn-sm" onclick="changeCalendarMonth(-1)" style="padding: 6px 12px; font-weight: bold; border-radius: var(--radius-sm); border: 1px solid var(--border);">←</button>
+      <div style="display: flex; gap: 6px; align-items: center; flex: 1; justify-content: center;">
+        <select id="cal-select-month" onchange="onCalendarSelectChange()" class="select-pill" style="padding: 4px 8px; font-size: 0.82rem; font-weight: 700; border: 1px solid var(--border); background: var(--bg-card); max-width: 115px; margin: 0;">
+          ${monthOptions}
+        </select>
+        <select id="cal-select-year" onchange="onCalendarSelectChange()" class="select-pill" style="padding: 4px 8px; font-size: 0.82rem; font-weight: 700; border: 1px solid var(--border); background: var(--bg-card); max-width: 85px; margin: 0;">
+          ${yearOptions}
+        </select>
+      </div>
+      <button type="button" class="btn btn-glass btn-sm" onclick="changeCalendarMonth(1)" style="padding: 6px 12px; font-weight: bold; border-radius: var(--radius-sm); border: 1px solid var(--border);">→</button>
+    </div>`;
   html += '<div class="cal-weekdays">';
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
   weekdays.forEach((w) => (html += `<div class="cal-wd">${w}</div>`));
@@ -5479,52 +7223,97 @@ function renderScheduleCalendar() {
   for (let i = 0; i < firstDay; i++)
     html += '<div class="cal-day cal-empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
-    const isToday = d === today.getDate();
+    const isToday = d === today.getDate() && today.getFullYear() === year && today.getMonth() === month;
     const vaxes = dayMap[d];
     let dots = "";
+    let dayClass = "";
+    let vaxLabels = "";
+    let titleAttr = "";
     if (vaxes) {
       dots = vaxes
         .slice(0, 3)
         .map((v) => `<span class="cal-dot dot-${v.status}"></span>`)
         .join("");
+      
+      const hasOverdue = vaxes.some(v => v.status === "overdue");
+      const hasUpcoming = vaxes.some(v => v.status === "upcoming");
+      const allCompleted = vaxes.every(v => v.status === "completed");
+      
+      if (allCompleted) {
+        dayClass = "cal-day-completed";
+      } else if (hasOverdue) {
+        dayClass = "cal-day-overdue";
+      } else if (hasUpcoming) {
+        dayClass = "cal-day-upcoming";
+      } else {
+        dayClass = "cal-day-pending";
+      }
+
+      const vaxNames = vaxes.map(v => getVaccineI18n(v.id).name);
+      titleAttr = `title="${vaxNames.join("\n")}"`;
     }
-    html += `<div class="cal-day ${isToday ? "cal-today" : ""} ${vaxes ? "cal-has-vax" : ""}">${d}${dots ? `<div class="cal-dots">${dots}</div>` : ""}</div>`;
+    const isSelected = selectedCalendarDay === d;
+    html += `
+      <div class="cal-day ${isToday ? "cal-today" : ""} ${vaxes ? "cal-has-vax" : ""} ${dayClass} ${isSelected ? "cal-day-selected" : ""}" 
+           ${titleAttr}
+           onclick="${vaxes ? `selectCalendarDay(${d})` : ""}">
+        <span class="cal-day-number">${d}</span>
+        ${dots ? `<div class="cal-dots" style="margin-top: 1px;">${dots}</div>` : ""}
+      </div>`;
   }
   html += "</div>";
 
   $("schedule-calendar").innerHTML = html;
+
+  // Sync details container
+  if (selectedCalendarDay) {
+    const childVaxesOnSelectedDay = (child.vaccines || []).filter(v => {
+      const d = new Date((v.completedDate || v.scheduledDate) + "T00:00:00");
+      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === selectedCalendarDay;
+    });
+    if (childVaxesOnSelectedDay.length > 0) {
+      renderCalendarDayDetails(selectedCalendarDay);
+    } else {
+      selectedCalendarDay = null;
+      const container = $("schedule-calendar-details");
+      if (container) container.classList.add("hidden");
+    }
+  } else {
+    const container = $("schedule-calendar-details");
+    if (container) container.classList.add("hidden");
+  }
 }
 
-// ─── Parent PIN Login ───────────────────────────────────
+// ─── Parent Password Login ───────────────────────────────
 window.selectParent = function (id) {
   const user = S.users.find((u) => u.id === id);
   if (!user) return;
 
-  // If user has a PIN set, require it
-  if (user.pin) {
+  // If user has a password set, require it
+  if (user.password) {
     S._pendingLoginId = id;
-    $("input-parent-login-pin").value = "";
-    $("modal-parent-pin").classList.remove("hidden");
-    $("btn-parent-pin-login").onclick = () => {
-      const pin = $("input-parent-login-pin").value;
-      if (pin === user.pin) {
-        $("modal-parent-pin").classList.add("hidden");
+    $("input-parent-login-password").value = "";
+    $("modal-parent-password").classList.remove("hidden");
+    $("btn-parent-password-login").onclick = () => {
+      const password = $("input-parent-login-password").value;
+      if (hashPassword(password) === user.password) {
+        $("modal-parent-password").classList.add("hidden");
         S.userId = id;
         enterApp("parent");
       } else {
-        toast(t("incorrect_pin"));
-        $("input-parent-login-pin").value = "";
-        $("input-parent-login-pin").focus();
+        toast(t("incorrect_admin_password"));
+        $("input-parent-login-password").value = "";
+        $("input-parent-login-password").focus();
       }
     };
-    $("input-parent-login-pin").addEventListener("keyup", function handler(e) {
+    $("input-parent-login-password").addEventListener("keyup", function handler(e) {
       if (e.key === "Enter") {
-        $("btn-parent-pin-login").click();
-        $("input-parent-login-pin").removeEventListener("keyup", handler);
+        $("btn-parent-password-login").click();
+        $("input-parent-login-password").removeEventListener("keyup", handler);
       }
     });
   } else {
-    // No PIN, go directly
+    // No password, go directly
     S.userId = id;
     enterApp("parent");
   }
@@ -5550,10 +7339,16 @@ if (typeof module !== "undefined" && module.exports) {
     set currentLang(val) {
       currentLang = val;
     },
+    get S() {
+      return S;
+    },
+    loadPartnerBranding,
     esc,
     t,
     getVaccineBaseType,
     getVaccineI18n,
     schedDate,
+    hashPassword,
+    validatePasswordComplexity,
   };
 }

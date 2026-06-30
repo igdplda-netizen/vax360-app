@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Vax360 backend API – SQLite-powered sync server for vaccination data",
   "main": "server.js",
-  "scripts": { "test": "jest",
+  "scripts": {
+    "test": "jest",
     "start": "node server.js",
     "dev": "node server.js",
     "db:init": "node db-init.js",
@@ -22,6 +23,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "sqlite3": "^6.0.1"
   },

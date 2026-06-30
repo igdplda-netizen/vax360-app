@@ -99,7 +99,7 @@
             <div>
               <strong data-i18n="landing_feature_2">Secure & Private</strong>
               <p data-i18n="landing_feature_2_desc">
-                Your data is protected with PIN access and stored locally
+                Your data is protected with password access and stored locally
               </p>
             </div>
           </div>
@@ -166,20 +166,6 @@
         >
           🌍 <span data-i18n="change_language">Change Language</span>
         </button>
-        <button
-          id="btn-login-import"
-          class="btn btn-glass btn-sm btn-block"
-          type="button"
-          style="margin-top: 12px"
-        >
-          📥 <span data-i18n="import_data">Restore Backup</span>
-        </button>
-        <input
-          type="file"
-          id="login-import-file"
-          accept=".json"
-          class="hidden"
-        />
       </div>
     </div>
 
@@ -192,7 +178,7 @@
         <div class="login-header">
           <span class="login-logo">🔐</span>
           <h1 data-i18n="login">Login</h1>
-          <p data-i18n="enter_phone_pin">Enter your phone and PIN</p>
+          <p data-i18n="enter_phone_password">Enter your phone and password</p>
         </div>
         <form id="form-unified-login" class="form-stack">
           <div class="form-group">
@@ -204,23 +190,31 @@
               id="input-login-phone"
               required
               autocomplete="tel"
-              placeholder="e.g. 0000 for default admin"
+              placeholder="e.g. 9999 for default admin"
             />
           </div>
           <div class="form-group">
-            <label for="input-login-pin" data-i18n="pin">PIN</label>
+            <label for="input-login-password" data-i18n="password">Password</label>
             <input
               type="password"
-              id="input-login-pin"
-              maxlength="6"
-              inputmode="numeric"
+              id="input-login-password"
+              maxlength="64"
               required
               autocomplete="current-password"
-              placeholder="••••"
+              placeholder="••••••••"
             />
           </div>
           <button type="submit" class="btn btn-primary btn-block btn-lg">
             🔓 <span data-i18n="unlock">Unlock</span>
+          </button>
+          <button
+            id="btn-forgot-password"
+            class="btn btn-glass btn-sm btn-block"
+            type="button"
+            style="margin-top: 12px;"
+            data-i18n="forgot_password"
+          >
+            Forgot Password?
           </button>
         </form>
       </div>
@@ -271,21 +265,31 @@
             />
           </div>
           <div class="form-group">
-            <label for="input-parent-pin" data-i18n="login_pin">Login PIN</label
+            <label for="input-parent-password" data-i18n="password">Password</label
             ><input
               type="password"
-              id="input-parent-pin"
-              maxlength="6"
-              inputmode="numeric"
-              placeholder="••••"
+              id="input-parent-password"
+              maxlength="64"
+              placeholder="••••••••"
               autocomplete="off"
+              required
             /><small
-              style="color: var(--text-3); font-size: 0.75rem"
-              data-i18n="pin_for_security"
-              >For your security, create a 4-digit PIN</small
+              style="color: var(--text-3); font-size: 0.72rem; display: block; margin-top: 4px; line-height: 1.3;"
+              data-i18n="password_complexity_hint"
+              >Must be 6-64 characters, with letters and numbers. No simple repetitions or sequences.</small
             >
           </div>
-          <div class="form-group"></div>
+          <div class="form-group">
+            <label for="input-parent-confirm-password" data-i18n="confirm_password">Confirm Password</label>
+            <input
+              type="password"
+              id="input-parent-confirm-password"
+              maxlength="64"
+              placeholder="••••••••"
+              autocomplete="off"
+              required
+            />
+          </div>
           <button type="submit" class="btn btn-primary btn-block btn-lg">
             🚀 <span data-i18n="lets_go">Let's Go!</span>
           </button>
@@ -460,6 +464,13 @@
               ✏️ <span data-i18n="edit_profile">Edit Profile</span>
             </button>
             <button
+              id="btn-admin-reset-password"
+              class="btn btn-glass btn-sm"
+              type="button"
+            >
+              🔑 <span data-i18n="reset_password">Reset Password</span>
+            </button>
+            <button
               id="btn-admin-delete-family"
               class="btn btn-glass btn-sm btn-glass-danger"
               type="button"
@@ -583,6 +594,7 @@
           </div>
           <div id="schedule-timeline" class="vaccine-timeline"></div>
           <div id="schedule-calendar" class="schedule-calendar hidden"></div>
+          <div id="schedule-calendar-details" class="hidden" style="margin-top: 16px;"></div>
         </div>
       </main>
 
@@ -705,29 +717,47 @@
           </div>
 
           <div class="settings-group">
+            <h3 class="sg-title" data-i18n="security">Security</h3>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-icon">🛡️</span>
+                <div>
+                  <strong data-i18n="two_factor_auth">Two-Factor Authentication (2FA)</strong>
+                  <small id="settings-2fa-status" data-i18n="disabled">Disabled</small>
+                </div>
+              </div>
+              <button
+                id="btn-toggle-2fa"
+                class="btn btn-glass btn-sm"
+                type="button"
+                data-i18n="enable"
+              >
+                Enable
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-group">
             <h3 class="sg-title" data-i18n="appearance">Appearance</h3>
             <div class="setting-row">
               <div class="setting-info">
                 <span class="setting-icon">🌓</span>
                 <div>
-                  <strong data-i18n="dark_mode">Dark Mode</strong
-                  ><small data-i18n="dark_mode_desc"
-                    >Switch between light & dark</small
-                  >
+                  <strong data-i18n="theme">Theme</strong>
+                  <small data-i18n="theme_desc">Choose your visual appearance</small>
                 </div>
               </div>
-              <label class="toggle"
-                ><input type="checkbox" id="toggle-theme" /><span
-                  class="toggle-track"
-                ></span
-              ></label>
+              <select id="select-theme" class="select-pill" style="width: auto; padding: 6px 12px; font-size: 0.85rem; border-color: var(--border);">
+                <option value="light" data-i18n="theme_light">Light</option>
+                <option value="dark" data-i18n="theme_dark">Dark</option>
+              </select>
             </div>
             <div class="setting-row">
               <div class="setting-info">
                 <span class="setting-icon">🌍</span>
                 <div>
-                  <strong data-i18n="language">Language</strong
-                  ><small id="current-lang-display">English</small>
+                  <strong data-i18n="language">Language</strong>
+                  <small id="current-lang-display">English</small>
                 </div>
               </div>
               <button
@@ -741,20 +771,41 @@
             </div>
           </div>
 
+          <div class="settings-group">
+            <h3 class="sg-title" data-i18n="information">Information</h3>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-icon">💡</span>
+                <div>
+                  <strong data-i18n="faq_vaccines">Vaccine Guide & FAQ</strong>
+                  <small data-i18n="faq_vaccines_desc">Search and browse global vaccine details</small>
+                </div>
+              </div>
+              <button
+                id="btn-open-faq"
+                class="btn btn-glass btn-sm"
+                type="button"
+                data-i18n="view"
+              >
+                View
+              </button>
+            </div>
+          </div>
+
           <div class="settings-group" id="settings-admin-section">
             <h3 class="sg-title">Admin</h3>
             <div class="setting-row">
               <div class="setting-info">
                 <span class="setting-icon">🔑</span>
                 <div>
-                  <strong data-i18n="change_pin">Change PIN</strong
-                  ><small data-i18n="change_pin_desc"
-                    >Update the admin access code</small
+                  <strong data-i18n="change_admin_password">Change Admin Password</strong
+                  ><small data-i18n="change_admin_password_desc"
+                    >Update the admin access password</small
                   >
                 </div>
               </div>
               <button
-                id="btn-change-pin"
+                id="btn-change-password"
                 class="btn btn-glass btn-sm"
                 type="button"
                 data-i18n="change"
@@ -774,6 +825,23 @@
               </div>
               <button
                 id="btn-manage-admins"
+                class="btn btn-glass btn-sm"
+                type="button"
+                data-i18n="manage"
+              >
+                Manage
+              </button>
+            </div>
+            <div class="setting-row" id="settings-partner-logo-row">
+              <div class="setting-info">
+                <span class="setting-icon">💼</span>
+                <div>
+                  <strong data-i18n="manage_partners">Partner Branding</strong>
+                  <small data-i18n="manage_partners_desc">Upload partner logo and link for certificates</small>
+                </div>
+              </div>
+              <button
+                id="btn-manage-partners"
                 class="btn btn-glass btn-sm"
                 type="button"
                 data-i18n="manage"
@@ -854,6 +922,20 @@
               vaccinations.
             </p>
           </div>
+      </main>
+
+      <main id="view-faq" class="view">
+        <div class="view-scroll">
+          <div class="faq-search-box">
+            <span class="faq-search-icon">🔍</span>
+            <input
+              type="text"
+              id="faq-search-input"
+              data-i18n-placeholder="faq_search_placeholder"
+              placeholder="Search vaccines, categories or symptoms..."
+            />
+          </div>
+          <div id="faq-list-container" class="faq-list"></div>
         </div>
       </main>
 
@@ -1076,6 +1158,11 @@
               <label for="input-v-notes" data-i18n="notes">Notes</label
               ><textarea id="input-v-notes" rows="3"></textarea>
             </div>
+            <div class="form-group" id="v-sched-group">
+              <label for="input-v-sched" data-i18n="reschedule_date"
+                >Schedule / Reschedule Date</label
+              ><input type="date" id="input-v-sched" />
+            </div>
             <div class="form-group" id="v-date-group">
               <label for="input-v-date" data-i18n="date_administered"
                 >Date Administered</label
@@ -1090,6 +1177,14 @@
                 >✅
                 <span data-i18n="mark_completed">Mark as Completed</span></span
               >
+            </button>
+            <button
+              id="btn-save-vaccine"
+              class="btn btn-glass btn-block btn-lg"
+              type="button"
+              style="margin-top: 8px;"
+            >
+              💾 <span data-i18n="save_changes">Save Changes</span>
             </button>
           </div>
           <div id="mv-panel-proscons" class="mv-panel">
@@ -1235,27 +1330,27 @@
       </div>
     </div>
 
-    <div id="modal-pin" class="modal-overlay hidden">
+    <div id="modal-password" class="modal-overlay hidden">
       <div class="modal bottom-sheet modal-sm">
         <div class="modal-handle"></div>
         <div class="modal-header">
-          <h2 data-i18n="change_pin">Change Admin PIN</h2>
-          <button id="btn-close-pin-modal" class="btn-close" type="button">
+          <h2 data-i18n="change_password">Change Password</h2>
+          <button id="btn-close-password-modal" class="btn-close" type="button">
             ✕
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="input-new-pin" data-i18n="new_pin">New PIN</label
-            ><input
+            <label for="input-new-password" data-i18n="new_password">New Password</label>
+            <input
               type="password"
-              id="input-new-pin"
-              maxlength="6"
-              inputmode="numeric"
+              id="input-new-password"
+              maxlength="64"
+              placeholder="••••••••"
             />
           </div>
           <button
-            id="btn-save-pin"
+            id="btn-save-password"
             class="btn btn-primary btn-block"
             type="button"
             data-i18n="save"
@@ -1363,15 +1458,14 @@
             ><input type="email" id="input-admin-email-f" autocomplete="off" />
           </div>
           <div class="form-group">
-            <label for="input-admin-pin-f" data-i18n="pin">PIN</label
+            <label for="input-admin-password-f" data-i18n="password">Password</label
             ><input
               type="password"
-              id="input-admin-pin-f"
-              maxlength="6"
-              inputmode="numeric"
+              id="input-admin-password-f"
+              maxlength="64"
               required
               autocomplete="off"
-              placeholder="••••"
+              placeholder="••••••••"
             />
           </div>
           <input type="hidden" id="input-admin-edit-id" />
@@ -1540,14 +1634,13 @@
           <p id="pw-confirm-msg" class="confirm-message"></p>
           <div class="form-group">
             <label for="input-pw-confirm" data-i18n="enter_password_confirm"
-              >Enter your PIN to confirm</label
+              >Enter your password to confirm</label
             ><input
               type="password"
               id="input-pw-confirm"
-              maxlength="6"
-              inputmode="numeric"
+              maxlength="64"
               autocomplete="off"
-              placeholder="••••"
+              placeholder="••••••••"
             />
           </div>
           <p
@@ -1581,13 +1674,13 @@
       </div>
     </div>
 
-    <!-- PARENT PIN LOGIN MODAL -->
-    <div id="modal-parent-pin" class="modal-overlay hidden">
+    <!-- PARENT PASSWORD LOGIN MODAL -->
+    <div id="modal-parent-password" class="modal-overlay hidden">
       <div class="modal bottom-sheet modal-sm">
         <div class="modal-handle"></div>
         <div class="modal-header">
-          <h2 data-i18n="enter_your_pin">Enter your PIN</h2>
-          <button id="btn-close-parent-pin" class="btn-close" type="button">
+          <h2 data-i18n="enter_your_password">Enter your Password</h2>
+          <button id="btn-close-parent-password" class="btn-close" type="button">
             ✕
           </button>
         </div>
@@ -1595,22 +1688,277 @@
           <div class="pin-input-group">
             <input
               type="password"
-              id="input-parent-login-pin"
-              aria-label="PIN"
+              id="input-parent-login-password"
+              aria-label="Password"
               class="pin-input"
-              maxlength="6"
-              inputmode="numeric"
+              maxlength="64"
               autocomplete="off"
-              placeholder="••••"
+              placeholder="••••••••"
             />
           </div>
           <button
-            id="btn-parent-pin-login"
+            id="btn-parent-password-login"
             class="btn btn-primary btn-block btn-lg"
             type="button"
           >
             🔓 <span data-i18n="unlock">Unlock</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Self-Service Forgot Password Modal -->
+    <div id="modal-forgot-password" class="modal-overlay hidden">
+      <div class="modal bottom-sheet modal-sm">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="forgot_password">Forgot Password?</h2>
+          <button id="btn-close-forgot-password" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom:15px; opacity:0.8; font-size:14px; line-height:1.4;" data-i18n="forgot_password_desc">
+            Enter your WhatsApp number and choose a new password to reset your account.
+          </p>
+          <div class="form-group">
+            <label for="input-forgot-phone" data-i18n="phone">Phone / WhatsApp</label>
+            <input
+              type="tel"
+              id="input-forgot-phone"
+              required
+              autocomplete="tel"
+              placeholder="e.g. 923456789"
+            />
+          </div>
+          <div class="form-group">
+            <label for="input-forgot-new-password" data-i18n="new_password">New Password</label>
+            <input
+              type="password"
+              id="input-forgot-new-password"
+              placeholder="••••••••"
+              maxlength="64"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="input-forgot-confirm-password" data-i18n="confirm_password">Confirm Password</label>
+            <input
+              type="password"
+              id="input-forgot-confirm-password"
+              placeholder="••••••••"
+              maxlength="64"
+              required
+            />
+          </div>
+          <button
+            id="btn-forgot-submit"
+            class="btn btn-primary btn-block btn-lg"
+            type="button"
+          >
+            🔑 <span data-i18n="reset_password">Reset Password</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Reset Parent Password Modal -->
+    <div id="modal-reset-password" class="modal-overlay hidden">
+      <div class="modal bottom-sheet modal-sm">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="reset_password">Reset Password</h2>
+          <button id="btn-close-reset-password" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="input-reset-password" data-i18n="new_password">New Password</label>
+            <input
+              type="password"
+              id="input-reset-password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <button
+            id="btn-save-reset-password"
+            class="btn btn-primary btn-block btn-lg"
+            type="button"
+          >
+            💾 <span data-i18n="save">Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2FA Setup Modal -->
+    <div id="modal-2fa-setup" class="modal-overlay hidden">
+      <div class="modal bottom-sheet modal-sm">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="two_factor_setup">Set up 2FA</h2>
+          <button id="btn-close-2fa-setup" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+          <p style="margin-bottom:15px; opacity:0.8; font-size:14px; line-height:1.4; text-align: left;" data-i18n="two_factor_setup_desc">
+            Scan the QR code below with your authenticator app. Or enter the code manually.
+          </p>
+          <div id="qrcode-2fa" style="display: flex; justify-content: center; margin: 15px 0;"></div>
+          <div style="margin: 10px 0;">
+            <code id="text-2fa-secret" style="background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1.1rem; letter-spacing: 2px;"></code>
+          </div>
+          <div class="form-group" style="text-align: left;">
+            <label for="input-2fa-setup-code" data-i18n="two_factor_code">Verification Code</label>
+            <input
+              type="text"
+              id="input-2fa-setup-code"
+              placeholder="123456"
+              maxlength="6"
+              inputmode="numeric"
+              style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;"
+              required
+            />
+          </div>
+          <button
+            id="btn-2fa-setup-submit"
+            class="btn btn-primary btn-block btn-lg"
+            type="button"
+          >
+            ✅ <span data-i18n="verify_and_enable">Verify and Enable</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2FA Disable Modal -->
+    <div id="modal-2fa-disable" class="modal-overlay hidden">
+      <div class="modal bottom-sheet modal-sm">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="disable_2fa">Disable 2FA</h2>
+          <button id="btn-close-2fa-disable" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom:15px; opacity:0.8; font-size:14px; line-height:1.4;" data-i18n="password_confirm_disable_2fa">
+            Enter your account password to confirm disabling Two-Factor Authentication.
+          </p>
+          <div class="form-group">
+            <label for="input-2fa-disable-password" data-i18n="password">Password</label>
+            <input
+              type="password"
+              id="input-2fa-disable-password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <button
+            id="btn-2fa-disable-submit"
+            class="btn btn-danger btn-block btn-lg"
+            type="button"
+          >
+            ⚠️ <span data-i18n="disable">Disable</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2FA Login Verification Modal -->
+    <div id="modal-login-2fa" class="modal-overlay hidden">
+      <div class="modal bottom-sheet modal-sm">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="two_factor_auth">Two-Factor Authentication</h2>
+          <button id="btn-close-login-2fa" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom:15px; opacity:0.8; font-size:14px; line-height:1.4;" data-i18n="two_factor_login_desc">
+            Enter the 6-digit code from your authenticator app to complete the login.
+          </p>
+          <div class="form-group">
+            <label for="input-login-2fa-code" data-i18n="two_factor_code">Verification Code</label>
+            <input
+              type="text"
+              id="input-login-2fa-code"
+              placeholder="123456"
+              maxlength="6"
+              inputmode="numeric"
+              style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;"
+              required
+            />
+          </div>
+          <button
+            id="btn-login-2fa-submit"
+            class="btn btn-primary btn-block btn-lg"
+            type="button"
+          >
+            🔓 <span data-i18n="verify_and_login">Verify and Login</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER BRANDING MODAL -->
+    <div id="modal-partner-branding" class="modal-overlay hidden">
+      <div class="modal bottom-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <h2 data-i18n="manage_partners">Partner Branding</h2>
+          <button id="btn-close-partner-branding" class="btn-close" type="button">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto;">
+          <!-- List of Existing Partners -->
+          <div id="partner-list-container">
+            <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text);" data-i18n="registered_partners">Parceiros Cadastrados</h3>
+            <div id="partner-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Dynamic partner rows -->
+            </div>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 5px 0;" />
+
+          <!-- Add New Partner Form -->
+          <div>
+            <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text);" data-i18n="add_new_partner">Adicionar Novo Parceiro</h3>
+            <div class="form-group">
+              <label for="input-partner-link">Link (URL)</label>
+              <input
+                type="url"
+                id="input-partner-link"
+                placeholder="https://example.com"
+                autocomplete="off"
+              />
+            </div>
+            <div class="form-group">
+              <label for="input-partner-logo">Logo Image</label>
+              <input
+                type="file"
+                id="input-partner-logo"
+                accept="image/*"
+              />
+              <div id="partner-logo-preview-container" class="hidden" style="margin-top: 10px; text-align: center;">
+                <img id="partner-logo-preview" style="max-height: 50px; max-width: 150px; border-radius: 4px; border: 1px solid var(--border);" />
+                <button id="btn-remove-partner-logo" class="btn btn-glass btn-sm btn-glass-danger" type="button" style="margin-top: 5px; display: block; margin-left: auto; margin-right: auto;">Remove Logo</button>
+              </div>
+            </div>
+            <button
+              id="btn-add-partner-action"
+              class="btn btn-primary btn-block btn-lg"
+              type="button"
+              data-i18n="add_partner"
+            >
+              ➕ Adicionar Parceiro
+            </button>
+          </div>
         </div>
       </div>
     </div>

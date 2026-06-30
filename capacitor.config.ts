@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.vax360.app',
   appName: 'Vax360',
-  webDir: '.',
+  webDir: 'www',
   server: {
     androidScheme: 'https',
   },
@@ -24,9 +24,9 @@ const config: CapacitorConfig = {
     },
   },
   android: {
-    allowMixedContent: false,
+    allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: true,
   },
   ios: {
     contentInset: 'automatic',

@@ -270,7 +270,7 @@ body {
   transition: all var(--transition);
 }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.header-greeting h1 { font-size: 1.15rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.header-greeting h1 { font-size: 1.15rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100vw - 130px); }
 .header-greeting p { font-size: 0.75rem; color: var(--text-3); margin-top: -2px; }
 .header-avatar {
   width: 42px; height: 42px; border-radius: var(--radius-full);
@@ -1130,9 +1130,17 @@ body {
 .cal-wd { text-align: center; font-size: 0.7rem; font-weight: 800; color: var(--text-3); padding: 4px; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .cal-day {
-  text-align: center; padding: 8px 4px; border-radius: var(--radius-sm);
+  text-align: center; padding: 6px 4px; border-radius: var(--radius-sm);
   font-size: 0.82rem; font-weight: 600; color: var(--text-2);
-  transition: all var(--transition); position: relative; min-height: 36px;
+  transition: all var(--transition); position: relative; min-height: 38px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+}
+.cal-day.cal-day-selected {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 8px var(--primary-light);
+  transform: scale(1.05);
+  z-index: 2;
 }
 .cal-day.cal-empty { visibility: hidden; }
 .cal-day.cal-today {
@@ -1141,10 +1149,56 @@ body {
 }
 .cal-day.cal-has-vax { cursor: pointer; }
 .cal-day.cal-has-vax:hover { background: var(--primary-bg); }
+
+/* Highlights for vaccine states in calendar cells */
+.cal-day.cal-day-completed {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: var(--success) !important;
+  font-weight: 700;
+}
+.cal-day.cal-day-completed:hover {
+  background: rgba(34, 197, 94, 0.22);
+}
+
+.cal-day.cal-day-overdue {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--danger) !important;
+  font-weight: 700;
+}
+.cal-day.cal-day-overdue:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.cal-day.cal-day-upcoming {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--warning) !important;
+  font-weight: 700;
+}
+.cal-day.cal-day-upcoming:hover {
+  background: rgba(245, 158, 11, 0.22);
+}
+
+.cal-day.cal-day-pending {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--primary) !important;
+  font-weight: 700;
+}
+.cal-day.cal-day-pending:hover {
+  background: rgba(99, 102, 241, 0.18);
+}
+
 .cal-dots {
   display: flex; gap: 2px; justify-content: center; margin-top: 2px;
 }
 .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.cal-dot.dot-completed { background: var(--success); box-shadow: 0 0 4px rgba(34,197,94,0.4); }
+.cal-dot.dot-upcoming { background: var(--warning); box-shadow: 0 0 4px rgba(245,158,11,0.4); }
+.cal-dot.dot-overdue { background: var(--danger); box-shadow: 0 0 4px rgba(239,68,68,0.4); }
+.cal-dot.dot-pending { background: var(--text-3); }
 
 /* ─── Number input styling ───────────────────────────── */
 .form-group input[type="number"] {
@@ -1157,4 +1211,133 @@ body {
 }
 .form-group input[type="number"]:focus {
   border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-bg);
+}
+
+/* ─── Vaccine Guide & FAQ ─────────────────────────────── */
+.faq-search-box {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+.faq-search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  outline: none;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.faq-search-box input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-bg), var(--shadow-md);
+  background: var(--bg-card);
+}
+.faq-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--text-3);
+  pointer-events: none;
+  transition: color var(--transition);
+}
+.faq-search-box input:focus + .faq-search-icon {
+  color: var(--primary);
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.faq-item:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.faq-item.expanded {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+.faq-q {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--text);
+  transition: background var(--transition);
+}
+.faq-q:hover {
+  background: var(--primary-bg);
+}
+.faq-q-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding-right: 12px;
+  line-height: 1.4;
+  color: var(--text);
+}
+.faq-q-icon {
+  font-size: 0.9rem;
+  color: var(--primary);
+  background: var(--primary-bg);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.faq-item.expanded .faq-q-icon {
+  background: var(--primary);
+  color: white;
+}
+.faq-a {
+  padding: 0 20px 16px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-2);
+  border-top: 1px solid transparent;
+  animation: slideDown 0.25s ease-out;
+}
+.faq-item.expanded .faq-a {
+  border-top-color: var(--border);
+  padding-top: 12px;
+}
+.faq-a p {
+  margin: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
