@@ -5,7 +5,7 @@ import { useApp, Child, VaccineStatus } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { VACCINE_SCHEDULE, Vaccine } from '../../constants/vaccines';
-import { jsPDF } from 'jspdf';
+import { jsPDF } from 'jspdf/dist/jspdf.es.min.js';
 import QRCode from 'qrcode';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
