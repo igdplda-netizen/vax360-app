@@ -22,16 +22,11 @@ if (fs.existsSync(wwwDir)) {
   fs.rmSync(wwwDir, { recursive: true, force: true });
 }
 
-// Move/Copy dist/ to www/
-console.log('Moving build from dist/ to www/ for backend serving...');
-try {
-  fs.renameSync(distDir, wwwDir);
-} catch (err) {
-  fs.mkdirSync(wwwDir, { recursive: true });
-  copyDirRecursive(distDir, wwwDir);
-  fs.rmSync(distDir, { recursive: true, force: true });
-}
-console.log('Build completed! Files are in www/');
+// Copy dist/ to www/
+console.log('Copying build from dist/ to www/ for backend serving...');
+fs.mkdirSync(wwwDir, { recursive: true });
+copyDirRecursive(distDir, wwwDir);
+console.log('Build completed! Files are in both dist/ and www/');
 
 function copyDirRecursive(src, dest) {
   const entries = fs.readdirSync(src, { withFileTypes: true });
