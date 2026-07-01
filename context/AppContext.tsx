@@ -411,6 +411,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 let API_BASE_URL = 'http://localhost:5000/api';
 
 export async function detectApiBaseUrl(): Promise<string> {
+  // If running in a Replit workspace environment (detected via injected env var)
+  if (process.env.EXPO_PUBLIC_DOMAIN) {
+    API_BASE_URL = `https://5011-${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+    return API_BASE_URL;
+  }
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.href.startsWith('https://localhost')) {
     API_BASE_URL = `${window.location.origin}/api`;
     return API_BASE_URL;

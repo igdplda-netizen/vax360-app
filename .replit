@@ -7,11 +7,11 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-PORT = "5000"
+PORT = "5011"
 NODE_ENV = "development"
 DB_PATH = "./backend/database.sqlite"
 CORS_ORIGIN = "*"
-API_URL = "http://localhost:5000"
+API_URL = "http://localhost:5011"
 DEFAULT_ADMIN_PIN = "1234"
 EXPO_NO_DEV_TOOLS = "1"
 CI = "1"
@@ -40,6 +40,11 @@ outputType = "webview"
 task = "shell.exec"
 args = "EXPO_NO_DEV_TOOLS=1 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN npx expo start --localhost --port 5000"
 waitForPort = 5000
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node backend/server.js"
+waitForPort = 5011
 
 [[ports]]
 localPort = 5000
