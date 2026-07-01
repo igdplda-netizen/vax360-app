@@ -1121,8 +1121,8 @@ process.on("SIGTERM", shutdown);
 
 // ─── Start Server ───────────────────────────────────────
 if (require.main === module) {
-  httpServer = app.listen(PORT, () => {
-    console.log(`\n🚀 Vax360 API running on http://localhost:${PORT}`);
+  httpServer = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🚀 Vax360 API running on http://0.0.0.0:${PORT}`);
     console.log(`   Environment: ${NODE_ENV}`);
     console.log(`   Database:    ${DB_PATH}\n`);
   });
