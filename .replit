@@ -54,6 +54,7 @@ exposeLocalhost = true
 [[ports]]
 localPort = 5011
 externalPort = 3001
+exposeLocalhost = true
 
 [agent]
 expertMode = true

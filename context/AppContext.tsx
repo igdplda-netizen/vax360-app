@@ -413,12 +413,21 @@ let API_BASE_URL = 'http://localhost:5000/api';
 export async function detectApiBaseUrl(): Promise<string> {
   // If running in a Replit workspace environment (detected via injected env var)
   if (process.env.EXPO_PUBLIC_DOMAIN) {
-    API_BASE_URL = `https://5011-${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+    API_BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}:5011/api`;
     return API_BASE_URL;
   }
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.href.startsWith('https://localhost')) {
-    API_BASE_URL = `${window.location.origin}/api`;
-    return API_BASE_URL;
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Development workspace on Replit: route API calls to port 5011
+    if (hostname.includes('replit.dev') || hostname.includes('repl.co')) {
+      API_BASE_URL = `https://${hostname}:5011/api`;
+      return API_BASE_URL;
+    }
+    // Production deployment or other environments
+    if (hostname !== 'localhost' && !window.location.href.startsWith('https://localhost')) {
+      API_BASE_URL = `${window.location.origin}/api`;
+      return API_BASE_URL;
+    }
   }
   try {
     const controller = new AbortController();
