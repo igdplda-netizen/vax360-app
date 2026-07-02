@@ -78,10 +78,10 @@ Built with a focus on accessibility, data privacy, and ease of use in regions wi
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | Vanilla HTML, CSS, JavaScript (no framework) |
+| **Frontend** | React Native (Expo SDK 56 & Expo Router) |
 | **Backend** | Node.js + Express 5 |
 | **Database** | SQLite 3 |
-| **PWA** | Service Workers, Web App Manifest |
+| **PWA** | Expo Web PWA |
 | **Mobile** | Capacitor 6 (Android & iOS) |
 | **i18n** | Built-in translation engine (EN, PT, FR, AF) |
 
@@ -173,23 +173,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ```
 vax360/
-├── index.html           # Main HTML (PWA entry point)
-├── 200.html             # SPA fallback for client-side routing
-├── app.js               # Core application logic (3,200+ lines)
-├── style.css            # All styles (1,160+ lines)
-├── sw.js                # Service Worker for offline caching
-├── manifest.json        # PWA Web App Manifest
+├── app/                 # Expo Router screens (login, dashboard, 2FA, register, etc.)
+├── context/             # AppContext (global state, translation engine, API integration)
+├── constants/           # Core timeline (vaccines schedule, colors)
+├── lib/                 # Secure storage and utility libraries
+├── utils/               # PDF exporting helpers
+├── legacy/              # Archived PWA vanilla files (index.html, style.css, sw.js, etc.)
+├── app.js               # Expo entrypoint
+├── app.json             # Expo configuration (app name, bundle identifiers, icons)
 ├── capacitor.config.ts  # Capacitor native app configuration
-├── package.json         # Root dependencies & scripts
+├── package.json         # Root dependencies & build/test scripts
 ├── .env.example         # Environment variable template
 ├── .gitignore           # Git ignore rules
-├── icons/
-│   ├── icon-192.png     # PWA icon (192×192)
-│   └── icon-512.png     # PWA icon (512×512)
-└── backend/
-    ├── server.js        # Express API server
-    ├── db-init.js       # Database initialization script
-    └── package.json     # Backend dependencies
+├── icons/               # PWA and app icons
+└── backend/             # SQLite backend API
+    ├── server.js        # Express API server (port 5011)
+    ├── db-init.js       # Database initialization & migrations script
+    └── package.json     # Backend Node.js dependencies
 ```
 
 ---

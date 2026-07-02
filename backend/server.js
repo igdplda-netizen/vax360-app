@@ -33,10 +33,6 @@ if (NODE_ENV === "production") {
     console.error("❌ FATAL ERROR: JWT_SECRET is not configured for production!");
     process.exit(1);
   }
-  if (!process.env.SYNC_AUTH_TOKEN) {
-    console.error("❌ FATAL ERROR: SYNC_AUTH_TOKEN is not configured for production!");
-    process.exit(1);
-  }
   if (CORS_ORIGIN === "*" || CORS_ORIGIN.split(",").map(s => s.trim()).includes("*")) {
     console.error("❌ FATAL ERROR: CORS wildcard (*) is not allowed in production!");
     process.exit(1);
@@ -44,11 +40,10 @@ if (NODE_ENV === "production") {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret_temp";
-const SYNC_AUTH_TOKEN = process.env.SYNC_AUTH_TOKEN || "dev_sync_token_temp";
 
-if (NODE_ENV !== "production" && (!process.env.JWT_SECRET || !process.env.SYNC_AUTH_TOKEN)) {
+if (NODE_ENV !== "production" && !process.env.JWT_SECRET) {
   console.warn(
-    "\n⚠️  WARNING: JWT_SECRET or SYNC_AUTH_TOKEN not set. Using insecure default development secrets.\n"
+    "\n⚠️  WARNING: JWT_SECRET not set. Using insecure default development secret.\n"
   );
 }
 
@@ -69,7 +64,7 @@ app.use(helmet({
 }));
 app.use(
   cors({
-    origin: "*",
+    origin: CORS_ORIGIN === "*" ? "*" : CORS_ORIGIN.split(",").map(s => s.trim()),
   }),
 );
 app.use((req, res, next) => {
@@ -140,8 +135,14 @@ const db = new sqlite3.Database(
           // Seed default Superadmin user if not exists (using PBKDF2)
           db.get("SELECT whatsapp FROM users WHERE whatsapp = '9999'", (errAdmin, rowAdmin) => {
             if (!errAdmin && !rowAdmin) {
+              const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
+              if (superadminPassword === "Admin@123") {
+                console.warn(
+                  "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
+                );
+              }
               const superadminSalt = crypto.randomBytes(16).toString("hex");
-              const superadminHash = crypto.pbkdf2Sync("Admin@123", superadminSalt, 100000, 64, "sha512").toString("hex");
+              const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
               db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role)
                       VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin')`, [superadminHash, superadminSalt], (insertErr) => {
                         if (insertErr) console.error("❌ Error seeding superadmin:", insertErr.message);

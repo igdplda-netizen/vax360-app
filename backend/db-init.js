@@ -67,8 +67,14 @@ db.serialize(() => {
             const next2 = () => {
               // Step 5: Seed superadmin
               const crypto = require('crypto');
+              const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
+              if (superadminPassword === "Admin@123") {
+                console.warn(
+                  "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
+                );
+              }
               const superadminSalt = crypto.randomBytes(16).toString("hex");
-              const superadminHash = crypto.pbkdf2Sync("Admin@123", superadminSalt, 100000, 64, "sha512").toString("hex");
+              const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
               db.run(`
                 INSERT OR IGNORE INTO users (whatsapp, name, email, password_hash, salt, role)
                 VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin')

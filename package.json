@@ -21,7 +21,7 @@
     "cap:open:ios": "npx -y @capacitor/cli open ios",
     "android": "npm run cap:sync && npm run cap:open:android",
     "ios": "npm run cap:sync && npm run cap:open:ios",
-    "test": "jest",
+    "test": "jest backend/",
     "test:prep": "npm run build && npm run db:init && npm test",
     "postinstall": "cd backend && npm install && node ../patch-devtools.js",
     "start": "node build.js && cd backend && node db-init.js && node server.js"

@@ -746,7 +746,7 @@ describe("Production Config Validations", () => {
   it("should fail to start in production if JWT_SECRET is missing", (done) => {
     const { exec } = require("child_process");
     exec(
-      'node -e "const Module = require(\\\"module\\\"); const orig = Module.prototype.require; Module.prototype.require = function(id) { if(id===\\\"dotenv\\\") return { config: () => ({}) }; return orig.apply(this, arguments); }; process.env.NODE_ENV=\\\"production\\\"; delete process.env.JWT_SECRET; process.env.SYNC_AUTH_TOKEN=\\\"test\\\"; require(\\\"./server\\\")"',
+      'node -e "const Module = require(\\\"module\\\"); const orig = Module.prototype.require; Module.prototype.require = function(id) { if(id===\\\"dotenv\\\") return { config: () => ({}) }; return orig.apply(this, arguments); }; process.env.NODE_ENV=\\\"production\\\"; delete process.env.JWT_SECRET; require(\\\"./server\\\")"',
       { cwd: __dirname },
       (error, stdout, stderr) => {
         expect(error).not.toBeNull();
@@ -757,24 +757,10 @@ describe("Production Config Validations", () => {
     );
   });
 
-  it("should fail to start in production if SYNC_AUTH_TOKEN is missing", (done) => {
-    const { exec } = require("child_process");
-    exec(
-      'node -e "const Module = require(\\\"module\\\"); const orig = Module.prototype.require; Module.prototype.require = function(id) { if(id===\\\"dotenv\\\") return { config: () => ({}) }; return orig.apply(this, arguments); }; process.env.NODE_ENV=\\\"production\\\"; process.env.JWT_SECRET=\\\"test\\\"; delete process.env.SYNC_AUTH_TOKEN; require(\\\"./server\\\")"',
-      { cwd: __dirname },
-      (error, stdout, stderr) => {
-        expect(error).not.toBeNull();
-        expect(error.code).toBe(1);
-        expect(stderr).toContain("SYNC_AUTH_TOKEN is not configured");
-        done();
-      }
-    );
-  });
-
   it("should fail to start in production if CORS_ORIGIN is wildcard (*)", (done) => {
     const { exec } = require("child_process");
     exec(
-      'node -e "const Module = require(\\\"module\\\"); const orig = Module.prototype.require; Module.prototype.require = function(id) { if(id===\\\"dotenv\\\") return { config: () => ({}) }; return orig.apply(this, arguments); }; process.env.NODE_ENV=\\\"production\\\"; process.env.JWT_SECRET=\\\"test\\\"; process.env.SYNC_AUTH_TOKEN=\\\"test\\\"; process.env.CORS_ORIGIN=\\\"*\\\"; require(\\\"./server\\\")"',
+      'node -e "const Module = require(\\\"module\\\"); const orig = Module.prototype.require; Module.prototype.require = function(id) { if(id===\\\"dotenv\\\") return { config: () => ({}) }; return orig.apply(this, arguments); }; process.env.NODE_ENV=\\\"production\\\"; process.env.JWT_SECRET=\\\"test\\\"; process.env.CORS_ORIGIN=\\\"*\\\"; require(\\\"./server\\\")"',
       { cwd: __dirname },
       (error, stdout, stderr) => {
         expect(error).not.toBeNull();
