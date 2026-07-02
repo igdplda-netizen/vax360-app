@@ -261,13 +261,10 @@ export async function exportCertificatePdf(
   } else {
     try {
       const blob = doc.output('blob');
-      const blobUrl = URL.createObjectURL(blob);
-      const newWindow = window.open(blobUrl, '_blank');
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        doc.save(`certificado_${currentChild.id}.pdf`);
-      }
+      return URL.createObjectURL(blob);
     } catch (err) {
       doc.save(`certificado_${currentChild.id}.pdf`);
+      return null;
     }
   }
 }

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, ActivityIndicator, Alert, Modal, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp, Child, VaccineStatus } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { VACCINE_SCHEDULE, Vaccine } from '../../constants/vaccines';
 import { exportCertificatePdf } from '../../utils/pdf-exporter';
 import { formatToDeviceDate, promptForDate } from '../../utils/date';
 
@@ -28,6 +27,8 @@ export default function ScheduleScreen() {
   const isDark = scheme === 'dark';
 
   const [exporting, setExporting] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
@@ -82,7 +83,11 @@ export default function ScheduleScreen() {
     if (exporting) return;
     setExporting(true);
     try {
-      await exportCertificatePdf(currentChild, vaccines, state, t, primaryColor);
+      const url = await exportCertificatePdf(currentChild, vaccines, state, t, primaryColor);
+      if (url) {
+        setPdfUrl(url);
+        setShowPdfModal(true);
+      }
     } catch (err: any) {
       Alert.alert('Erro ao Exportar', err.message || 'Falha ao gerar certificado PDF.');
     }
@@ -156,6 +161,67 @@ export default function ScheduleScreen() {
           );
         })}
       </ScrollView>
+
+      {/* PDF Viewer Modal (Web only) */}
+      {showPdfModal && pdfUrl && (
+        <Modal
+          visible={showPdfModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            setShowPdfModal(false);
+            setPdfUrl(null);
+          }}
+        >
+          <View style={styles.pdfOverlay}>
+            <View style={[styles.pdfModalContent, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
+              <View style={[styles.pdfModalHeader, { borderBottomColor: isDark ? Colors.border.dark : Colors.border.light }]}>
+                <Text style={[styles.pdfModalTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  {t('certificate') || 'Certificado de Vacinação'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowPdfModal(false);
+                    setPdfUrl(null);
+                  }}
+                  style={styles.pdfCloseBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={24} color={isDark ? Colors.text.dark.primary : Colors.text.light.primary} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.pdfContainer}>
+                {Platform.OS === 'web' ? (
+                  <iframe
+                    src={pdfUrl}
+                    style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8 }}
+                    title="Certificado PDF"
+                  />
+                ) : (
+                  <Text style={{ color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }}>
+                    PDF gerado.
+                  </Text>
+                )}
+              </View>
+              <View style={[styles.pdfModalFooter, { borderTopColor: isDark ? Colors.border.dark : Colors.border.light }]}>
+                <TouchableOpacity
+                  style={[styles.pdfDownloadBtn, { backgroundColor: Colors.primary }]}
+                  onPress={() => {
+                    const link = document.createElement('a');
+                    link.href = pdfUrl;
+                    link.download = `certificado_${currentChild.name.replace(/\s+/g, '_')}.pdf`;
+                    link.click();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="download-outline" size={20} color="#fff" />
+                  <Text style={styles.pdfDownloadBtnText}>Descarregar PDF</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -178,4 +244,67 @@ const styles = StyleSheet.create({
   vaccineStatus: { fontSize: 12, marginTop: 2, fontWeight: '500' },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2 },
   placeholderText: { fontSize: 14, textAlign: 'center', marginTop: 12 },
+  pdfOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  pdfModalContent: {
+    width: '90%',
+    maxWidth: 800,
+    height: '85%',
+    borderRadius: 20,
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  pdfModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+  },
+  pdfModalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  pdfCloseBtn: {
+    padding: 4,
+  },
+  pdfContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    padding: 10,
+  },
+  pdfModalFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pdfDownloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
+  },
+  pdfDownloadBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
