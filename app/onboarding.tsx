@@ -79,8 +79,7 @@ const styles = StyleSheet.create({
   features: { gap: 12 },
   featureCard: {
     flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)', elevation: 2,
   },
   featureIcon: {
     width: 44, height: 44, borderRadius: 12,
@@ -94,8 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: 16, borderRadius: 16, gap: 8,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
+    boxShadow: '0px 4px 12px rgba(99, 102, 241, 0.3)', elevation: 4,
   },
   buttonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

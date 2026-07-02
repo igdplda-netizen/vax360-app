@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   actionBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10, gap: 6 },
   actionBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   childrenContainer: { gap: 16 },
-  childSection: { padding: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
+  childSection: { padding: 16, borderRadius: 16, boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.03)', elevation: 1 },
   childHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   avatar: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   childName: { fontSize: 16, fontWeight: '800' },

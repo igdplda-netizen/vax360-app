@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   networkDot: { width: 10, height: 10, borderRadius: 5 },
   syncBtn: { padding: 6 },
   addBtn: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  progressCard: { borderRadius: 20, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  progressCard: { borderRadius: 20, padding: 20, marginBottom: 20, boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)', elevation: 2 },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   progressTitle: { fontSize: 15, fontWeight: '700' },
   progressPercent: { fontSize: 20, fontWeight: '800' },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   vaccineList: { gap: 10 },
   vaccineCard: {
     flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
+    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
   },
   vaccineIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   vaccineInfo: { flex: 1 },

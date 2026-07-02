@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: '800', marginBottom: 24 },
   section: { marginBottom: 20 },
   sectionLabel: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
-  card: { borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
+  card: { borderRadius: 16, overflow: 'hidden', boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
   userInfoRow: { flexDirection: 'row', alignItems: 'center' },
   userAvatar: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   userName: { fontSize: 16, fontWeight: '800' },

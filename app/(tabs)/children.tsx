@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   list: { gap: 12 },
   childCard: {
     flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
+    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
   },
   childCardActive: { borderWidth: 2, borderColor: Colors.primary },
   avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },

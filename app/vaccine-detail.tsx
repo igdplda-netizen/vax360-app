@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   metaRow: { gap: 8 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { fontSize: 14, fontWeight: '500' },
-  sectionCard: { borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
+  sectionCard: { borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   listItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
