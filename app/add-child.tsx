@@ -29,19 +29,11 @@ export default function AddChildScreen() {
     }
 
     addChild({ name: name.trim(), birthDate: parsedDate, gender });
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(tabs)');
-    }
+    router.replace('/(tabs)');
   };
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(tabs)');
-    }
+    router.replace('/(tabs)');
   };
 
   const handleDateChange = (text: string) => {
