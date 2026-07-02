@@ -44,7 +44,13 @@ export default function VaccineDetailScreen() {
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={isDark ? Colors.text.dark.primary : Colors.text.light.primary} />
           </TouchableOpacity>
           <View style={{ width: 40 }} />

@@ -61,7 +61,13 @@ export default function TwoFactorScreen() {
         Alert.alert(
           'Sucesso',
           'Autenticação de 2 Fatores (2FA) ativada com sucesso!',
-          [{ text: 'OK', onPress: () => router.back() }]
+          [{ text: 'OK', onPress: () => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          } }]
         );
       }
     }
@@ -71,7 +77,13 @@ export default function TwoFactorScreen() {
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }} activeOpacity={0.6}>
             <Ionicons name="arrow-back" size={24} color={isDark ? Colors.text.dark.primary : Colors.text.light.primary} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: Colors.primary }]}>{t('twoFactor')}</Text>
