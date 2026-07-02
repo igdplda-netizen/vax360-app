@@ -411,16 +411,21 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 let API_BASE_URL = 'http://localhost:5000/api';
 
 export async function detectApiBaseUrl(): Promise<string> {
-  // If running in a Replit workspace environment (detected via injected env var)
+  // Both in the Replit dev workspace and in production, only a single public
+  // origin/port is reachable from the browser. The dev server (Metro, on the
+  // same port the page is served from) proxies /api/* to the backend, and in
+  // production server.js serves both from one origin. So we always use the
+  // current page's origin rather than a hardcoded backend port.
   if (process.env.EXPO_PUBLIC_DOMAIN) {
-    API_BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}:5011/api`;
+    API_BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
     return API_BASE_URL;
   }
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // Development workspace on Replit: route API calls to port 5011
+    // Development workspace on Replit or any deployed/production environment:
+    // route API calls through the same origin the page was loaded from.
     if (hostname.includes('replit.dev') || hostname.includes('repl.co')) {
-      API_BASE_URL = `https://${hostname}:5011/api`;
+      API_BASE_URL = `${window.location.origin}/api`;
       return API_BASE_URL;
     }
     // Production deployment or other environments
