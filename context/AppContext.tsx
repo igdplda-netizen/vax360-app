@@ -154,6 +154,7 @@ const translations: Record<Language, Record<string, string>> = {
     remindersDesc: 'Get notified when vaccines are due',
     login: 'Login',
     register: 'Register',
+    phoneAlreadyRegistered: 'This WhatsApp/phone number is already registered. Please log in instead.',
     whatsapp: 'WhatsApp / Phone',
     password: 'Password',
     email: 'Email',
@@ -231,6 +232,7 @@ const translations: Record<Language, Record<string, string>> = {
     remindersDesc: 'Receba notificações quando as vacinas estiverem devendo',
     login: 'Entrar',
     register: 'Registar',
+    phoneAlreadyRegistered: 'Este número de WhatsApp/telefone já está registado. Por favor, inicie sessão.',
     whatsapp: 'WhatsApp / Telefone',
     password: 'Senha',
     email: 'E-mail',
@@ -308,6 +310,7 @@ const translations: Record<Language, Record<string, string>> = {
     remindersDesc: 'Recevez des notifications pour les vaccins dus',
     login: 'Connexion',
     register: 'S\'inscrire',
+    phoneAlreadyRegistered: 'Ce numéro WhatsApp/téléphone est déjà enregistré. Veuillez vous connecter.',
     whatsapp: 'WhatsApp / Téléphone',
     password: 'Mot de passe',
     email: 'E-mail',
@@ -385,6 +388,7 @@ const translations: Record<Language, Record<string, string>> = {
     remindersDesc: 'Kry kennisgewings wanneer entstowwe verskuldig is',
     login: 'Meld aan',
     register: 'Registreer',
+    phoneAlreadyRegistered: 'Hierdie WhatsApp-/foonnommer is reeds geregistreer. Meld asseblief aan.',
     whatsapp: 'WhatsApp / Telefoon',
     password: 'Wagwoord',
     email: 'E-pos',
@@ -698,7 +702,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        return { success: false, error: data.error || 'Registration failed' };
+        const code = data.error || 'Registration failed';
+        const friendly = code === 'registration_failed' ? t('phoneAlreadyRegistered') : code;
+        return { success: false, error: friendly };
       }
       return { success: true };
     } catch (err) {
