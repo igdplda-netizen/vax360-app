@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { getDeviceDateFormat, parseInputDate, formatInputText } from '../utils/date';
 
 export default function AddChildScreen() {
   const { t, addChild } = useApp();
@@ -13,19 +14,21 @@ export default function AddChildScreen() {
 
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | 'other'>('other');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const deviceFormat = getDeviceDateFormat();
 
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert('Error', 'Please enter a name');
       return;
     }
-    if (!birthDate.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
-      Alert.alert('Error', 'Please enter a valid date (YYYY-MM-DD)');
+    const parsedDate = parseInputDate(birthDate, deviceFormat);
+    if (!parsedDate) {
+      Alert.alert('Error', `Please enter a valid date (${deviceFormat})`);
       return;
     }
 
-    addChild({ name: name.trim(), birthDate, gender });
+    addChild({ name: name.trim(), birthDate: parsedDate, gender });
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -39,6 +42,10 @@ export default function AddChildScreen() {
     } else {
       router.replace('/(tabs)');
     }
+  };
+
+  const handleDateChange = (text: string) => {
+    setBirthDate(formatInputText(text, deviceFormat));
   };
 
   return (
@@ -73,10 +80,9 @@ export default function AddChildScreen() {
           </Text>
           <TextInput
             style={[styles.input, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light, color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}
-
             value={birthDate}
-            onChangeText={setBirthDate}
-            placeholder="YYYY-MM-DD"
+            onChangeText={handleDateChange}
+            placeholder={deviceFormat}
             placeholderTextColor={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary}
             keyboardType="numbers-and-punctuation"
             maxLength={10}
@@ -88,7 +94,7 @@ export default function AddChildScreen() {
             {t('gender')}
           </Text>
           <View style={styles.genderRow}>
-            {(['male', 'female', 'other'] as const).map(g => (
+            {(['male', 'female'] as const).map(g => (
               <TouchableOpacity
                 key={g}
                 style={[
@@ -99,7 +105,7 @@ export default function AddChildScreen() {
                 onPress={() => setGender(g)}
               >
                 <Ionicons
-                  name={g === 'male' ? 'male' : g === 'female' ? 'female' : 'person'}
+                  name={g === 'male' ? 'male' : 'female'}
                   size={18}
                   color={gender === g ? '#fff' : isDark ? Colors.text.dark.secondary : Colors.text.light.secondary}
                 />

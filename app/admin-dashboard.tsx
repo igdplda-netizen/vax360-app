@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp, Child, PartnerBranding } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { getDeviceDateFormat, parseInputDate, formatInputText, formatToDeviceDate, promptForDate } from '../utils/date';
 
 interface ParentUser {
   whatsapp: string;
@@ -97,15 +98,21 @@ export default function AdminDashboardScreen() {
     setSavingChildren(false);
   };
 
+  const deviceFormat = getDeviceDateFormat();
+
   const handleAddChild = () => {
     if (!newChildName || !newChildBirthDate) {
       Alert.alert('Aviso', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+    const parsedDate = parseInputDate(newChildBirthDate, deviceFormat);
+    if (!parsedDate) {
+      Alert.alert('Erro', `Data de nascimento inválida (${deviceFormat}).`);
+      return;
+    }
     // Calculate vaccine schedules
-    const childBirth = newChildBirthDate;
     const getSchedDate = (months: number) => {
-      const d = new Date(childBirth);
+      const d = new Date(parsedDate);
       d.setMonth(d.getMonth() + months);
       return d.toISOString().split('T')[0];
     };
@@ -113,7 +120,7 @@ export default function AdminDashboardScreen() {
     const newChild: Child = {
       id: Date.now().toString(36),
       name: newChildName,
-      birthDate: newChildBirthDate,
+      birthDate: parsedDate,
       gender: newChildGender,
       vaccines: require('../constants/vaccines').VACCINE_SCHEDULE.map((v: any) => ({
         vaccineId: v.id,
@@ -130,20 +137,39 @@ export default function AdminDashboardScreen() {
   };
 
   const toggleVaccine = (childId: string, vaccineId: string, currentStatus: string) => {
-    setSelectedParentChildren(prev => prev.map(child => {
-      if (child.id !== childId) return child;
-      return {
-        ...child,
-        vaccines: child.vaccines.map(v => {
-          if (v.vaccineId !== vaccineId) return v;
+    if (currentStatus === 'completed') {
+      setSelectedParentChildren(prev => prev.map(child => {
+        if (child.id !== childId) return child;
+        return {
+          ...child,
+          vaccines: child.vaccines.map(v => {
+            if (v.vaccineId !== vaccineId) return v;
+            return {
+              ...v,
+              status: 'pending',
+              completedDate: undefined
+            };
+          })
+        };
+      }));
+    } else {
+      promptForDate(state.language === 'pt' ? 'pt' : 'en', (dateStr) => {
+        setSelectedParentChildren(prev => prev.map(child => {
+          if (child.id !== childId) return child;
           return {
-            ...v,
-            status: currentStatus === 'completed' ? 'pending' : 'completed',
-            completedDate: currentStatus === 'completed' ? undefined : new Date().toISOString().split('T')[0]
+            ...child,
+            vaccines: child.vaccines.map(v => {
+              if (v.vaccineId !== vaccineId) return v;
+              return {
+                ...v,
+                status: 'completed',
+                completedDate: dateStr
+              };
+            })
           };
-        })
-      };
-    }));
+        }));
+      });
+    }
   };
 
   const filteredParents = parents.filter(p =>
@@ -273,7 +299,7 @@ export default function AdminDashboardScreen() {
                             {child.name}
                           </Text>
                           <Text style={[styles.childMeta, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                            Nascimento: {child.birthDate} ({child.gender})
+                            Nascimento: {formatToDeviceDate(child.birthDate)} ({child.gender === 'male' ? t('male') : t('female')})
                           </Text>
                         </View>
                       </View>
@@ -292,7 +318,7 @@ export default function AdminDashboardScreen() {
                             </Text>
                             <View style={styles.vaxStatusContainer}>
                               <Text style={[styles.vaxDate, { color: isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary }]}>
-                                {v.completedDate ? `Aplicada: ${v.completedDate}` : `Agendada: ${v.scheduledDate}`}
+                                {v.completedDate ? `Aplicada: ${formatToDeviceDate(v.completedDate)}` : `Agendada: ${formatToDeviceDate(v.scheduledDate)}`}
                               </Text>
                               <Ionicons
                                 name={v.status === 'completed' ? 'checkmark-circle' : 'ellipse-outline'}
@@ -346,10 +372,12 @@ export default function AdminDashboardScreen() {
               </Text>
               <TextInput
                 style={[styles.modalInput, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary, borderColor: isDark ? Colors.border.dark : Colors.border.light }]}
-                placeholder="AAAA-MM-DD"
+                placeholder={deviceFormat}
                 placeholderTextColor={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary}
                 value={newChildBirthDate}
-                onChangeText={setNewChildBirthDate}
+                onChangeText={(text) => setNewChildBirthDate(formatInputText(text, deviceFormat))}
+                keyboardType="numbers-and-punctuation"
+                maxLength={10}
               />
             </View>
 
@@ -358,7 +386,7 @@ export default function AdminDashboardScreen() {
                 Género
               </Text>
               <View style={styles.genderRow}>
-                {['male', 'female', 'other'].map((g) => (
+                {['male', 'female'].map((g) => (
                   <TouchableOpacity
                     key={g}
                     style={[
@@ -369,7 +397,7 @@ export default function AdminDashboardScreen() {
                     onPress={() => setNewChildGender(g as any)}
                   >
                     <Text style={[styles.genderBtnText, newChildGender === g && { color: '#fff' }]}>
-                      {g === 'male' ? 'Masc' : g === 'female' ? 'Fem' : 'Outro'}
+                      {g === 'male' ? 'Masc' : 'Fem'}
                     </Text>
                   </TouchableOpacity>
                 ))}

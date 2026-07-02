@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { formatToDeviceDate } from '../../utils/date';
 
 export default function ChildrenScreen() {
   const { state, t, removeChild, setCurrentChild } = useApp();
@@ -102,7 +103,7 @@ export default function ChildrenScreen() {
                     {child.name}
                   </Text>
                   <Text style={[styles.childMeta, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                    {getAge(child.birthDate)} • {child.birthDate}
+                    {getAge(child.birthDate)} • {formatToDeviceDate(child.birthDate)}
                   </Text>
                 </View>
                 {state.currentChildId === child.id && (

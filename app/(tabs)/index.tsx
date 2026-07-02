@@ -6,6 +6,7 @@ import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { VaccineStatus } from '../../context/AppContext';
 import { VACCINE_SCHEDULE } from '../../constants/vaccines';
+import { formatToDeviceDate } from '../../utils/date';
 
 export default function HomeScreen() {
   const { state, t, getVaccinesForChild, setCurrentChild, syncData, isOnline, syncPending } = useApp();
@@ -219,7 +220,7 @@ export default function HomeScreen() {
                       {state.language === 'pt' ? v.namePt : v.nameEn}
                     </Text>
                     <Text style={[styles.vaccineDate, { color: getStatusColor(v.status) }]}>
-                      {v.scheduledDate}
+                      {formatToDeviceDate(v.scheduledDate)}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary} />

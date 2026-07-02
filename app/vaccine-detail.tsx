@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { VACCINE_SCHEDULE } from '../constants/vaccines';
 import { Ionicons } from '@expo/vector-icons';
+import { formatToDeviceDate, promptForDate } from '../utils/date';
 
 export default function VaccineDetailScreen() {
   const { childId, vaccineId } = useLocalSearchParams<{ childId: string; vaccineId: string }>();
@@ -31,7 +32,9 @@ export default function VaccineDetailScreen() {
     if (isCompleted) {
       markVaccinePending(childId, vaccineId);
     } else {
-      markVaccineCompleted(childId, vaccineId);
+      promptForDate(state.language === 'pt' ? 'pt' : 'en', (dateStr) => {
+        markVaccineCompleted(childId, vaccineId, dateStr);
+      });
     }
   };
 
@@ -75,7 +78,9 @@ export default function VaccineDetailScreen() {
             <View style={styles.meta}>
               <Ionicons name="calendar" size={16} color={Colors.primary} />
               <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                {t('scheduledFor')}: {vData?.scheduledDate}
+                {isCompleted 
+                  ? `${state.language === 'pt' ? 'Aplicada em' : 'Applied on'}: ${vData?.completedDate ? formatToDeviceDate(vData.completedDate) : ''}`
+                  : `${t('scheduledFor')}: ${vData?.scheduledDate ? formatToDeviceDate(vData.scheduledDate) : ''}`}
               </Text>
             </View>
             <View style={styles.meta}>

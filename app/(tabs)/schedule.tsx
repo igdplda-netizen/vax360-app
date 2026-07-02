@@ -6,6 +6,7 @@ import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { VACCINE_SCHEDULE, Vaccine } from '../../constants/vaccines';
 import { exportCertificatePdf } from '../../utils/pdf-exporter';
+import { formatToDeviceDate, promptForDate } from '../../utils/date';
 
 const groups = [
   { key: 'birth', label: 'Ao Nascer', labelEn: 'At Birth' },
@@ -70,7 +71,9 @@ export default function ScheduleScreen() {
     if (currentStatus === 'completed') {
       markVaccinePending(currentChild.id, vaccineId);
     } else {
-      markVaccineCompleted(currentChild.id, vaccineId);
+      promptForDate(state.language === 'pt' ? 'pt' : 'en', (dateStr) => {
+        markVaccineCompleted(currentChild.id, vaccineId, dateStr);
+      });
     }
   };
 
@@ -134,7 +137,11 @@ export default function ScheduleScreen() {
                         {state.language === 'pt' ? v.namePt : v.nameEn}
                       </Text>
                       <Text style={[styles.vaccineStatus, { color: getStatusColor(v.status) }]}>
-                        {v.status === 'completed' ? t('completed') : v.scheduledDate}
+                        {v.status === 'completed' 
+                          ? (v.completedDate 
+                            ? `${state.language === 'pt' ? 'Tomada em' : 'Taken on'}: ${formatToDeviceDate(v.completedDate)}` 
+                            : t('completed')) 
+                          : formatToDeviceDate(v.scheduledDate)}
                       </Text>
                     </View>
                     {v.status === 'completed' ? (

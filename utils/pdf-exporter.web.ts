@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { formatToDeviceDate } from './date';
 
 const groups = [
   { key: 'birth', label: 'Ao Nascer', labelEn: 'At Birth' },
@@ -37,14 +38,7 @@ export async function exportCertificatePdf(
   const rowsPerPage = 20;
   const totalPages = Math.ceil(sortedVaxes.length / rowsPerPage) || 1;
 
-  const fmtDate = (dStr: string) => {
-    try {
-      const parts = dStr.split('-');
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    } catch {
-      return dStr;
-    }
-  };
+  const fmtDate = (dStr: string) => formatToDeviceDate(dStr);
 
   const getAgeMonths = (birthDate: string) => {
     const birth = new Date(birthDate);
@@ -265,6 +259,15 @@ export async function exportCertificatePdf(
       dialogTitle: 'Partilhar Certificado de Vacinação'
     });
   } else {
-    doc.save(`certificado_${currentChild.id}.pdf`);
+    try {
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      const newWindow = window.open(blobUrl, '_blank');
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        doc.save(`certificado_${currentChild.id}.pdf`);
+      }
+    } catch (err) {
+      doc.save(`certificado_${currentChild.id}.pdf`);
+    }
   }
 }
