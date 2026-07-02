@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getItem, setItem } from '../lib/storage';
 import { VACCINE_SCHEDULE, Vaccine } from '../constants/vaccines';
 
@@ -456,6 +456,8 @@ export async function detectApiBaseUrl(): Promise<string> {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const [loaded, setLoaded] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [syncPending, setSyncPending] = useState(false);
@@ -775,17 +777,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Sync API
   const syncData = async (): Promise<boolean> => {
-    if (!state.token || !state.currentUser) return false;
+    const currentState = stateRef.current;
+    if (!currentState.token || !currentState.currentUser) return false;
     setSyncPending(true);
     try {
       // 1. Post local children to sync
-      const pushRes = await fetch(`${API_BASE_URL}/sync/${state.currentUser.whatsapp}`, {
+      const pushRes = await fetch(`${API_BASE_URL}/sync/${currentState.currentUser.whatsapp}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${state.token}`,
+          'Authorization': `Bearer ${currentState.token}`,
         },
-        body: JSON.stringify({ children: state.children }),
+        body: JSON.stringify({ children: currentState.children }),
       });
 
       if (!pushRes.ok) {
@@ -795,8 +798,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       // 2. Fetch server state to merge
-      const pullRes = await fetch(`${API_BASE_URL}/sync/${state.currentUser.whatsapp}`, {
-        headers: { 'Authorization': `Bearer ${state.token}` },
+      const pullRes = await fetch(`${API_BASE_URL}/sync/${currentState.currentUser.whatsapp}`, {
+        headers: { 'Authorization': `Bearer ${currentState.token}` },
       });
       const pullData = await pullRes.json();
       if (pullRes.ok && pullData.success && pullData.data) {
