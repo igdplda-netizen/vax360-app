@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp, Language } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import FlagIcon from '../../components/FlagIcon';
 
 export default function SettingsScreen() {
   const { state, setLanguage, setTheme, logout, get2FAStatus, disable2FA, t, isOnline } = useApp();
@@ -60,11 +61,11 @@ export default function SettingsScreen() {
     }
   };
 
-  const languages: { code: Language; label: string; flag: string }[] = [
-    { code: 'en', label: t('english'), flag: '🇬🇧' },
-    { code: 'pt', label: t('portuguese'), flag: '🇧🇷' },
-    { code: 'fr', label: t('french'), flag: '🇫🇷' },
-    { code: 'af', label: t('afrikaans'), flag: '🇿🇦' },
+  const languages: { code: Language; label: string }[] = [
+    { code: 'en', label: t('english') },
+    { code: 'pt', label: t('portuguese') },
+    { code: 'fr', label: t('french') },
+    { code: 'af', label: t('afrikaans') },
   ];
 
   return (
@@ -197,7 +198,7 @@ export default function SettingsScreen() {
                 activeOpacity={0.6}
               >
                 <View style={styles.rowIcon}>
-                  <Text style={{ fontSize: 20 }}>{lang.flag}</Text>
+                  <FlagIcon languageCode={lang.code} size={22} />
                 </View>
                 <Text style={[styles.rowLabel, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
                   {lang.label}
