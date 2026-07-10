@@ -17,15 +17,9 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // If already authenticated, redirect to appropriate dashboard
+    // If already authenticated, redirect to home
     if (state.token) {
-      if (state.userRole === 'admin') {
-        router.replace('/admin-dashboard');
-      } else if (state.userRole === 'superadmin') {
-        router.replace('/branding');
-      } else {
-        router.replace('/(tabs)');
-      }
+      router.replace('/(tabs)');
     }
   }, [state.token, state.userRole]);
 
