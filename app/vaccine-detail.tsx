@@ -6,6 +6,12 @@ import { VACCINE_SCHEDULE } from '../constants/vaccines';
 import { Ionicons } from '@expo/vector-icons';
 import { formatToDeviceDate, promptForDate } from '../utils/date';
 
+const CATEGORY_COLORS = {
+  mandatory: { bg: '#dbeafe', text: '#1e40af', icon: 'shield-checkmark' as const },
+  recommended: { bg: '#fef3c7', text: '#92400e', icon: 'star' as const },
+  travel: { bg: '#e0e7ff', text: '#3730a3', icon: 'airplane' as const },
+};
+
 export default function VaccineDetailScreen() {
   const { childId, vaccineId } = useLocalSearchParams<{ childId: string; vaccineId: string }>();
   const { state, t, markVaccineCompleted, markVaccinePending, getVaccinesForChild } = useApp();
@@ -27,21 +33,26 @@ export default function VaccineDetailScreen() {
   const vaccines = getVaccinesForChild(child);
   const vData = vaccines.find(v => v.id === vaccineId);
   const isCompleted = vData?.status === 'completed';
+  const isPt = state.language === 'pt';
 
   const handleToggle = () => {
     if (isCompleted) {
       markVaccinePending(childId, vaccineId);
     } else {
-      promptForDate(state.language === 'pt' ? 'pt' : 'en', (dateStr) => {
+      promptForDate(isPt ? 'pt' : 'en', (dateStr) => {
         markVaccineCompleted(childId, vaccineId, dateStr);
       });
     }
   };
 
-  const name = state.language === 'pt' ? vaccine.namePt : vaccine.nameEn;
-  const description = state.language === 'pt' ? vaccine.descriptionPt : vaccine.description;
-  const benefits = state.language === 'pt' ? vaccine.benefitsPt : vaccine.benefits;
-  const sideEffects = state.language === 'pt' ? vaccine.sideEffectsPt : vaccine.sideEffects;
+  const name = isPt ? vaccine.namePt : vaccine.nameEn;
+  const description = isPt ? vaccine.descriptionPt : vaccine.description;
+  const benefits = isPt ? vaccine.benefitsPt : vaccine.benefits;
+  const sideEffects = isPt ? vaccine.sideEffectsPt : vaccine.sideEffects;
+  const category = vaccine.category || 'mandatory';
+  const catStyle = CATEGORY_COLORS[category];
+  const categoryLabel = t(category === 'mandatory' ? 'mandatoryVaccines' : category === 'recommended' ? 'recommendedVaccines' : 'travelVaccines');
+  const info = vaccine.detailedInfo;
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
@@ -56,11 +67,17 @@ export default function VaccineDetailScreen() {
         </View>
 
         <View style={styles.card}>
-          <View style={[styles.statusBadge, { backgroundColor: isCompleted ? Colors.vaccine.completed + '15' : Colors.vaccine.pending + '15' }]}>
-            <Ionicons name={isCompleted ? 'checkmark-circle' : 'ellipse'} size={16} color={isCompleted ? Colors.vaccine.completed : Colors.vaccine.pending} />
-            <Text style={[styles.statusText, { color: isCompleted ? Colors.vaccine.completed : Colors.vaccine.pending }]}>
-              {isCompleted ? t('completed') : t('pending')}
-            </Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.statusBadge, { backgroundColor: isCompleted ? Colors.vaccine.completed + '15' : Colors.vaccine.pending + '15' }]}>
+              <Ionicons name={isCompleted ? 'checkmark-circle' : 'ellipse'} size={16} color={isCompleted ? Colors.vaccine.completed : Colors.vaccine.pending} />
+              <Text style={[styles.statusText, { color: isCompleted ? Colors.vaccine.completed : Colors.vaccine.pending }]}>
+                {isCompleted ? t('completed') : t('pending')}
+              </Text>
+            </View>
+            <View style={[styles.categoryBadge, { backgroundColor: catStyle.bg }]}>
+              <Ionicons name={catStyle.icon} size={14} color={catStyle.text} />
+              <Text style={[styles.categoryText, { color: catStyle.text }]}>{categoryLabel}</Text>
+            </View>
           </View>
 
           <Text style={[styles.name, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
@@ -75,14 +92,20 @@ export default function VaccineDetailScreen() {
               <Ionicons name="calendar" size={16} color={Colors.primary} />
               <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
                 {isCompleted 
-                  ? `${state.language === 'pt' ? 'Aplicada em' : 'Applied on'}: ${vData?.completedDate ? formatToDeviceDate(vData.completedDate) : ''}`
+                  ? `${isPt ? 'Aplicada em' : 'Applied on'}: ${vData?.completedDate ? formatToDeviceDate(vData.completedDate) : ''}`
                   : `${t('scheduledFor')}: ${vData?.scheduledDate ? formatToDeviceDate(vData.scheduledDate) : ''}`}
               </Text>
             </View>
             <View style={styles.meta}>
               <Ionicons name="timer" size={16} color={Colors.primary} />
               <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                {state.language === 'pt' ? vaccine.ageLabelPt : vaccine.ageLabel}
+                {isPt ? vaccine.ageLabelPt : vaccine.ageLabel}
+              </Text>
+            </View>
+            <View style={styles.meta}>
+              <Ionicons name="repeat" size={16} color={Colors.primary} />
+              <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                {isPt ? `Dose ${vaccine.doseNumber} de ${vaccine.doses}` : `Dose ${vaccine.doseNumber} of ${vaccine.doses}`}
               </Text>
             </View>
           </View>
@@ -119,6 +142,64 @@ export default function VaccineDetailScreen() {
             </View>
           ))}
         </View>
+
+        {/* Detailed Info */}
+        {info && (
+          <>
+            <View style={[styles.sectionCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="flask" size={20} color={Colors.primary} />
+                <Text style={[styles.sectionTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  {t('mechanism')}
+                </Text>
+              </View>
+              <Text style={[styles.infoText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                {isPt ? info.mechanismPt : info.mechanism}
+              </Text>
+            </View>
+
+            <View style={[styles.sectionCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="beaker" size={20} color="#8b5cf6" />
+                <Text style={[styles.sectionTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  {t('composition')}
+                </Text>
+              </View>
+              <Text style={[styles.infoText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                {isPt ? info.compositionPt : info.composition}
+              </Text>
+            </View>
+
+            {info.contraindications.length > 0 && (
+              <View style={[styles.sectionCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="warning" size={20} color={Colors.danger} />
+                  <Text style={[styles.sectionTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                    {t('contraindications')}
+                  </Text>
+                </View>
+                {(isPt ? info.contraindicationsPt : info.contraindications).map((c, i) => (
+                  <View key={i} style={[styles.listItem, i < info.contraindications.length - 1 && styles.listItemBorder]}>
+                    <Ionicons name="close-circle" size={16} color={Colors.danger} />
+                    <Text style={[styles.listText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>{c}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={[styles.sectionCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light, marginBottom: 20 }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="snow" size={20} color="#0ea5e9" />
+                <Text style={[styles.sectionTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  {t('storageInfo')}
+                </Text>
+              </View>
+              <Text style={[styles.infoText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                {isPt ? info.storagePt : info.storage}
+              </Text>
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -143,8 +224,11 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   card: { marginBottom: 20 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignSelf: 'flex-start', marginBottom: 12 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   statusText: { fontSize: 13, fontWeight: '700' },
+  categoryBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  categoryText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   name: { fontSize: 24, fontWeight: '800', marginBottom: 8 },
   description: { fontSize: 15, lineHeight: 22, marginBottom: 16 },
   metaRow: { gap: 8 },
@@ -153,9 +237,10 @@ const styles = StyleSheet.create({
   sectionCard: { borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
-  listItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  listItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8 },
   listItemBorder: { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   listText: { fontSize: 14, flex: 1, lineHeight: 20 },
+  infoText: { fontSize: 14, lineHeight: 22 },
   footer: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 8 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, gap: 8 },
   actionBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },

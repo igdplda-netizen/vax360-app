@@ -6,6 +6,7 @@ import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { exportCertificatePdf } from '../../utils/pdf-exporter';
 import { formatToDeviceDate, promptForDate } from '../../utils/date';
+import { VACCINE_SCHEDULE } from '../../constants/vaccines';
 
 const groups = [
   { key: 'birth', label: 'Ao Nascer', labelEn: 'At Birth' },
@@ -18,6 +19,11 @@ const groups = [
   { key: '12m', label: '12 meses', labelEn: '12 months' },
   { key: '15m', label: '15 meses', labelEn: '15 months' },
   { key: '18m', label: '18 meses', labelEn: '18 months' },
+  { key: '2y', label: '2 anos', labelEn: '2 years' },
+  { key: '4y', label: '4-6 anos', labelEn: '4-6 years' },
+  { key: '9y', label: '9-14 anos', labelEn: '9-14 years' },
+  { key: '10y', label: '10 anos', labelEn: '10 years' },
+  { key: '11y', label: '11-12 anos', labelEn: '11-12 years' },
 ];
 
 export default function ScheduleScreen() {
@@ -94,6 +100,65 @@ export default function ScheduleScreen() {
     setExporting(false);
   };
 
+  const [expandedCategory, setExpandedCategory] = useState<Record<string, boolean>>({ mandatory: true, recommended: false, travel: false });
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategory(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const categories = [
+    { key: 'mandatory', label: t('mandatoryVaccines') || 'Vacinas Obrigatórias', icon: 'shield-checkmark' as const, color: '#1e40af', bg: '#dbeafe' },
+    { key: 'recommended', label: t('recommendedVaccines') || 'Recomendadas (OMS)', icon: 'star' as const, color: '#92400e', bg: '#fef3c7' },
+    { key: 'travel', label: t('travelVaccines') || 'Vacinas para Viajantes', icon: 'airplane' as const, color: '#3730a3', bg: '#e0e7ff' },
+  ];
+
+  const renderVaccineSection = (categoryKey: string) => {
+    const categoryVaccineIds = VACCINE_SCHEDULE.filter(v => (v.category || 'mandatory') === categoryKey).map(v => v.id);
+    const categoryVaccines = vaccines.filter(v => categoryVaccineIds.includes(v.id));
+
+    return groups.map(group => {
+      const groupVaccines = categoryVaccines.filter(v => v.group === group.key);
+      if (groupVaccines.length === 0) return null;
+
+      return (
+        <View key={group.key} style={styles.group}>
+          <Text style={[styles.groupLabel, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+            {state.language === 'pt' ? group.label : group.labelEn}
+          </Text>
+          <View style={[styles.groupCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
+            {groupVaccines.map((v, idx) => (
+              <TouchableOpacity
+                key={v.id}
+                style={[styles.vaccineRow, idx < groupVaccines.length - 1 && styles.vaccineRowBorder]}
+                onPress={() => handleToggle(v.id, v.status)}
+                activeOpacity={0.6}
+              >
+                <View style={[styles.statusDot, { backgroundColor: getStatusColor(v.status) }]} />
+                <View style={styles.vaccineInfo}>
+                  <Text style={[styles.vaccineName, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                    {state.language === 'pt' ? v.namePt : v.nameEn}
+                  </Text>
+                  <Text style={[styles.vaccineStatus, { color: getStatusColor(v.status) }]}>
+                    {v.status === 'completed' 
+                      ? (v.completedDate 
+                        ? `${state.language === 'pt' ? 'Tomada em' : 'Taken on'}: ${formatToDeviceDate(v.completedDate)}` 
+                        : t('completed')) 
+                      : formatToDeviceDate(v.scheduledDate)}
+                  </Text>
+                </View>
+                {v.status === 'completed' ? (
+                  <Ionicons name="checkmark-circle" size={24} color={Colors.vaccine.completed} />
+                ) : (
+                  <View style={[styles.checkbox, { borderColor: isDark ? Colors.border.dark : Colors.border.light }]} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      );
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -119,44 +184,31 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         </View>
 
-        {groups.map(group => {
-          const groupVaccines = vaccines.filter(v => v.group === group.key);
-          if (groupVaccines.length === 0) return null;
+        {categories.map(cat => {
+          const catVaccineIds = VACCINE_SCHEDULE.filter(v => (v.category || 'mandatory') === cat.key).map(v => v.id);
+          const catVaccines = vaccines.filter(v => catVaccineIds.includes(v.id));
+          if (catVaccines.length === 0) return null;
+
+          const isExpanded = expandedCategory[cat.key] !== false;
+          const completedCount = catVaccines.filter(v => v.status === 'completed').length;
 
           return (
-            <View key={group.key} style={styles.group}>
-              <Text style={[styles.groupLabel, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                {state.language === 'pt' ? group.label : group.labelEn}
-              </Text>
-              <View style={[styles.groupCard, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
-                {groupVaccines.map((v, idx) => (
-                  <TouchableOpacity
-                    key={v.id}
-                    style={[styles.vaccineRow, idx < groupVaccines.length - 1 && styles.vaccineRowBorder]}
-                    onPress={() => handleToggle(v.id, v.status)}
-                    activeOpacity={0.6}
-                  >
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(v.status) }]} />
-                    <View style={styles.vaccineInfo}>
-                      <Text style={[styles.vaccineName, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
-                        {state.language === 'pt' ? v.namePt : v.nameEn}
-                      </Text>
-                      <Text style={[styles.vaccineStatus, { color: getStatusColor(v.status) }]}>
-                        {v.status === 'completed' 
-                          ? (v.completedDate 
-                            ? `${state.language === 'pt' ? 'Tomada em' : 'Taken on'}: ${formatToDeviceDate(v.completedDate)}` 
-                            : t('completed')) 
-                          : formatToDeviceDate(v.scheduledDate)}
-                      </Text>
-                    </View>
-                    {v.status === 'completed' ? (
-                      <Ionicons name="checkmark-circle" size={24} color={Colors.vaccine.completed} />
-                    ) : (
-                      <View style={[styles.checkbox, { borderColor: isDark ? Colors.border.dark : Colors.border.light }]} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+            <View key={cat.key} style={{ marginBottom: 8 }}>
+              <TouchableOpacity
+                style={[styles.categoryHeader, { backgroundColor: cat.bg }]}
+                onPress={() => toggleCategory(cat.key)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.categoryHeaderLeft}>
+                  <Ionicons name={cat.icon} size={18} color={cat.color} />
+                  <Text style={[styles.categoryLabel, { color: cat.color }]}>{cat.label}</Text>
+                </View>
+                <View style={styles.categoryHeaderRight}>
+                  <Text style={[styles.categoryCount, { color: cat.color }]}>{completedCount}/{catVaccines.length}</Text>
+                  <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={cat.color} />
+                </View>
+              </TouchableOpacity>
+              {isExpanded && renderVaccineSection(cat.key)}
             </View>
           );
         })}
@@ -244,6 +296,11 @@ const styles = StyleSheet.create({
   vaccineStatus: { fontSize: 12, marginTop: 2, fontWeight: '500' },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2 },
   placeholderText: { fontSize: 14, textAlign: 'center', marginTop: 12 },
+  categoryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, marginBottom: 12 },
+  categoryHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  categoryHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  categoryLabel: { fontSize: 14, fontWeight: '800', letterSpacing: 0.3 },
+  categoryCount: { fontSize: 13, fontWeight: '700' },
   pdfOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',

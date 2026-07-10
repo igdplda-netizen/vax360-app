@@ -16,6 +16,11 @@ const groups = [
   { key: '12m', label: '12 meses', labelEn: '12 months' },
   { key: '15m', label: '15 meses', labelEn: '15 months' },
   { key: '18m', label: '18 meses', labelEn: '18 months' },
+  { key: '2y', label: '2 anos', labelEn: '2 years' },
+  { key: '4y', label: '4-6 anos', labelEn: '4-6 years' },
+  { key: '9y', label: '9-14 anos', labelEn: '9-14 years' },
+  { key: '10y', label: '10 anos', labelEn: '10 years' },
+  { key: '11y', label: '11-12 anos', labelEn: '11-12 years' },
 ];
 
 export async function exportCertificatePdf(
@@ -67,11 +72,11 @@ export async function exportCertificatePdf(
 
     // Header Text
     doc.setTextColor(255, 255, 255);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.text(t('certificate') || 'Certificado de Vacinação', 23, 26);
 
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9.5);
     doc.text(t('digital_health_platform') || 'Plataforma Digital de Saúde', 23, 37);
 
@@ -86,37 +91,37 @@ export async function exportCertificatePdf(
 
     // Column 1
     doc.setTextColor(r, g, b);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
     doc.text((t('child_name') || 'Criança') + ': ', 31, 60);
     const childNameLabelWidth = doc.getTextWidth((t('child_name') || 'Criança') + ': ');
     doc.setTextColor(51, 51, 51);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(currentChild.name, 31 + childNameLabelWidth, 60);
 
     doc.setTextColor(r, g, b);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.text((t('registry_id') || 'ID Registro') + ': ', 31, 70);
     const registryIdLabelWidth = doc.getTextWidth((t('registry_id') || 'ID Registro') + ': ');
     doc.setTextColor(51, 51, 51);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(`VAX-${currentChild.id.toUpperCase()}`, 31 + registryIdLabelWidth, 70);
 
     // Column 2
     doc.setTextColor(r, g, b);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.text((t('dob') || 'Nascimento') + ': ', 110, 60);
     const dobLabelWidth = doc.getTextWidth((t('dob') || 'Nascimento') + ': ');
     doc.setTextColor(51, 51, 51);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(`${fmtDate(currentChild.birthDate)} (${getAgeMonths(currentChild.birthDate)}m)`, 110 + dobLabelWidth, 60);
 
     doc.setTextColor(r, g, b);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.text((t('document_status') || 'Estado') + ': ', 110, 70);
     const statusLabelWidth = doc.getTextWidth((t('document_status') || 'Estado') + ': ');
     doc.setTextColor(51, 51, 51);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.text(t('document_active') || 'Ativo / Válido', 110 + statusLabelWidth, 70);
 
     // 4. Table Header
@@ -124,7 +129,7 @@ export async function exportCertificatePdf(
     doc.rect(23, 84, 112, 9, 'F');
 
     doc.setTextColor(255, 255, 255);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.text(t('vaccine_imunizer') || 'Vacina', 25, 90);
     doc.text(t('vaccine_dose') || 'Dose', 75, 90);
@@ -160,11 +165,11 @@ export async function exportCertificatePdf(
       const doseOnly = parts[1] || (v.id === 'bcg' || v.id === 'yellow-fever' ? (t('single_dose') || 'Dose Única') : '—');
 
       doc.setTextColor(51, 51, 51);
-      doc.setFont('Helvetica', 'Bold');
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
       doc.text(nameOnly, 25, yCurrent + 4.8);
 
-      doc.setFont('Helvetica', 'Normal');
+      doc.setFont('helvetica', 'normal');
       doc.text(doseOnly, 75, yCurrent + 4.8);
 
       const dateText = v.completedDate ? fmtDate(v.completedDate) : (t('awaiting') || 'Pendente');
@@ -175,14 +180,14 @@ export async function exportCertificatePdf(
         doc.setFillColor(220, 252, 231);
         doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, 'F');
         doc.setTextColor(21, 128, 61);
-        doc.setFont('Helvetica', 'Bold');
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(6.5);
         doc.text(t('done_badge') || 'Feito', 122.5, yCurrent + 4.4, { align: "center" });
       } else {
         doc.setFillColor(224, 231, 255);
         doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, 'F');
         doc.setTextColor(67, 56, 202);
-        doc.setFont('Helvetica', 'Bold');
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(6.5);
         doc.text(t('awaiting') || 'Pendente', 122.5, yCurrent + 4.4, { align: "center" });
       }
@@ -214,12 +219,12 @@ export async function exportCertificatePdf(
     doc.addImage(qrDataUrl, 'PNG', 145, 90, 36, 36);
 
     doc.setTextColor(r, g, b);
-    doc.setFont('Helvetica', 'Bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.text(t('scan_to_validate') || 'Digitalize para Validar', 163, 132, { align: 'center' });
 
     doc.setTextColor(119, 119, 119);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
     doc.text(t('electronic_validation') || 'Validação eletrónica da autenticidade', 163, 138, { align: 'center' });
     doc.text(t('guaranteed_authenticity') || 'Garantia de segurança sanitária Vax360', 163, 142, { align: 'center' });
@@ -230,7 +235,7 @@ export async function exportCertificatePdf(
     doc.line(23, 262, 187, 262);
 
     doc.setTextColor(136, 136, 136);
-    doc.setFont('Helvetica', 'Normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
     doc.text(t('certificate_footer_msg') || 'Este documento certifica o histórico de imunização registado na plataforma oficial Vax360.', 23, 268, { maxWidth: 105 });
 

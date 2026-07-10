@@ -70,6 +70,7 @@ interface AppContextType {
   login: (whatsapp: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; tempToken?: string; error?: string }>;
   login2FA: (tempToken: string, code: string) => Promise<{ success: boolean; error?: string }>;
   registerUser: (name: string, whatsapp: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (whatsapp: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   get2FAStatus: () => Promise<boolean>;
   setup2FA: () => Promise<{ secret: string; qrCode: string }>;
@@ -172,6 +173,24 @@ const translations: Record<Language, Record<string, string>> = {
     brandingSettings: 'Branding Settings',
     noAccount: "Don't have an account? Register",
     alreadyAccount: 'Already have an account? Login',
+    forgotPassword: 'Forgot your password?',
+    resetPassword: 'Reset Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    passwordMismatch: 'Passwords do not match',
+    passwordTooShort: 'Password must be at least 6 characters',
+    resetSuccess: 'Password reset successfully! Please log in.',
+    resetFailed: 'Password reset failed. Check your WhatsApp number.',
+    fillAllFields: 'Please fill all fields',
+    backToLogin: 'Back to Login',
+    mandatoryVaccines: 'Mandatory Vaccines',
+    recommendedVaccines: 'Recommended (WHO)',
+    travelVaccines: 'Travel Vaccines',
+    mechanism: 'Mechanism of Action',
+    composition: 'Composition',
+    contraindications: 'Contraindications',
+    storageInfo: 'Storage',
+    detailedInfo: 'Detailed Information',
   },
   pt: {
     appName: 'Vax360',
@@ -250,6 +269,24 @@ const translations: Record<Language, Record<string, string>> = {
     brandingSettings: 'Definições de Marca',
     noAccount: 'Não tem uma conta? Registe-se',
     alreadyAccount: 'Já tem uma conta? Entre',
+    forgotPassword: 'Esqueceu a senha?',
+    resetPassword: 'Redefinir Senha',
+    newPassword: 'Nova Senha',
+    confirmPassword: 'Confirmar Senha',
+    passwordMismatch: 'As senhas não coincidem',
+    passwordTooShort: 'A senha deve ter pelo menos 6 caracteres',
+    resetSuccess: 'Senha redefinida com sucesso! Faça login.',
+    resetFailed: 'Falha na redefinição. Verifique o número de WhatsApp.',
+    fillAllFields: 'Preencha todos os campos',
+    backToLogin: 'Voltar ao Login',
+    mandatoryVaccines: 'Vacinas Obrigatórias',
+    recommendedVaccines: 'Recomendadas (OMS)',
+    travelVaccines: 'Vacinas para Viajantes',
+    mechanism: 'Mecanismo de Ação',
+    composition: 'Composição',
+    contraindications: 'Contraindicações',
+    storageInfo: 'Armazenamento',
+    detailedInfo: 'Informação Detalhada',
   },
   fr: {
     appName: 'Vax360',
@@ -328,6 +365,24 @@ const translations: Record<Language, Record<string, string>> = {
     brandingSettings: 'Paramètres de Marque',
     noAccount: "Pas de compte ? S'inscrire",
     alreadyAccount: 'Déjà un compte ? Connexion',
+    forgotPassword: 'Mot de passe oublié ?',
+    resetPassword: 'Réinitialiser',
+    newPassword: 'Nouveau mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    passwordTooShort: 'Le mot de passe doit comporter au moins 6 caractères',
+    resetSuccess: 'Mot de passe réinitialisé ! Connectez-vous.',
+    resetFailed: 'Échec de la réinitialisation. Vérifiez votre numéro WhatsApp.',
+    fillAllFields: 'Remplissez tous les champs',
+    backToLogin: 'Retour à la connexion',
+    mandatoryVaccines: 'Vaccins Obligatoires',
+    recommendedVaccines: 'Recommandés (OMS)',
+    travelVaccines: 'Vaccins de Voyage',
+    mechanism: "Mécanisme d'Action",
+    composition: 'Composition',
+    contraindications: 'Contre-indications',
+    storageInfo: 'Stockage',
+    detailedInfo: 'Informations Détaillées',
   },
   af: {
     appName: 'Vax360',
@@ -406,6 +461,24 @@ const translations: Record<Language, Record<string, string>> = {
     brandingSettings: 'Branding-instellings',
     noAccount: 'Nog nie geregistreer nie? Registreer',
     alreadyAccount: 'Reeds geregistreer? Meld aan',
+    forgotPassword: 'Wagwoord vergeet?',
+    resetPassword: 'Herstel Wagwoord',
+    newPassword: 'Nuwe Wagwoord',
+    confirmPassword: 'Bevestig Wagwoord',
+    passwordMismatch: 'Wagwoorde stem nie ooreen nie',
+    passwordTooShort: 'Wagwoord moet minstens 6 karakters wees',
+    resetSuccess: 'Wagwoord suksesvol herstel! Meld asseblief aan.',
+    resetFailed: 'Wagwoordherstel het misluk. Kontroleer u WhatsApp-nommer.',
+    fillAllFields: 'Vul asseblief alle velde in',
+    backToLogin: 'Terug na Aanmelding',
+    mandatoryVaccines: 'Verpligte Entstowwe',
+    recommendedVaccines: 'Aanbeveel (WGO)',
+    travelVaccines: 'Reis Entstowwe',
+    mechanism: 'Werkingsmeganisme',
+    composition: 'Samestelling',
+    contraindications: 'Kontra-indikasies',
+    storageInfo: 'Berging',
+    detailedInfo: 'Gedetailleerde Inligting',
   },
 };
 
@@ -714,6 +787,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (whatsapp: string, newPassword: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || t('resetFailed') };
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Server connection failed' };
+    }
+  };
+
   const logout = useCallback(async () => {
     const next: AppState = {
       ...DEFAULT_STATE,
@@ -893,6 +983,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       login2FA,
       registerUser,
+      resetPassword,
       logout,
       get2FAStatus,
       setup2FA,
