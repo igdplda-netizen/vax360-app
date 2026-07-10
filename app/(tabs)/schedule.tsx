@@ -33,7 +33,8 @@ export default function ScheduleScreen() {
   const isDark = scheme === 'dark';
 
   const [exporting, setExporting] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfDataUri, setPdfDataUri] = useState<string | null>(null);
+  const [pdfDownloadFn, setPdfDownloadFn] = useState<(() => void) | null>(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const currentChild = state.children.find(c => c.id === state.currentChildId);
@@ -89,15 +90,22 @@ export default function ScheduleScreen() {
     if (exporting) return;
     setExporting(true);
     try {
-      const url = await exportCertificatePdf(currentChild, vaccines, state, t, primaryColor);
-      if (url) {
-        setPdfUrl(url);
+      const result = await exportCertificatePdf(currentChild, vaccines, state, t, primaryColor);
+      if (result) {
+        setPdfDataUri(result.dataUri);
+        setPdfDownloadFn(() => result.download);
         setShowPdfModal(true);
       }
     } catch (err: any) {
       Alert.alert('Erro ao Exportar', err.message || 'Falha ao gerar certificado PDF.');
     }
     setExporting(false);
+  };
+
+  const closePdfModal = () => {
+    setShowPdfModal(false);
+    setPdfDataUri(null);
+    setPdfDownloadFn(null);
   };
 
   const [expandedCategory, setExpandedCategory] = useState<Record<string, boolean>>({ mandatory: true, recommended: false, travel: false });
@@ -215,15 +223,12 @@ export default function ScheduleScreen() {
       </ScrollView>
 
       {/* PDF Viewer Modal (Web only) */}
-      {showPdfModal && pdfUrl && (
+      {showPdfModal && pdfDataUri && (
         <Modal
           visible={showPdfModal}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => {
-            setShowPdfModal(false);
-            setPdfUrl(null);
-          }}
+          onRequestClose={closePdfModal}
         >
           <View style={styles.pdfOverlay}>
             <View style={[styles.pdfModalContent, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
@@ -232,10 +237,7 @@ export default function ScheduleScreen() {
                   {t('certificate') || 'Certificado de Vacinação'}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    setShowPdfModal(false);
-                    setPdfUrl(null);
-                  }}
+                  onPress={closePdfModal}
                   style={styles.pdfCloseBtn}
                   activeOpacity={0.7}
                 >
@@ -244,14 +246,14 @@ export default function ScheduleScreen() {
               </View>
               <View style={styles.pdfContainer}>
                 {Platform.OS === 'web' ? (
-                  <iframe
-                    src={pdfUrl}
+                  <embed
+                    src={pdfDataUri}
+                    type="application/pdf"
                     style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8 }}
-                    title="Certificado PDF"
                   />
                 ) : (
-                  <Text style={{ color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }}>
-                    PDF gerado.
+                  <Text style={{ color: isDark ? Colors.text.dark.primary : Colors.text.light.primary, textAlign: 'center', marginTop: 40 }}>
+                    {state.language === 'pt' ? 'PDF gerado com sucesso!' : 'PDF generated successfully!'}
                   </Text>
                 )}
               </View>
@@ -259,15 +261,14 @@ export default function ScheduleScreen() {
                 <TouchableOpacity
                   style={[styles.pdfDownloadBtn, { backgroundColor: Colors.primary }]}
                   onPress={() => {
-                    const link = document.createElement('a');
-                    link.href = pdfUrl;
-                    link.download = `certificado_${currentChild.name.replace(/\s+/g, '_')}.pdf`;
-                    link.click();
+                    if (pdfDownloadFn) pdfDownloadFn();
                   }}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="download-outline" size={20} color="#fff" />
-                  <Text style={styles.pdfDownloadBtnText}>Descarregar PDF</Text>
+                  <Text style={styles.pdfDownloadBtnText}>
+                    {state.language === 'pt' ? 'Descarregar PDF' : 'Download PDF'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
