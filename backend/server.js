@@ -934,13 +934,13 @@ app.post("/api/admin/users/:whatsapp/reset-password", authenticateToken, (req, r
   );
 });
 
-// GET all users (Superadmin only)
+// GET all users (Superadmin only) - returns ALL roles
 app.get("/api/admin/users", authenticateToken, (req, res) => {
   if (req.user.role !== "superadmin") {
     return res.status(403).json({ error: "Access denied" });
   }
   db.all(
-    "SELECT whatsapp, name, email, role FROM users WHERE role = 'parent'",
+    "SELECT whatsapp, name, email, role, created_at FROM users ORDER BY created_at DESC",
     [],
     (err, rows) => {
       if (err) {
@@ -949,6 +949,128 @@ app.get("/api/admin/users", authenticateToken, (req, res) => {
       res.json({ success: true, users: rows });
     }
   );
+});
+
+// PUT update user role (Superadmin only)
+app.put("/api/admin/users/:whatsapp/role", authenticateToken, (req, res) => {
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  const { role } = req.body;
+  const whatsapp = req.params.whatsapp;
+  const validRoles = ["parent", "admin", "superadmin"];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: "Invalid role. Must be: parent, admin, or superadmin" });
+  }
+  // Prevent superadmin from demoting themselves
+  if (req.user.whatsapp === whatsapp && role !== "superadmin") {
+    return res.status(400).json({ error: "Cannot demote your own superadmin account" });
+  }
+  db.run(
+    "UPDATE users SET role = ? WHERE whatsapp = ?",
+    [role, whatsapp],
+    function (err) {
+      if (err) {
+        return handleInternalError(res, err, "❌ Error updating user role:");
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      db.run(
+        "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
+        ["admin_change_role", "user", whatsapp, `Role changed to ${role} by ${req.user.whatsapp}`],
+        () => {
+          res.json({ success: true, message: `User role updated to ${role}` });
+        }
+      );
+    }
+  );
+});
+
+// GET platform stats (Superadmin only)
+app.get("/api/admin/stats", authenticateToken, (req, res) => {
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  const stats = {};
+  db.get("SELECT COUNT(*) as total FROM users", (err, row) => {
+    if (err) return handleInternalError(res, err, "❌ Stats error:");
+    stats.totalUsers = row.total;
+    db.get("SELECT COUNT(*) as total FROM users WHERE role = 'parent'", (err2, row2) => {
+      stats.totalParents = row2 ? row2.total : 0;
+      db.get("SELECT COUNT(*) as total FROM users WHERE role = 'admin'", (err3, row3) => {
+        stats.totalAdmins = row3 ? row3.total : 0;
+        db.get("SELECT COUNT(*) as total FROM users WHERE role = 'superadmin'", (err4, row4) => {
+          stats.totalSuperadmins = row4 ? row4.total : 0;
+          // Count children from store
+          db.all("SELECT id, data FROM store", (err5, rows) => {
+            let totalChildren = 0;
+            let totalVaccinesCompleted = 0;
+            let totalVaccinesPending = 0;
+            if (rows) {
+              rows.forEach(r => {
+                try {
+                  const parsed = JSON.parse(r.data);
+                  if (parsed.children) {
+                    totalChildren += parsed.children.length;
+                    parsed.children.forEach(c => {
+                      if (c.vaccines) {
+                        c.vaccines.forEach(v => {
+                          if (v.status === 'completed') totalVaccinesCompleted++;
+                          else totalVaccinesPending++;
+                        });
+                      }
+                    });
+                  }
+                } catch (_) {}
+              });
+            }
+            stats.totalChildren = totalChildren;
+            stats.totalVaccinesCompleted = totalVaccinesCompleted;
+            stats.totalVaccinesPending = totalVaccinesPending;
+            res.json({ success: true, stats });
+          });
+        });
+      });
+    });
+  });
+});
+
+// GET all children across all users (Superadmin only)
+app.get("/api/admin/children", authenticateToken, (req, res) => {
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  db.all("SELECT s.id as parentWhatsapp, s.data, u.name as parentName FROM store s LEFT JOIN users u ON s.id = u.whatsapp", (err, rows) => {
+    if (err) {
+      return handleInternalError(res, err, "❌ Error retrieving children:");
+    }
+    const allChildren = [];
+    if (rows) {
+      rows.forEach(r => {
+        try {
+          const parsed = JSON.parse(r.data);
+          if (parsed.children) {
+            parsed.children.forEach(c => {
+              const completed = c.vaccines ? c.vaccines.filter(v => v.status === 'completed').length : 0;
+              const total = c.vaccines ? c.vaccines.length : 0;
+              allChildren.push({
+                id: c.id,
+                name: c.name,
+                birthDate: c.birthDate,
+                gender: c.gender,
+                parentWhatsapp: r.parentWhatsapp,
+                parentName: r.parentName || 'N/A',
+                vaccinesCompleted: completed,
+                vaccinesTotal: total,
+              });
+            });
+          }
+        } catch (_) {}
+      });
+    }
+    res.json({ success: true, children: allChildren });
+  });
 });
 
 // DELETE a user and their data (Superadmin only)

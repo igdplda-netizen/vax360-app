@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { Platform } from 'react-native';
 import { getItem, setItem } from '../lib/storage';
 import { VACCINE_SCHEDULE, Vaccine } from '../constants/vaccines';
 
@@ -497,20 +498,19 @@ export async function detectApiBaseUrl(): Promise<string> {
     API_BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
     return API_BASE_URL;
   }
-  if (typeof window !== 'undefined') {
+  // Web platform: detect from window.location
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // Development workspace on Replit or any deployed/production environment:
-    // route API calls through the same origin the page was loaded from.
     if (hostname.includes('replit.dev') || hostname.includes('repl.co')) {
       API_BASE_URL = `${window.location.origin}/api`;
       return API_BASE_URL;
     }
-    // Production deployment or other environments
     if (hostname !== 'localhost' && !window.location.href.startsWith('https://localhost')) {
       API_BASE_URL = `${window.location.origin}/api`;
       return API_BASE_URL;
     }
   }
+  // Native platform or localhost: try localhost:5000 first
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 800);
@@ -523,7 +523,13 @@ export async function detectApiBaseUrl(): Promise<string> {
   } catch (err) {
     // Ignore
   }
-  API_BASE_URL = 'http://10.0.2.2:5000/api';
+  // Android emulator uses 10.0.2.2 for host machine
+  if (Platform.OS === 'android') {
+    API_BASE_URL = 'http://10.0.2.2:5000/api';
+    return API_BASE_URL;
+  }
+  // iOS / default fallback
+  API_BASE_URL = 'http://localhost:5000/api';
   return API_BASE_URL;
 }
 

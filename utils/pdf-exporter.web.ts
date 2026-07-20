@@ -1,8 +1,5 @@
 import { jsPDF } from 'jspdf/dist/jspdf.es.min.js';
 import QRCode from 'qrcode';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { formatToDeviceDate } from './date';
 
 const groups = [
@@ -224,24 +221,6 @@ export async function exportCertificatePdf(
     }
 
     const filename = `certificado_${currentChild.name.replace(/\s+/g, '_')}.pdf`;
-
-    // Native platform: use Capacitor Share
-    if (Capacitor.isNativePlatform()) {
-      const pdfBase64 = doc.output('datauristring').split(',')[1];
-      const writeRes = await Filesystem.writeFile({
-        path: filename,
-        data: pdfBase64,
-        directory: Directory.Cache
-      });
-
-      await Share.share({
-        title: `Certificado Vax360 - ${currentChild.name}`,
-        text: `Aqui está o certificado de vacinação da criança ${currentChild.name}`,
-        url: writeRes.uri,
-        dialogTitle: 'Partilhar Certificado de Vacinação'
-      });
-      return null;
-    }
 
     // Web platform: return blob URL + download function + data URI
     const blob = doc.output('blob');

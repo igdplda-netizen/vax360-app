@@ -7,9 +7,13 @@ config.watchFolders = config.watchFolders || [];
 if (!Array.isArray(config.resolver.blockList)) {
   config.resolver.blockList = [config.resolver.blockList].filter(Boolean);
 }
-config.resolver.blockList.push(/\.cache[\/\\]dotslash/);
+config.resolver.blockList.push(/\.cache[\\/\\\\]dotslash/);
 config.resolver.blockList.push(/backend/);
 config.resolver.blockList.push(/www/);
+
+// Block native-only modules from being resolved by Metro (Expo Go compat)
+config.resolver.blockList.push(/node_modules\/@capacitor\/.*/);
+config.resolver.blockList.push(/node_modules\/sqlite3\/.*/);
 
 // Proxy /api/* requests from the Metro/Expo dev server (port 5000, the only
 // publicly reachable port in this workspace) to the backend Express API
