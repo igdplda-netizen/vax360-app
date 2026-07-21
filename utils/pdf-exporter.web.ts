@@ -2,6 +2,40 @@ import { jsPDF } from 'jspdf/dist/jspdf.es.min.js';
 import QRCode from 'qrcode';
 import { formatToDeviceDate } from './date';
 
+/**
+ * Converts any image source (URL, data URL, blob URL) to a base64 data URL.
+ * Returns { dataUrl, format } where format is 'PNG' or 'JPEG'.
+ * Returns null if conversion fails.
+ */
+async function toBase64DataUrl(src: string): Promise<{ dataUrl: string; format: 'PNG' | 'JPEG' } | null> {
+  try {
+    // Already a data URL
+    if (src.startsWith('data:')) {
+      const format = src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')
+        ? 'JPEG'
+        : 'PNG';
+      return { dataUrl: src, format };
+    }
+    // Fetch the image and convert via canvas
+    const response = await fetch(src);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const format: 'PNG' | 'JPEG' =
+      blob.type === 'image/jpeg' || blob.type === 'image/jpg' ? 'JPEG' : 'PNG';
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        resolve(result ? { dataUrl: result, format } : null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 const groups = [
   { key: 'birth', label: 'Ao Nascer', labelEn: 'At Birth' },
   { key: '2m', label: '2 meses', labelEn: '2 months' },
@@ -38,6 +72,12 @@ export async function exportCertificatePdf(
 
     // Generate QR Code Base64
     const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1 });
+
+    // Pre-convert partner logo to base64 (jsPDF only accepts base64/data URLs)
+    let partnerLogoData: { dataUrl: string; format: 'PNG' | 'JPEG' } | null = null;
+    if (state.partnerBranding?.logo) {
+      partnerLogoData = await toBase64DataUrl(state.partnerBranding.logo);
+    }
 
     const sortedVaxes = [...vaccines].sort(
       (a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
@@ -213,10 +253,10 @@ export async function exportCertificatePdf(
       doc.setFontSize(6.5);
       doc.text(t('certificate_footer_msg') || 'Este documento certifica o histórico de imunização registado na plataforma oficial Vax360.', 23, 268, { maxWidth: 105 });
 
-      if (state.partnerBranding) {
+      if (state.partnerBranding && partnerLogoData) {
         doc.setFontSize(7);
         doc.text('Parceiro oficial:', 132, 268);
-        doc.addImage(state.partnerBranding.logo, 'PNG', 132, 271, 30, 8);
+        doc.addImage(partnerLogoData.dataUrl, partnerLogoData.format, 132, 271, 30, 8);
       }
     }
 

@@ -1,0 +1,14 @@
+PDF export error: checkSignature@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:156592:13
+decode@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:148449:44
+decodePng@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:148373:20
+E.API.processPNG@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:111342:33
+P@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:105981:141
+e.addImage@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:105968:17
+exportCertificatePdf@https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:101783:15
+
+Call Stack
+  at addLog (https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle:1310:32)
+  at consoleErrorMiddleware (https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle:1107:16)
+  at install/console.error (https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle:1046:29)
+  at get/< (https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/__replco/static/devtools/injected.js:37:27)
+  at exportCertificatePdf (https://18310f34-d8f2-4d1c-80ea-8a4bd717703e-00-336xy5pg27cll.worf.replit.dev/node_modules/expo-router/entry.bundle:101822:15)

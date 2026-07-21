@@ -37,6 +37,8 @@ export default function ScheduleScreen() {
   const [pdfDataUri, setPdfDataUri] = useState<string | null>(null);
   const [pdfDownloadFn, setPdfDownloadFn] = useState<(() => void) | null>(null);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<Record<string, boolean>>({ mandatory: true, recommended: false, travel: false });
+
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
@@ -108,8 +110,6 @@ export default function ScheduleScreen() {
     setPdfDataUri(null);
     setPdfDownloadFn(null);
   };
-
-  const [expandedCategory, setExpandedCategory] = useState<Record<string, boolean>>({ mandatory: true, recommended: false, travel: false });
 
   const toggleCategory = (cat: string) => {
     setExpandedCategory(prev => ({ ...prev, [cat]: !prev[cat] }));
