@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
@@ -19,10 +19,10 @@ export default function TwoFactorScreen() {
   const [setupLoading, setSetupLoading] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<{ secret: string; qrCode: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     if (!isLoginMode) {
-      // Trigger 2FA setup if in setup mode
       setSetupLoading(true);
       setup2FA()
         .then(data => {
@@ -43,6 +43,7 @@ export default function TwoFactorScreen() {
     }
     setLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
 
     if (isLoginMode && params.tempToken) {
       const res = await login2FA(params.tempToken, code);
@@ -53,19 +54,15 @@ export default function TwoFactorScreen() {
         router.replace('/(tabs)');
       }
     } else {
-      // Enable 2FA mode — secret must be sent together with the code
       const success = await enable2FA(code, qrCodeData?.secret ?? '');
       setLoading(false);
       if (!success) {
-        setErrorMsg('Código incorreto. Falha ao ativar 2FA.');
+        setErrorMsg('Código incorreto. Tente novamente com um código novo do autenticador.');
       } else {
-        Alert.alert(
-          'Sucesso',
-          'Autenticação de 2 Fatores (2FA) ativada com sucesso!',
-          [{ text: 'OK', onPress: () => {
-            router.replace(isLoginMode ? '/login' : '/(tabs)/settings');
-          } }]
-        );
+        setSuccessMsg('2FA ativado com sucesso! A redirecionar…');
+        setTimeout(() => {
+          router.replace('/(tabs)/settings');
+        }, 1800);
       }
     }
   };
@@ -85,13 +82,21 @@ export default function TwoFactorScreen() {
         <View style={[styles.card, { backgroundColor: isDark ? Colors.surface.dark : Colors.surface.light }]}>
           {setupLoading ? (
             <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 30 }} />
+          ) : successMsg ? (
+            <View style={styles.successSection}>
+              <View style={styles.successIcon}>
+                <Ionicons name="shield-checkmark" size={52} color="#16a34a" />
+              </View>
+              <Text style={styles.successTitle}>2FA Ativado!</Text>
+              <Text style={styles.successText}>{successMsg}</Text>
+              <ActivityIndicator color={Colors.primary} style={{ marginTop: 16 }} />
+            </View>
           ) : (
             <>
-              {/* QR Code display for Setup Mode */}
               {!isLoginMode && qrCodeData && (
                 <View style={styles.qrSection}>
                   <Text style={[styles.instructions, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                    1. Faça o scan do QR Code abaixo usando uma app de autenticação (ex: Google Authenticator):
+                    1. Faça o scan do QR Code abaixo usando o Google Authenticator ou Authy:
                   </Text>
                   <View style={styles.qrContainer}>
                     <Image
@@ -101,11 +106,11 @@ export default function TwoFactorScreen() {
                     />
                   </View>
                   <Text style={[styles.instructions, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                    Ou insira esta chave manualmente:
+                    Ou insira esta chave manualmente na app:
                   </Text>
                   <Text style={[styles.secretKey, { color: Colors.primary }]}>{qrCodeData.secret}</Text>
                   <Text style={[styles.instructions, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                    2. Insira o código gerado de 6 dígitos para validar:
+                    2. Insira o código de 6 dígitos gerado pela app para confirmar:
                   </Text>
                 </View>
               )}
@@ -127,12 +132,12 @@ export default function TwoFactorScreen() {
                 <TextInput
                   style={[styles.codeInput, {
                     color: isDark ? Colors.text.dark.primary : Colors.text.light.primary,
-                    borderColor: isDark ? Colors.border.dark : Colors.border.light,
+                    borderColor: errorMsg ? Colors.danger : (isDark ? Colors.border.dark : Colors.border.light),
                   }]}
                   placeholder="000000"
                   placeholderTextColor={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary}
                   value={code}
-                  onChangeText={setCode}
+                  onChangeText={v => { setCode(v); setErrorMsg(''); }}
                   keyboardType="number-pad"
                   maxLength={6}
                   autoFocus
@@ -140,9 +145,9 @@ export default function TwoFactorScreen() {
               </View>
 
               <TouchableOpacity
-                style={[styles.verifyBtn, { backgroundColor: Colors.primary }]}
+                style={[styles.verifyBtn, { backgroundColor: Colors.primary, opacity: loading ? 0.7 : 1 }]}
                 onPress={handleVerify}
-                disabled={loading}
+                disabled={loading || code.length !== 6}
                 activeOpacity={0.8}
               >
                 {loading ? (
@@ -172,12 +177,16 @@ const styles = StyleSheet.create({
   qrSection: { alignItems: 'center', marginBottom: 20 },
   instructions: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginVertical: 8, fontWeight: '500' },
   qrContainer: { padding: 12, backgroundColor: '#fff', borderRadius: 16, ...shadows.md(), marginVertical: 12 },
-  qrImage: { width: 180, height: 180 },
-  secretKey: { fontSize: 16, fontWeight: '800', letterSpacing: 2, padding: 8, backgroundColor: '#f1f5f9', borderRadius: 8, overflow: 'hidden', textAlign: 'center', marginVertical: 8 },
+  qrImage: { width: 200, height: 200 },
+  secretKey: { fontSize: 15, fontWeight: '800', letterSpacing: 2, padding: 10, backgroundColor: '#f1f5f9', borderRadius: 10, overflow: 'hidden', textAlign: 'center', marginVertical: 8 },
   errorAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef2f2', padding: 12, borderRadius: 12, marginBottom: 16, gap: 8 },
   errorText: { color: '#b91c1c', fontSize: 13, fontWeight: '600', flex: 1 },
   inputGroup: { marginBottom: 20, alignItems: 'center' },
   codeInput: { width: '100%', borderWidth: 2, borderRadius: 16, paddingVertical: 14, fontSize: 32, fontWeight: '800', letterSpacing: 8, textAlign: 'center' },
   verifyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, ...shadows.primary() },
   verifyBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  successSection: { alignItems: 'center', paddingVertical: 32 },
+  successIcon: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#dcfce7', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  successTitle: { fontSize: 22, fontWeight: '800', color: '#16a34a', marginBottom: 8 },
+  successText: { fontSize: 14, color: '#166534', textAlign: 'center', fontWeight: '500' },
 });
