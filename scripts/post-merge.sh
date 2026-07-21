@@ -1,4 +1,8 @@
 #!/bin/bash
 set -e
 
-npm install --no-audit --no-fund
+npm install --legacy-peer-deps --no-audit --no-fund
+
+if [ -f backend/package.json ]; then
+  cd backend && npm install --no-audit --no-fund
+fi
