@@ -842,7 +842,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to setup 2FA');
-    return { secret: data.secret, qrCode: data.qrCode };
+    return { secret: data.secret, qrCode: data.qrCode || data.qrUri };
   };
 
   const enable2FA = async (code: string): Promise<boolean> => {

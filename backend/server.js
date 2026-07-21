@@ -665,19 +665,27 @@ app.post("/api/2fa/setup", authenticateToken, (req, res) => {
   const secret = generateSecret();
   const whatsapp = req.user.whatsapp;
   const otpauthUrl = `otpauth://totp/Vax360:${whatsapp}?secret=${secret}&issuer=Vax360`;
-  
-  db.run(
-    "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
-    ["two_factor_setup_initiated", "user", whatsapp, ""],
-    (auditErr) => {
-      if (auditErr) console.error("❌ Audit 2FA setup error:", auditErr.message);
-      res.json({
-        success: true,
-        secret,
-        qrUri: otpauthUrl
-      });
+
+  const QRCode = require("qrcode");
+  QRCode.toDataURL(otpauthUrl, { width: 256, margin: 2 }, (err, qrCode) => {
+    if (err) {
+      console.error("❌ QR code generation error:", err.message);
+      qrCode = null;
     }
-  );
+    db.run(
+      "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
+      ["two_factor_setup_initiated", "user", whatsapp, ""],
+      (auditErr) => {
+        if (auditErr) console.error("❌ Audit 2FA setup error:", auditErr.message);
+        res.json({
+          success: true,
+          secret,
+          qrCode,
+          qrUri: otpauthUrl
+        });
+      }
+    );
+  });
 });
 
 app.post("/api/2fa/enable", authenticateToken, (req, res) => {

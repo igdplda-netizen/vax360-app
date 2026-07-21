@@ -44,6 +44,7 @@
       "expo-secure-store",
       "expo-status-bar"
     ],
+    "sdkVersion": "56.0.0",
     "experiments": {
       "typedRoutes": true
     }
