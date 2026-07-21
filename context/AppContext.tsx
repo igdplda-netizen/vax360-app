@@ -75,7 +75,7 @@ interface AppContextType {
   logout: () => void;
   get2FAStatus: () => Promise<boolean>;
   setup2FA: () => Promise<{ secret: string; qrCode: string }>;
-  enable2FA: (code: string) => Promise<boolean>;
+  enable2FA: (code: string, secret: string) => Promise<boolean>;
   disable2FA: (code: string) => Promise<boolean>;
   syncData: () => Promise<boolean>;
   updateBranding: (branding: PartnerBranding) => Promise<boolean>;
@@ -845,7 +845,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { secret: data.secret, qrCode: data.qrCode || data.qrUri };
   };
 
-  const enable2FA = async (code: string): Promise<boolean> => {
+  const enable2FA = async (code: string, secret: string): Promise<boolean> => {
     if (!state.token) return false;
     const res = await fetch(`${API_BASE_URL}/2fa/enable`, {
       method: 'POST',
@@ -853,7 +853,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${state.token}`,
       },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, secret }),
     });
     return res.ok;
   };

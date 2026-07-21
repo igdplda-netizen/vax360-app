@@ -53,8 +53,8 @@ export default function TwoFactorScreen() {
         router.replace('/(tabs)');
       }
     } else {
-      // Enable 2FA mode
-      const success = await enable2FA(code);
+      // Enable 2FA mode — secret must be sent together with the code
+      const success = await enable2FA(code, qrCodeData?.secret ?? '');
       setLoading(false);
       if (!success) {
         setErrorMsg('Código incorreto. Falha ao ativar 2FA.');
