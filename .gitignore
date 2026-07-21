@@ -7,10 +7,11 @@ node_modules/
 .env.production
 .env.*.local
 
-# ─── Database ────────────────────────────────────────────
+# ─── Database & Sensitive Files ─────────────────────────
 *.sqlite
 *.sqlite3
 *.db
+db.txt
 
 # ─── OS Files ────────────────────────────────────────────
 .DS_Store
@@ -24,7 +25,11 @@ Thumbs.db
 .idea/
 *.code-workspace
 
-# ─── Capacitor Native Builds ────────────────────────────
+# ─── Build Artifacts & Binaries ──────────────────────────
+dist/
+www/
+*.apk
+attached_assets/
 android/
 ios/
 
@@ -32,11 +37,9 @@ ios/
 *.log
 npm-debug.log*
 
-# ─── Misc ────────────────────────────────────────────────
+# ─── Misc & Temporary ────────────────────────────────────
 .cache/
-# dist/ intentionally kept for deploy
 .tmp/
-
 .expo/
 
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb

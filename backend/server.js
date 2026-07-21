@@ -123,7 +123,8 @@ const db = new sqlite3.Database(
       salt           TEXT,
       role           TEXT NOT NULL DEFAULT 'parent',
       two_factor_secret  TEXT,
-      two_factor_enabled INTEGER DEFAULT 0
+      two_factor_enabled INTEGER DEFAULT 0,
+      created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
     )`, (err) => {
       if (err) {
         console.error("❌ Error creating users table:", err.message);
@@ -155,6 +156,7 @@ const db = new sqlite3.Database(
           const hasSalt = rows.some(r => r.name === "salt");
           const has2FASecret = rows.some(r => r.name === "two_factor_secret");
           const has2FAEnabled = rows.some(r => r.name === "two_factor_enabled");
+          const hasCreatedAt = rows.some(r => r.name === "created_at");
 
           const runMigrations = (idx) => {
             if (idx === 0) {
@@ -179,6 +181,15 @@ const db = new sqlite3.Database(
               if (!has2FAEnabled) {
                 db.run("ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0", (alterErr) => {
                   if (alterErr) console.error("❌ Error altering users table (two_factor_enabled):", alterErr.message);
+                  runMigrations(3);
+                });
+              } else {
+                runMigrations(3);
+              }
+            } else if (idx === 3) {
+              if (!hasCreatedAt) {
+                db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP", (alterErr) => {
+                  if (alterErr) console.error("❌ Error altering users table (created_at):", alterErr.message);
                   seedSuperadmin();
                 });
               } else {

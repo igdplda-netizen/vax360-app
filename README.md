@@ -1,281 +1,157 @@
 <p align="center">
-  <img src="icons/icon-192.png" alt="Vax360 Logo" width="100" />
+  <img src="assets/images/icon.png" alt="Vax360 Logo" width="100" />
 </p>
 
 <h1 align="center">Vax360 💉</h1>
 
 <p align="center">
-  <strong>Track and manage your children's vaccination schedule with ease.</strong>
+  <strong>Gestão Inteligente e Transversal de Vacinação Infantil</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.0.0-6366f1?style=flat-square" alt="Version" />
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/PWA-ready-blueviolet?style=flat-square" alt="PWA Ready" />
+  <img src="https://img.shields.io/badge/versão-3.0.0-6366f1?style=flat-square" alt="Versão" />
+  <img src="https://img.shields.io/badge/licença-MIT-green?style=flat-square" alt="Licença" />
+  <img src="https://img.shields.io/badge/Expo_SDK-56-000000?style=flat-square&logo=expo&logoColor=white" alt="Expo SDK" />
   <img src="https://img.shields.io/badge/Node.js-%3E%3D18-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/Capacitor-6-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" />
 </p>
 
 ---
 
-## 📋 Table of Contents
+## 📋 Índice
 
-- [About](#-about)
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Variables](#environment-variables)
-  - [Database Setup](#database-setup)
-  - [Running the App](#running-the-app)
-- [Project Structure](#-project-structure)
-- [API Endpoints](#-api-endpoints)
-- [Mobile (Capacitor)](#-mobile-capacitor)
-- [Multilingual Support](#-multilingual-support)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Sobre](#-sobre)
+- [Funcionalidades Principais](#-funcionalidades-principais)
+- [Tecnologias](#-tecnologias)
+- [Instalação e Execução](#-instalação-e-execução)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Endpoints da API](#-endpoints-da-api)
+- [Segurança & Autenticação](#-segurança--autenticação)
+- [Suporte Multilingue](#-suporte-multilingue)
+- [Licença](#-licença)
 
 ---
 
-## 🩺 About
+## 🩺 Sobre
 
-**Vax360** is a Progressive Web App (PWA) designed to help **parents** and **healthcare administrators** track children's vaccination schedules. It works offline, supports multiple languages, and can be deployed as a native mobile app through Capacitor.
+O **Vax360** é uma plataforma multiplataforma (Web, Android, iOS) desenhada para permitir que **encarregados de educação** e **super administradores** gerenciem o calendário de vacinação infantil de forma precisa, segura e offline-first. 
 
-Built with a focus on accessibility, data privacy, and ease of use in regions with limited connectivity.
+Foi desenvolvido com foco na usabilidade, integridade médica de dados (vacinas obrigatórias e internacionalmente recomendadas pela OMS) e exportação oficial de certificados em PDF com QR Code.
 
 ---
 
-## ✨ Features
+## ✨ Funcionalidades Principais
 
-| Feature | Description |
+| Funcionalidade | Descrição |
 |---|---|
-| 📅 **Smart Scheduling** | Automatic vaccine timeline based on each child's date of birth |
-| 👨‍👩‍👧‍👦 **Multi-Child Support** | Track multiple children per family |
-| 🔐 **Role-Based Access** | Separate Parent & Admin interfaces with PIN protection |
-| 🛡️ **Super Admin** | Elevated privileges for managing admins and system settings |
-| 🌍 **Multilingual** | English, Portuguese, French, and Afrikaans |
-| 📴 **Offline-First** | Full functionality without internet via Service Workers |
-| 💾 **Data Sync** | SQLite backend API for data persistence and backup |
-| 📊 **Dashboard** | Per-child vaccination progress with overdue/pending/completed stats |
-| 🔗 **Vaccine Dependencies** | Enforces prerequisite vaccines before allowing dose completion |
-| 📋 **History & Filters** | Filter vaccination history by child, type, and date range |
-| ✅ **Pros & Cons** | Detailed benefits and side effects for each vaccine |
-| 📤 **Import/Export** | Backup and restore data as JSON |
-| 🌙 **Dark Mode** | Toggle between light and dark themes |
-| 📱 **Capacitor** | Deploy as native Android/iOS app |
+| 📅 **Calendário Inteligente** | Cronograma de vacinas automático baseado na data de nascimento |
+| 👨‍👩‍👧‍👦 **Gestão de Menores** | Suporte a múltiplas crianças por encarregado |
+| 🛡️ **Painel SuperAdmin** | Gestão transversal da plataforma (utilizadores, papéis, dados de crianças, backups e logs de auditoria) |
+| 🔒 **Autenticação Avançada** | JWT, Autenticação de Dois Fatores (2FA via QR Code) e Redefinição de Senha |
+| 💉 **Base Médica Abrangente** | Detalhes de benefícios, efeitos colaterais, contraindicações e categorias (obrigatórias, recomendadas, viagem) |
+| 📄 **Certificado PDF** | Exportação de certificado oficial em PDF com QR Code de verificação integrado |
+| 🌐 **Multiplataforma Real** | Compatibilidade Web, iOS (Expo Go) e Android |
+| 🌍 **Multilingue (4 Idiomas)** | Português (🇦🇴 Angola), Inglês (🇬🇧), Francês (🇫🇷) e Afrikaans (🇿🇦) |
+| 💾 **Sincronização & Backup** | Integração backend com SQLite e sincronização offline-first |
 
 ---
 
-## 📸 Screenshots
+## 🛠️ Tecnologias
 
-> Screenshots coming soon. Run the app locally to see it in action!
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
+| Camada | Tecnologia |
 |---|---|
-| **Frontend** | React Native (Expo SDK 56 & Expo Router) |
+| **Frontend** | React Native (Expo SDK 56, Expo Router, TypeScript) |
+| **Estilização** | Dynamic Theme Engine com suporte a Dark Mode & Sombras Cross-Platform |
 | **Backend** | Node.js + Express 5 |
-| **Database** | SQLite 3 |
-| **PWA** | Expo Web PWA |
-| **Mobile** | Capacitor 6 (Android & iOS) |
-| **i18n** | Built-in translation engine (EN, PT, FR, AF) |
+| **Base de Dados** | SQLite 3 + Sistema de Auditoria |
+| **PDF & QR Code** | jsPDF + qrcode (rendição vetorizada de alta precisão) |
+| **Nativo/Mobile** | Capacitor 6 (Android & iOS) |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Instalação e Execução
 
-### Prerequisites
-
+### Pré-requisitos
 - **Node.js** ≥ 18.0.0
 - **npm** ≥ 9.0.0
 - **Git**
 
-### Installation
+### Configuração Inicial
 
 ```bash
-# 1. Clone the repository
+# 1. Clonar o repositório
 git clone https://github.com/igdplda-netizen/vax360-app.git
 cd vax360-app
 
-# 2. Run the full setup (installs deps + creates database)
+# 2. Instalação e inicialização da base de dados
 npm run setup
 ```
 
-Or manually:
+### Executar a Aplicação
 
 ```bash
-# Install frontend dependencies
-npm install
-
-# Install backend dependencies
-cd backend && npm install && cd ..
-
-# Initialize the database
-npm run db:init
-```
-
-### Environment Variables
-
-Copy the example environment file and adjust values as needed:
-
-```bash
-cp .env.example .env
-```
-
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `5000` | Backend API port |
-| `NODE_ENV` | `development` | Environment (`development` / `production`) |
-| `DB_PATH` | `./database.sqlite` | Path to SQLite database file |
-| `DEFAULT_ADMIN_PIN` | `1234` | Default admin PIN on first setup |
-| `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origins (comma-separated) |
-| `API_URL` | `http://localhost:5000` | Backend URL used by the frontend |
-
-### Database Setup
-
-```bash
-# Create / initialize the database
-npm run db:init
-
-# Reset database (delete and recreate)
-npm run db:reset
-```
-
-The database is automatically created with these tables:
-
-| Table | Purpose |
-|---|---|
-| `store` | Key-value store for frontend data sync |
-| `audit_log` | Tracks data change history |
-| `app_meta` | Application metadata and versioning |
-
-### Running the App
-
-```bash
-# Start both frontend and backend
+# Executar Frontend (Web/Expo) e Backend em simultâneo:
 npm run dev:all
 
-# Or start them separately:
-npm run dev          # Frontend on http://localhost:3000
-npm run dev:backend  # Backend API on http://localhost:5000
+# Ou executar individualmente:
+npm run dev          # Frontend (Metro Dev Server na porta 3000)
+npm run dev:backend  # Backend API na porta 5000/5011
 ```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📁 Project Structure
+## 📁 Estrutura do Projeto
 
 ```
 vax360/
-├── app/                 # Expo Router screens (login, dashboard, 2FA, register, etc.)
-├── context/             # AppContext (global state, translation engine, API integration)
-├── constants/           # Core timeline (vaccines schedule, colors)
-├── lib/                 # Secure storage and utility libraries
-├── utils/               # PDF exporting helpers
-├── legacy/              # Archived PWA vanilla files (index.html, style.css, sw.js, etc.)
-├── app.js               # Expo entrypoint
-├── app.json             # Expo configuration (app name, bundle identifiers, icons)
-├── capacitor.config.ts  # Capacitor native app configuration
-├── package.json         # Root dependencies & build/test scripts
-├── .env.example         # Environment variable template
-├── .gitignore           # Git ignore rules
-├── icons/               # PWA and app icons
-└── backend/             # SQLite backend API
-    ├── server.js        # Express API server (port 5011)
-    ├── db-init.js       # Database initialization & migrations script
-    └── package.json     # Backend Node.js dependencies
+├── app/                 # Rotas do Expo Router (login, tabs, admin-dashboard, forgot-password, 2fa, etc.)
+├── components/          # Componentes reutilizáveis (FlagIcon, etc.)
+├── constants/           # Constantes globais (tabela de vacinas expandida, cores)
+├── context/             # AppContext (gestão de estado global, autenticação, i18n, sync)
+├── utils/               # Utilitários (exportador de PDF, formato de datas, sombras cross-platform)
+├── assets/              # Imagens e ícones de marca do app
+├── backend/             # API Express & Base de Dados SQLite
+│   ├── server.js        # Servidor Express API
+│   ├── db-init.js       # Inicialização da base de dados e migrações
+│   └── package.json     # Dependências do servidor
+├── app.json             # Configuração do Expo SDK
+├── metro.config.js      # Configuração do Metro Bundler (filtros cross-platform)
+├── capacitor.config.ts  # Configuração de builds nativas Capacitor
+└── package.json         # Dependências do projeto
 ```
 
 ---
 
-## 📡 API Endpoints
+## 📡 Endpoints da API Principal
 
-| Method | Endpoint | Description |
+| Método | Endpoint | Descrição | Acesso |
+|---|---|---|---|
+| `GET` | `/api/health` | Estado do servidor | Público |
+| `POST` | `/api/login` | Login com WhatsApp/Senha | Público |
+| `POST` | `/api/login/2fa` | Verificação do código 2FA | Público |
+| `POST` | `/api/auth/reset-password` | Redefinição de senha | Público |
+| `GET` | `/api/sync/:id` | Obter dados sincronizados | Autenticado |
+| `POST` | `/api/sync/:id` | Sincronizar dados do encarregado | Autenticado |
+| `GET` | `/api/admin/stats` | Estatísticas globais da plataforma | SuperAdmin |
+| `GET` | `/api/admin/users` | Lista de todos os utilizadores e papéis | SuperAdmin |
+| `PUT` | `/api/admin/users/:whatsapp/role` | Alterar papel de utilizador | SuperAdmin |
+| `GET` | `/api/admin/children` | Listagem transversal de menores | SuperAdmin |
+| `GET` | `/api/admin/backup` | Gerar backup da base de dados | SuperAdmin |
+| `GET` | `/api/audit` | Registo de auditoria do sistema | SuperAdmin |
+
+---
+
+## 🌍 Suporte Multilingue
+
+| Código | Idioma | Bandeira |
 |---|---|---|
-| `GET` | `/api/health` | Health check (status, environment, uptime) |
-| `GET` | `/api/sync/:id` | Retrieve synced data by ID |
-| `POST` | `/api/sync/:id` | Save/update synced data by ID |
-
-### Example
-
-```bash
-# Health check
-curl http://localhost:5000/api/health
-
-# Save data
-curl -X POST http://localhost:5000/api/sync/user-123 \
-  -H "Content-Type: application/json" \
-  -d '{"name": "John", "children": []}'
-
-# Retrieve data
-curl http://localhost:5000/api/sync/user-123
-```
-
----
-
-## 📱 Mobile (Capacitor)
-
-Build native apps for Android and iOS:
-
-```bash
-# Initialize Capacitor
-npm run cap:init
-
-# Add platforms
-npm run cap:add:android
-npm run cap:add:ios
-
-# Sync web assets → native projects
-npm run cap:sync
-
-# Open in IDE
-npm run cap:open:android   # Opens in Android Studio
-npm run cap:open:ios       # Opens in Xcode
-```
-
----
-
-## 🌍 Multilingual Support
-
-Vax360 supports 4 languages out of the box:
-
-| Code | Language | Flag |
-|---|---|---|
+| `pt` | Português | 🇦🇴 Angola |
 | `en` | English | 🇬🇧 |
-| `pt` | Português | 🇧🇷 |
 | `fr` | Français | 🇫🇷 |
 | `af` | Afrikaans | 🇿🇦 |
 
-Language can be changed at any time from the Settings page. The selection is persisted in `localStorage`.
-
 ---
 
-## 🤝 Contributing
+## 📄 Licença
 
-Contributions are welcome! Please follow these steps:
-
-1. **Fork** the repository
-2. Create a **feature branch**: `git checkout -b feature/my-feature`
-3. **Commit** your changes: `git commit -m 'feat: add my feature'`
-4. **Push** to the branch: `git push origin feature/my-feature`
-5. Open a **Pull Request**
-
-Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  Made with ❤️ by the Vax360 Team
-</p>
+Este projeto está licenciado sob a licença **MIT** — veja o ficheiro [LICENSE](LICENSE) para mais detalhes.

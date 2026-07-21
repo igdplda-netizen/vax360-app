@@ -55,7 +55,8 @@ db.serialize(() => {
             salt           TEXT,
             role           TEXT NOT NULL DEFAULT 'parent',
             two_factor_secret  TEXT,
-            two_factor_enabled INTEGER DEFAULT 0
+            two_factor_enabled INTEGER DEFAULT 0,
+            created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
           )
         `, (errUsers) => {
           if (errUsers) console.error("  ❌ users creation failed:", errUsers.message);
@@ -153,6 +154,17 @@ db.serialize(() => {
                   db.run("ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0", (errAlter) => {
                     if (errAlter) console.error("  ❌ users migration failed (two_factor_enabled):", errAlter.message);
                     else console.log('  ✔  Table "users" migrated (two_factor_enabled column added)');
+                    runMigrations(3);
+                  });
+                } else {
+                  runMigrations(3);
+                }
+              } else if (idx === 3) {
+                const hasCreatedAt = !errUserInfo && userRows && userRows.some(r => r.name === "created_at");
+                if (!hasCreatedAt) {
+                  db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP", (errAlter) => {
+                    if (errAlter) console.error("  ❌ users migration failed (created_at):", errAlter.message);
+                    else console.log('  ✔  Table "users" migrated (created_at column added)');
                     next2();
                   });
                 } else {
