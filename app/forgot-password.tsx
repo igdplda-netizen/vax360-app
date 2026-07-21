@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useCol
 import { useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
+import { shadows } from '../utils/shadows';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   logoContainer: { width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   title: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
   tagline: { fontSize: 15, marginTop: 6, textAlign: 'center' },
-  card: { borderRadius: 24, padding: 24, boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.05)', elevation: 4 },
+  card: { borderRadius: 24, padding: 24, ...shadows.lg() },
   cardTitle: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
   errorAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef2f2', padding: 12, borderRadius: 12, marginBottom: 16, gap: 8 },
   errorText: { color: '#b91c1c', fontSize: 13, fontWeight: '600', flex: 1 },
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
   inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 12 },
   inputIcon: { marginRight: 8 },
   input: { flex: 1, paddingVertical: 12, fontSize: 15, fontWeight: '600' },
-  resetBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, marginTop: 12, boxShadow: '0px 4px 8px rgba(99, 102, 241, 0.25)', elevation: 2 },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, marginTop: 12, ...shadows.primary() },
   resetBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   backLink: { alignItems: 'center', marginTop: 16 },
   backLinkText: { fontSize: 14, fontWeight: '700' },

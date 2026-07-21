@@ -5,6 +5,7 @@ import { Colors } from '../constants/colors';
 import { VACCINE_SCHEDULE } from '../constants/vaccines';
 import { Ionicons } from '@expo/vector-icons';
 import { formatToDeviceDate, promptForDate } from '../utils/date';
+import { shadows } from '../utils/shadows';
 
 const CATEGORY_COLORS = {
   mandatory: { bg: '#dbeafe', text: '#1e40af', icon: 'shield-checkmark' as const },
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   metaRow: { gap: 8 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { fontSize: 14, fontWeight: '500' },
-  sectionCard: { borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
+  sectionCard: { borderRadius: 16, padding: 16, marginBottom: 12, ...shadows.sm() },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   listItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8 },

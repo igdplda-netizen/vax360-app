@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { VaccineStatus } from '../../context/AppContext';
 import { VACCINE_SCHEDULE } from '../../constants/vaccines';
 import { formatToDeviceDate } from '../../utils/date';
+import { shadows } from '../../utils/shadows';
 
 export default function HomeScreen() {
   const { state, t, getVaccinesForChild, setCurrentChild, syncData, isOnline, syncPending } = useApp();
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
   networkDot: { width: 10, height: 10, borderRadius: 5 },
   syncBtn: { padding: 6 },
   addBtn: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  progressCard: { borderRadius: 20, padding: 20, marginBottom: 20, boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)', elevation: 2 },
+  progressCard: { borderRadius: 20, padding: 20, marginBottom: 20, ...shadows.md() },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   progressTitle: { fontSize: 15, fontWeight: '700' },
   progressPercent: { fontSize: 20, fontWeight: '800' },
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   vaccineList: { gap: 10 },
   vaccineCard: {
     flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16,
-    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
+    ...shadows.sm(),
   },
   vaccineIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   vaccineInfo: { flex: 1 },

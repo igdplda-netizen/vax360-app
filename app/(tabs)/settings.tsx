@@ -5,6 +5,7 @@ import { useApp, Language } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import FlagIcon from '../../components/FlagIcon';
+import { shadows } from '../../utils/shadows';
 
 export default function SettingsScreen() {
   const { state, setLanguage, setTheme, logout, get2FAStatus, disable2FA, t, isOnline } = useApp();
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: '800', marginBottom: 24 },
   section: { marginBottom: 20 },
   sectionLabel: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
-  card: { borderRadius: 16, overflow: 'hidden', boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
+  card: { borderRadius: 16, overflow: 'hidden', ...shadows.sm() },
   userInfoRow: { flexDirection: 'row', alignItems: 'center' },
   userAvatar: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   userName: { fontSize: 16, fontWeight: '800' },

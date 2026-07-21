@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { exportCertificatePdf } from '../../utils/pdf-exporter';
 import { formatToDeviceDate, promptForDate } from '../../utils/date';
 import { VACCINE_SCHEDULE } from '../../constants/vaccines';
+import { shadows } from '../../utils/shadows';
 
 const groups = [
   { key: 'birth', label: 'Ao Nascer', labelEn: 'At Birth' },
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
   pdfBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   group: { marginBottom: 16 },
   groupLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
-  groupCard: { borderRadius: 16, overflow: 'hidden', boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1 },
+  groupCard: { borderRadius: 16, overflow: 'hidden', ...shadows.sm() },
   vaccineRow: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   vaccineRowBorder: { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   statusDot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
@@ -317,8 +318,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.25)',
-    elevation: 10,
+    ...shadows.xl(),
   },
   pdfModalHeader: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } 
 import { useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
+import { shadows } from '../utils/shadows';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function OnboardingScreen() {
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   features: { gap: 12 },
   featureCard: {
     flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)', elevation: 2,
+    ...shadows.md(),
   },
   featureIcon: {
     width: 44, height: 44, borderRadius: 12,
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: 16, borderRadius: 16, gap: 8,
-    boxShadow: '0px 4px 12px rgba(99, 102, 241, 0.3)', elevation: 4,
+    ...shadows.primary(),
   },
   buttonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

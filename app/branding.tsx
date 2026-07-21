@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { shadows } from '../utils/shadows';
 
 export default function BrandingScreen() {
   const { state, updateBranding, loadBranding, t } = useApp();
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 16 },
   backBtn: { padding: 4 },
   title: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
-  card: { borderRadius: 24, padding: 24, boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.05)', elevation: 4 },
+  card: { borderRadius: 24, padding: 24, ...shadows.lg() },
   inputGroup: { marginBottom: 16, gap: 6 },
   inputLabel: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   input: { borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, fontWeight: '600' },
@@ -168,6 +169,6 @@ const styles = StyleSheet.create({
   previewLabel: { fontSize: 13, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   logoPreviewBg: { padding: 12, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   logoPreview: { width: 140, height: 60 },
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, marginTop: 12, boxShadow: '0px 4px 8px rgba(99, 102, 241, 0.25)', elevation: 2 },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, marginTop: 12, ...shadows.primary() },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

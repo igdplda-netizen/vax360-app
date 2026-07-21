@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useCol
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
+import { shadows } from '../utils/shadows';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TwoFactorScreen() {
@@ -167,16 +168,16 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 16 },
   backBtn: { padding: 4 },
   title: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
-  card: { borderRadius: 24, padding: 24, boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.05)', elevation: 4 },
+  card: { borderRadius: 24, padding: 24, ...shadows.lg() },
   qrSection: { alignItems: 'center', marginBottom: 20 },
   instructions: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginVertical: 8, fontWeight: '500' },
-  qrContainer: { padding: 12, backgroundColor: '#fff', borderRadius: 16, boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)', marginVertical: 12 },
+  qrContainer: { padding: 12, backgroundColor: '#fff', borderRadius: 16, ...shadows.md(), marginVertical: 12 },
   qrImage: { width: 180, height: 180 },
   secretKey: { fontSize: 16, fontWeight: '800', letterSpacing: 2, padding: 8, backgroundColor: '#f1f5f9', borderRadius: 8, overflow: 'hidden', textAlign: 'center', marginVertical: 8 },
   errorAlert: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef2f2', padding: 12, borderRadius: 12, marginBottom: 16, gap: 8 },
   errorText: { color: '#b91c1c', fontSize: 13, fontWeight: '600', flex: 1 },
   inputGroup: { marginBottom: 20, alignItems: 'center' },
   codeInput: { width: '100%', borderWidth: 2, borderRadius: 16, paddingVertical: 14, fontSize: 32, fontWeight: '800', letterSpacing: 8, textAlign: 'center' },
-  verifyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, boxShadow: '0px 4px 8px rgba(99, 102, 241, 0.25)', elevation: 2 },
+  verifyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8, ...shadows.primary() },
   verifyBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

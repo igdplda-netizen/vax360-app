@@ -5,6 +5,7 @@ import { useApp, Child } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { getDeviceDateFormat, parseInputDate, formatInputText, formatToDeviceDate, promptForDate } from '../utils/date';
+import { VACCINE_SCHEDULE } from '../constants/vaccines';
 
 interface UserRecord {
   whatsapp: string;
@@ -254,7 +255,7 @@ export default function AdminDashboardScreen() {
       name: newChildName,
       birthDate: parsedDate,
       gender: newChildGender,
-      vaccines: require('../constants/vaccines').VACCINE_SCHEDULE.map((v: any) => ({
+      vaccines: VACCINE_SCHEDULE.map((v: any) => ({
         vaccineId: v.id,
         status: 'pending',
         scheduledDate: getSchedDate(v.ageMonths)
@@ -653,7 +654,7 @@ export default function AdminDashboardScreen() {
                       </Text>
                       <View style={styles.vaccineList}>
                         {child.vaccines?.slice(0, 10).map(v => {
-                          const vInfo = require('../constants/vaccines').VACCINE_SCHEDULE.find((vs: any) => vs.id === v.vaccineId);
+                          const vInfo = VACCINE_SCHEDULE.find((vs: any) => vs.id === v.vaccineId);
                           return (
                             <TouchableOpacity
                               key={v.vaccineId}

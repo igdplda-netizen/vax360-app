@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 
 export type DateFormat = 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
 
@@ -92,7 +92,6 @@ export function promptForDate(
   const deviceFormat = getDeviceDateFormat();
   const todayIso = new Date().toISOString().split('T')[0];
   const todayFormatted = formatToDeviceDate(todayIso);
-  const AlertClass = require('react-native').Alert;
 
   if (Platform.OS === 'web') {
     const promptText = language === 'pt'
@@ -107,7 +106,7 @@ export function promptForDate(
     }
     onConfirm(parsed);
   } else if (Platform.OS === 'ios') {
-    AlertClass.prompt(
+    Alert.prompt(
       language === 'pt' ? 'Data de Aplicação' : 'Application Date',
       language === 'pt' ? `Digite a data (${deviceFormat}):` : `Enter the date (${deviceFormat}):`,
       [
@@ -118,7 +117,7 @@ export function promptForDate(
             if (!val) return;
             const parsed = parseInputDate(val, deviceFormat);
             if (!parsed) {
-              AlertClass.alert(language === 'pt' ? 'Erro' : 'Error', language === 'pt' ? 'Data inválida!' : 'Invalid date!');
+              Alert.alert(language === 'pt' ? 'Erro' : 'Error', language === 'pt' ? 'Data inválida!' : 'Invalid date!');
               return;
             }
             onConfirm(parsed);
@@ -129,7 +128,7 @@ export function promptForDate(
       todayFormatted
     );
   } else {
-    AlertClass.alert(
+    Alert.alert(
       language === 'pt' ? 'Data de Aplicação' : 'Application Date',
       language === 'pt' 
         ? `A vacina foi aplicada hoje (${todayFormatted})?`
@@ -143,7 +142,7 @@ export function promptForDate(
         {
           text: language === 'pt' ? 'Não (Digitar)' : 'No (Type)',
           onPress: () => {
-            AlertClass.alert(
+            Alert.alert(
               language === 'pt' ? 'Data customizada' : 'Custom Date',
               language === 'pt'
                 ? 'Para digitar uma data customizada, por favor use a versão Web ou iOS.'

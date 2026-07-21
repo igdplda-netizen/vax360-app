@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { formatToDeviceDate } from '../../utils/date';
+import { shadows } from '../../utils/shadows';
 
 export default function ChildrenScreen() {
   const { state, t, removeChild, setCurrentChild } = useApp();
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   list: { gap: 12 },
   childCard: {
     flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 16,
-    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
+    ...shadows.sm(),
   },
   childCardActive: { borderWidth: 2, borderColor: Colors.primary },
   avatar: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
