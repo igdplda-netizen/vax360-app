@@ -19,7 +19,7 @@
   "author": "Vax360 Team",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^2.2.2",
+    "body-parser": "^2.3.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1",
@@ -29,6 +29,16 @@
   },
   "optionalDependencies": {
     "dotenv": "^16.4.5"
+  },
+  "overrides": {
+    "minimatch": "3.1.5",
+    "tar": "7.5.20",
+    "shell-quote": "1.10.0",
+    "js-yaml": "4.3.0",
+    "form-data": "4.0.6",
+    "undici": "6.27.0",
+    "uuid": "11.1.1",
+    "brace-expansion": "2.1.2"
   },
   "engines": {
     "node": ">=18.0.0"
