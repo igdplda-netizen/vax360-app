@@ -36,8 +36,8 @@ export default function TwoFactorScreen() {
     }
   }, [isLoginMode]);
 
-  const handleVerify = async () => {
-    if (code.length !== 6) {
+  const submitCode = async (codeValue: string) => {
+    if (codeValue.length !== 6) {
       setErrorMsg('O código deve conter 6 dígitos.');
       return;
     }
@@ -46,7 +46,7 @@ export default function TwoFactorScreen() {
     setSuccessMsg('');
 
     if (isLoginMode && params.tempToken) {
-      const res = await login2FA(params.tempToken, code);
+      const res = await login2FA(params.tempToken, codeValue);
       setLoading(false);
       if (!res.success) {
         setErrorMsg(res.error || 'Código 2FA incorreto.');
@@ -54,7 +54,7 @@ export default function TwoFactorScreen() {
         router.replace('/(tabs)');
       }
     } else {
-      const success = await enable2FA(code, qrCodeData?.secret ?? '');
+      const success = await enable2FA(codeValue, qrCodeData?.secret ?? '');
       setLoading(false);
       if (!success) {
         setErrorMsg('Código incorreto. Tente novamente com um código novo do autenticador.');
@@ -66,6 +66,8 @@ export default function TwoFactorScreen() {
       }
     }
   };
+
+  const handleVerify = () => submitCode(code);
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
@@ -137,7 +139,15 @@ export default function TwoFactorScreen() {
                   placeholder="000000"
                   placeholderTextColor={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary}
                   value={code}
-                  onChangeText={v => { setCode(v); setErrorMsg(''); }}
+                  onChangeText={v => {
+                    const clean = v.replace(/\D/g, '').slice(0, 6);
+                    setCode(clean);
+                    setErrorMsg('');
+                    if (clean.length === 6 && !loading) {
+                      // auto-submit with the fresh value, bypassing stale state
+                      submitCode(clean);
+                    }
+                  }}
                   keyboardType="number-pad"
                   maxLength={6}
                   autoFocus

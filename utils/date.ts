@@ -87,11 +87,23 @@ export function formatInputText(text: string, format: DateFormat): string {
 
 export function promptForDate(
   language: 'pt' | 'en',
-  onConfirm: (dateStr: string) => void
+  onConfirm: (dateStr: string) => void,
+  minDate?: string  // ISO date string — vaccine date must not be before this
 ) {
   const deviceFormat = getDeviceDateFormat();
   const todayIso = new Date().toISOString().split('T')[0];
   const todayFormatted = formatToDeviceDate(todayIso);
+
+  const validateDate = (parsed: string): string | null => {
+    if (!parsed) return language === 'pt' ? 'Data inválida! Por favor use o formato: ' + deviceFormat : 'Invalid date! Please use format: ' + deviceFormat;
+    if (minDate && parsed < minDate) {
+      const minFormatted = formatToDeviceDate(minDate);
+      return language === 'pt'
+        ? `A data de vacinação não pode ser anterior à data de nascimento (${minFormatted}).`
+        : `The vaccination date cannot be before the date of birth (${minFormatted}).`;
+    }
+    return null; // valid
+  };
 
   if (Platform.OS === 'web') {
     const promptText = language === 'pt'
@@ -100,11 +112,12 @@ export function promptForDate(
     const val = window.prompt(promptText, todayFormatted);
     if (val === null) return; // User cancelled
     const parsed = parseInputDate(val, deviceFormat);
-    if (!parsed) {
-      alert(language === 'pt' ? 'Data inválida! Por favor use o formato: ' + deviceFormat : 'Invalid date! Please use format: ' + deviceFormat);
+    const err = validateDate(parsed || '');
+    if (err) {
+      alert(err);
       return;
     }
-    onConfirm(parsed);
+    onConfirm(parsed!);
   } else if (Platform.OS === 'ios') {
     Alert.prompt(
       language === 'pt' ? 'Data de Aplicação' : 'Application Date',
@@ -116,11 +129,12 @@ export function promptForDate(
           onPress: (val?: string) => {
             if (!val) return;
             const parsed = parseInputDate(val, deviceFormat);
-            if (!parsed) {
-              Alert.alert(language === 'pt' ? 'Erro' : 'Error', language === 'pt' ? 'Data inválida!' : 'Invalid date!');
+            const err = validateDate(parsed || '');
+            if (err) {
+              Alert.alert(language === 'pt' ? 'Erro' : 'Error', err);
               return;
             }
-            onConfirm(parsed);
+            onConfirm(parsed!);
           }
         }
       ],
@@ -128,16 +142,24 @@ export function promptForDate(
       todayFormatted
     );
   } else {
+    // Android: offer today or a note that custom dates need web/iOS
+    const todayErr = validateDate(todayIso);
     Alert.alert(
       language === 'pt' ? 'Data de Aplicação' : 'Application Date',
-      language === 'pt' 
+      language === 'pt'
         ? `A vacina foi aplicada hoje (${todayFormatted})?`
         : `Was the vaccine applied today (${todayFormatted})?`,
       [
         { text: language === 'pt' ? 'Cancelar' : 'Cancel', style: 'cancel' },
         {
           text: language === 'pt' ? 'Sim (Hoje)' : 'Yes (Today)',
-          onPress: () => onConfirm(todayIso)
+          onPress: () => {
+            if (todayErr) {
+              Alert.alert(language === 'pt' ? 'Erro' : 'Error', todayErr);
+              return;
+            }
+            onConfirm(todayIso);
+          }
         },
         {
           text: language === 'pt' ? 'Não (Digitar)' : 'No (Type)',

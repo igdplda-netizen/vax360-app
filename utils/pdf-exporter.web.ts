@@ -88,10 +88,24 @@ export async function exportCertificatePdf(
 
     const fmtDate = (dStr: string) => formatToDeviceDate(dStr);
 
-    const getAgeMonths = (birthDate: string) => {
+    const getAgeLabel = (birthDate: string): string => {
       const birth = new Date(birthDate);
       const now = new Date();
-      return (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+      const diffMs = now.getTime() - birth.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays < 30) return `${diffDays} ${diffDays === 1 ? 'dia de vida' : 'dias de vida'}`;
+      const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+      if (months < 24) return `${months}m`;
+      const years = Math.floor(months / 12);
+      const rem = months % 12;
+      return rem > 0 ? `${years}a ${rem}m` : `${years}a`;
+    };
+
+    // Generate a SUS-style registration ID from child ID
+    const getSUSId = (id: string): string => {
+      const year = new Date().getFullYear();
+      const suffix = id.replace(/-/g, '').toUpperCase().slice(0, 4);
+      return `SUS-${year}-${suffix}`;
     };
 
     // Parse primary color
@@ -123,7 +137,7 @@ export async function exportCertificatePdf(
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9.5);
-      doc.text(t('digital_health_platform') || 'Plataforma Digital de Saúde', 23, 37);
+      doc.text(t('digital_health_platform') || 'Plataforma de Saúde Digital - Registro Oficial', 23, 37);
 
       // 3. Child Info Section
       doc.setFillColor(r, g, b, 0.04);
@@ -141,11 +155,11 @@ export async function exportCertificatePdf(
 
       doc.setTextColor(r, g, b);
       doc.setFont('helvetica', 'bold');
-      doc.text((t('registry_id') || 'ID Registro') + ': ', 31, 70);
-      const registryIdLabelWidth = doc.getTextWidth((t('registry_id') || 'ID Registro') + ': ');
+      doc.text((t('registry_id') || 'Registro ID') + ': ', 31, 70);
+      const registryIdLabelWidth = doc.getTextWidth((t('registry_id') || 'Registro ID') + ': ');
       doc.setTextColor(51, 51, 51);
       doc.setFont('helvetica', 'normal');
-      doc.text(`VAX-${currentChild.id.toUpperCase()}`, 31 + registryIdLabelWidth, 70);
+      doc.text(getSUSId(currentChild.id), 31 + registryIdLabelWidth, 70);
 
       // Column 2
       doc.setTextColor(r, g, b);
@@ -154,7 +168,7 @@ export async function exportCertificatePdf(
       const dobLabelWidth = doc.getTextWidth((t('dob') || 'Nascimento') + ': ');
       doc.setTextColor(51, 51, 51);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${fmtDate(currentChild.birthDate)} (${getAgeMonths(currentChild.birthDate)}m)`, 110 + dobLabelWidth, 60);
+      doc.text(`${fmtDate(currentChild.birthDate)} (${getAgeLabel(currentChild.birthDate)})`, 110 + dobLabelWidth, 60);
 
       doc.setTextColor(r, g, b);
       doc.setFont('helvetica', 'bold');
@@ -212,8 +226,9 @@ export async function exportCertificatePdf(
           doc.setTextColor(21, 128, 61);
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(6.5);
-          doc.text(t('done_badge') || 'Feito', 122.5, yCurrent + 4.4, { align: "center" });
+          doc.text(t('done_badge') || '✓ Feita', 122.5, yCurrent + 4.4, { align: "center" });
         } else {
+          doc.setFillColor(239, 246, 255);
           doc.roundedRect(112.5, yCurrent + 1.5, 20, 4, 1.2, 1.2, 'F');
           doc.setTextColor(67, 56, 202);
           doc.setFont('helvetica', 'bold');
@@ -235,13 +250,13 @@ export async function exportCertificatePdf(
       doc.setTextColor(r, g, b);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
-      doc.text(t('scan_to_validate') || 'Digitalize para Validar', 163, 132, { align: 'center' });
+      doc.text(t('scan_to_validate') || 'Leia para validar as doses', 163, 132, { align: 'center' });
 
       doc.setTextColor(119, 119, 119);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6.5);
-      doc.text(t('electronic_validation') || 'Validação eletrónica da autenticidade', 163, 138, { align: 'center' });
-      doc.text(t('guaranteed_authenticity') || 'Garantia de segurança sanitária Vax360', 163, 142, { align: 'center' });
+      doc.text(t('electronic_validation') || 'Validação Eletrônica', 163, 138, { align: 'center' });
+      doc.text(t('guaranteed_authenticity') || 'Autenticidade Garantida', 163, 142, { align: 'center' });
 
       // 7. Footer
       doc.setDrawColor(218, 224, 233);
@@ -251,12 +266,23 @@ export async function exportCertificatePdf(
       doc.setTextColor(136, 136, 136);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6.5);
-      doc.text(t('certificate_footer_msg') || 'Este documento certifica o histórico de imunização registado na plataforma oficial Vax360.', 23, 268, { maxWidth: 105 });
+      doc.text(
+        t('certificate_footer_msg') ||
+        'Documento emitido digitalmente. As informações contidas neste certificado refletem o registro do paciente.',
+        23, 268, { maxWidth: 105 }
+      );
 
       if (state.partnerBranding && partnerLogoData) {
         doc.setFontSize(7);
-        doc.text('Parceiro oficial:', 132, 268);
+        doc.setTextColor(136, 136, 136);
+        doc.text('Logo parceiras:', 132, 268);
         doc.addImage(partnerLogoData.dataUrl, partnerLogoData.format, 132, 271, 30, 8);
+      } else if (state.partnerBranding?.name) {
+        doc.setFontSize(7);
+        doc.setTextColor(136, 136, 136);
+        doc.text('Logo parceiras:', 132, 268);
+        doc.setFont('helvetica', 'bold');
+        doc.text(state.partnerBranding.name, 132, 274);
       }
     }
 

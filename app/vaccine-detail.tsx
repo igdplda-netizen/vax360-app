@@ -42,7 +42,7 @@ export default function VaccineDetailScreen() {
     } else {
       promptForDate(isPt ? 'pt' : 'en', (dateStr) => {
         markVaccineCompleted(childId, vaccineId, dateStr);
-      });
+      }, child.birthDate);
     }
   };
 
