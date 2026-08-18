@@ -12,6 +12,7 @@
 
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const crypto = require('crypto');
 
 // Load .env if dotenv is available
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* no dotenv */ }
@@ -67,62 +68,90 @@ db.serialize(() => {
             const hasSalt = !errUserInfo && userRows && userRows.some(r => r.name === "salt");
             const next2 = () => {
               // Step 5: Seed superadmin
-              const crypto = require('crypto');
+              // Query the existing record first so we only warn when the password
+              // genuinely hasn't been changed, not on every boot unconditionally.
               const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
-              if (superadminPassword === "Admin@123") {
-                console.warn(
-                  "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
-                );
-              }
-              const superadminSalt = crypto.randomBytes(16).toString("hex");
-              const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
-              db.run(`
-                INSERT OR IGNORE INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
-                VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))
-              `, [superadminHash, superadminSalt], () => {
 
-                // Step 6: Create audit_log table
-                db.run(`
-                  CREATE TABLE IF NOT EXISTS audit_log (
-                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    action      TEXT NOT NULL,
-                    entity_type TEXT,
-                    entity_id   TEXT,
-                    payload     TEXT,
-                    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
-                  )
-                `, (errAudit) => {
-                  if (errAudit) console.error("  ❌ audit_log creation failed:", errAudit.message);
-                  else console.log('  ✔  Table "audit_log" ready');
-
-                  // Step 7: Create app_meta table
+              db.get("SELECT password_hash, salt FROM users WHERE whatsapp = '9999'", (errAdmin, existingAdmin) => {
+                const continueAfterSeed = () => {
+                  // Step 6: Create audit_log table
                   db.run(`
-                    CREATE TABLE IF NOT EXISTS app_meta (
-                      key   TEXT PRIMARY KEY,
-                      value TEXT
+                    CREATE TABLE IF NOT EXISTS audit_log (
+                      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                      action      TEXT NOT NULL,
+                      entity_type TEXT,
+                      entity_id   TEXT,
+                      payload     TEXT,
+                      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
                     )
-                  `, (errMeta) => {
-                    if (errMeta) console.error("  ❌ app_meta creation failed:", errMeta.message);
-                    else console.log('  ✔  Table "app_meta" ready');
+                  `, (errAudit) => {
+                    if (errAudit) console.error("  ❌ audit_log creation failed:", errAudit.message);
+                    else console.log('  ✔  Table "audit_log" ready');
 
-                    // Step 8: Insert default metadata
+                    // Step 7: Create app_meta table
                     db.run(`
-                      INSERT OR IGNORE INTO app_meta (key, value)
-                      VALUES ('db_version', '1.0.0'),
-                             ('created_at', datetime('now'))
-                    `, [], () => {
-                      
-                      // Step 9: Close database
-                      db.close((errClose) => {
-                        if (errClose) {
-                          console.error('❌ Error closing database:', errClose.message);
-                          process.exit(1);
-                        }
-                        console.log('\n✅ Database initialized successfully!\n');
+                      CREATE TABLE IF NOT EXISTS app_meta (
+                        key   TEXT PRIMARY KEY,
+                        value TEXT
+                      )
+                    `, (errMeta) => {
+                      if (errMeta) console.error("  ❌ app_meta creation failed:", errMeta.message);
+                      else console.log('  ✔  Table "app_meta" ready');
+
+                      // Step 8: Insert default metadata
+                      db.run(`
+                        INSERT OR IGNORE INTO app_meta (key, value)
+                        VALUES ('db_version', '1.0.0'),
+                               ('created_at', datetime('now'))
+                      `, [], () => {
+
+                        // Step 9: Close database
+                        db.close((errClose) => {
+                          if (errClose) {
+                            console.error('❌ Error closing database:', errClose.message);
+                            process.exit(1);
+                          }
+                          console.log('\n✅ Database initialized successfully!\n');
+                        });
                       });
                     });
                   });
-                });
+                };
+
+                if (existingAdmin) {
+                  // Superadmin already exists — only warn if the stored hash still
+                  // matches the default password (i.e. it was never changed).
+                  if (superadminPassword === "Admin@123" && existingAdmin.salt) {
+                    const defaultHash = crypto
+                      .pbkdf2Sync("Admin@123", existingAdmin.salt, 100000, 64, "sha512")
+                      .toString("hex");
+                    if (defaultHash === existingAdmin.password_hash) {
+                      console.warn(
+                        "\n⚠️  WARNING: Superadmin password is still set to default 'Admin@123'. Change this password immediately in production!\n"
+                      );
+                    }
+                  }
+                  continueAfterSeed();
+                } else {
+                  // Superadmin doesn't exist yet — seed with the configured password.
+                  if (superadminPassword === "Admin@123") {
+                    console.warn(
+                      "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
+                    );
+                  }
+                  const superadminSalt = crypto.randomBytes(16).toString("hex");
+                  const superadminHash = crypto
+                    .pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512")
+                    .toString("hex");
+                  db.run(`
+                    INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
+                    VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))
+                  `, [superadminHash, superadminSalt], (insertErr) => {
+                    if (insertErr) console.error("  ❌ superadmin seed failed:", insertErr.message);
+                    else console.log('  ✔  Superadmin seeded');
+                    continueAfterSeed();
+                  });
+                }
               });
             };
 
