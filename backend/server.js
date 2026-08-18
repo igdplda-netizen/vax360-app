@@ -572,6 +572,16 @@ app.post("/api/login", loginLimiter, (req, res) => {
         return;
       }
 
+      // Check if superadmin is still using the default password — signal must-change
+      let mustChangePassword = false;
+      if (user.whatsapp === '9999' && user.salt) {
+        const { _DEFAULT_PASSWORD } = require('./lib/superadmin-warning');
+        const defaultHash = crypto.pbkdf2Sync(_DEFAULT_PASSWORD, user.salt, 100000, 64, 'sha512').toString('hex');
+        if (defaultHash === user.password_hash) {
+          mustChangePassword = true;
+        }
+      }
+
       // Check if 2FA is enabled
       if (user.two_factor_enabled === 1 && user.two_factor_secret) {
         db.run(
@@ -614,12 +624,57 @@ app.post("/api/login", loginLimiter, (req, res) => {
             success: true,
             token,
             role: user.role,
+            must_change_password: mustChangePassword || undefined,
             user: {
               name: user.name,
               whatsapp: user.whatsapp,
               email: user.email,
             },
           });
+        }
+      );
+    }
+  );
+});
+
+// ─── Authenticated Change-Own-Password Route ────────────
+app.post("/api/auth/change-own-password", resetPasswordLimiter, authenticateToken, (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword) {
+    return res.status(400).json({ error: "New password is required" });
+  }
+
+  const complexity = validatePasswordComplexity(newPassword);
+  if (!complexity.valid) {
+    return res.status(400).json({ error: complexity.msg });
+  }
+
+  const whatsapp = req.user.whatsapp;
+  const { salt, hash: password_hash } = hashPassword(newPassword);
+
+  db.run(
+    "UPDATE users SET password_hash = ?, salt = ? WHERE whatsapp = ?",
+    [password_hash, salt, whatsapp],
+    function (updateErr) {
+      if (updateErr) {
+        return handleInternalError(res, updateErr, "❌ Error changing password:");
+      }
+
+      db.run(
+        "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
+        ["change_own_password", "user", whatsapp, "Password changed via in-app mandatory flow"],
+        (auditErr) => {
+          if (auditErr) console.error("❌ Audit change-own-password error:", auditErr.message);
+
+          // Issue a fresh JWT with the new pwd_slice so the session stays valid
+          const pwd_slice = password_hash.substring(0, 10);
+          const token = jwt.sign(
+            { whatsapp, role: req.user.role, pwd_slice },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+          );
+
+          res.json({ success: true, message: "Password changed successfully", token });
         }
       );
     }
@@ -677,10 +732,21 @@ app.post("/api/login/2fa", loginLimiter, (req, res) => {
               { expiresIn: "7d" }
             );
 
+            // Check if superadmin is still using the default password even after 2FA
+            let mustChangePassword = false;
+            if (user.whatsapp === '9999' && user.salt) {
+              const { _DEFAULT_PASSWORD } = require('./lib/superadmin-warning');
+              const defaultHash = crypto.pbkdf2Sync(_DEFAULT_PASSWORD, user.salt, 100000, 64, 'sha512').toString('hex');
+              if (defaultHash === user.password_hash) {
+                mustChangePassword = true;
+              }
+            }
+
             res.json({
               success: true,
               token,
               role: user.role,
+              must_change_password: mustChangePassword || undefined,
               user: {
                 name: user.name,
                 whatsapp: user.whatsapp,

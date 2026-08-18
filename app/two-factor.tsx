@@ -50,6 +50,8 @@ export default function TwoFactorScreen() {
       setLoading(false);
       if (!res.success) {
         setErrorMsg(res.error || 'Código 2FA incorreto.');
+      } else if (res.mustChangePassword) {
+        router.replace('/change-password');
       } else {
         router.replace('/(tabs)');
       }

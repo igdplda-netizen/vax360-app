@@ -68,10 +68,11 @@ interface AppContextType {
   API_BASE_URL: string;
   isOnline: boolean;
   syncPending: boolean;
-  login: (whatsapp: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; tempToken?: string; error?: string }>;
-  login2FA: (tempToken: string, code: string) => Promise<{ success: boolean; error?: string }>;
+  login: (whatsapp: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; tempToken?: string; mustChangePassword?: boolean; error?: string }>;
+  login2FA: (tempToken: string, code: string) => Promise<{ success: boolean; mustChangePassword?: boolean; error?: string }>;
   registerUser: (name: string, whatsapp: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   resetPassword: (whatsapp: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  changeOwnPassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   get2FAStatus: () => Promise<boolean>;
   setup2FA: () => Promise<{ secret: string; qrCode: string }>;
@@ -198,6 +199,12 @@ const translations: Record<Language, Record<string, string>> = {
     searchPlaceholder: 'Search by name, age group…',
     vaccinesFound: 'vaccines found',
     noVaccinesFound: 'No vaccines found for your search.',
+    changePassword: 'Change Password',
+    changePasswordTagline: 'Set a new secure password to continue',
+    changePasswordBtn: 'Set New Password',
+    changePasswordSuccess: 'Password changed successfully!',
+    changePasswordFailed: 'Failed to change password. Try again.',
+    changePasswordRequired: 'You must set a new password before continuing.',
   },
   pt: {
     appName: 'Vax360',
@@ -300,6 +307,12 @@ const translations: Record<Language, Record<string, string>> = {
     searchPlaceholder: 'Pesquisar por nome, faixa etária…',
     vaccinesFound: 'vacinas encontradas',
     noVaccinesFound: 'Nenhuma vacina encontrada para a sua pesquisa.',
+    changePassword: 'Alterar Senha',
+    changePasswordTagline: 'Defina uma nova senha segura para continuar',
+    changePasswordBtn: 'Definir Nova Senha',
+    changePasswordSuccess: 'Senha alterada com sucesso!',
+    changePasswordFailed: 'Falha ao alterar a senha. Tente novamente.',
+    changePasswordRequired: 'Deve definir uma nova senha antes de continuar.',
   },
   fr: {
     appName: 'Vax360',
@@ -402,6 +415,12 @@ const translations: Record<Language, Record<string, string>> = {
     searchPlaceholder: 'Rechercher par nom, âge…',
     vaccinesFound: 'vaccins trouvés',
     noVaccinesFound: 'Aucun vaccin trouvé pour votre recherche.',
+    changePassword: 'Changer le mot de passe',
+    changePasswordTagline: 'Définissez un nouveau mot de passe sécurisé pour continuer',
+    changePasswordBtn: 'Définir un nouveau mot de passe',
+    changePasswordSuccess: 'Mot de passe changé avec succès !',
+    changePasswordFailed: 'Échec du changement de mot de passe. Réessayez.',
+    changePasswordRequired: 'Vous devez définir un nouveau mot de passe avant de continuer.',
   },
   af: {
     appName: 'Vax360',
@@ -504,6 +523,12 @@ const translations: Record<Language, Record<string, string>> = {
     searchPlaceholder: 'Soek op naam, ouderdomsgroep…',
     vaccinesFound: 'entstowwe gevind',
     noVaccinesFound: 'Geen entstowwe gevind vir u soektog nie.',
+    changePassword: 'Verander Wagwoord',
+    changePasswordTagline: 'Stel \'n nuwe veilige wagwoord in om voort te gaan',
+    changePasswordBtn: 'Stel Nuwe Wagwoord',
+    changePasswordSuccess: 'Wagwoord suksesvol verander!',
+    changePasswordFailed: 'Wagwoordverandering het misluk. Probeer weer.',
+    changePasswordRequired: 'U moet \'n nuwe wagwoord instel voor u kan voortgaan.',
   },
 };
 
@@ -767,7 +792,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       await saveState(next);
       // Trigger sync
       setTimeout(() => syncData(), 500);
-      return { success: true };
+      return { success: true, mustChangePassword: !!data.must_change_password };
     } catch (err: any) {
       return { success: false, error: 'Server connection failed' };
     }
@@ -792,7 +817,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       await saveState(next);
       setTimeout(() => syncData(), 500);
-      return { success: true };
+      return { success: true, mustChangePassword: !!data.must_change_password };
     } catch (err) {
       return { success: false, error: 'Server connection failed' };
     }
@@ -830,6 +855,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       return { success: true };
     } catch (err) {
+      return { success: false, error: 'Server connection failed' };
+    }
+  };
+
+  const changeOwnPassword = async (newPassword: string) => {
+    if (!state.token) return { success: false, error: 'Not authenticated' };
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/change-own-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Password change failed' };
+      }
+      // Atomically swap in the fresh token so subsequent requests don't 403
+      if (data.token) {
+        const next = { ...stateRef.current, token: data.token };
+        await saveState(next);
+      }
+      return { success: true };
+    } catch {
       return { success: false, error: 'Server connection failed' };
     }
   };
@@ -1014,6 +1065,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login2FA,
       registerUser,
       resetPassword,
+      changeOwnPassword,
       logout,
       get2FAStatus,
       setup2FA,

@@ -41,6 +41,9 @@ export default function LoginScreen() {
         pathname: '/two-factor',
         params: { tempToken: res.tempToken, whatsapp },
       });
+    } else if (res.mustChangePassword) {
+      // Superadmin must set a new password before using the app
+      router.replace('/change-password');
     }
   };
 
