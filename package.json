@@ -42,6 +42,7 @@
     "jspdf": "^4.2.1",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
+    "react-devtools-core": "^7.0.1",
     "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~2.32.0",
