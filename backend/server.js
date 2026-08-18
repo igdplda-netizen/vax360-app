@@ -144,8 +144,8 @@ const db = new sqlite3.Database(
               }
               const superadminSalt = crypto.randomBytes(16).toString("hex");
               const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
-              db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role)
-                      VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin')`, [superadminHash, superadminSalt], (insertErr) => {
+              db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
+                      VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))`, [superadminHash, superadminSalt], (insertErr) => {
                         if (insertErr) console.error("❌ Error seeding superadmin:", insertErr.message);
                       });
             }
@@ -188,9 +188,17 @@ const db = new sqlite3.Database(
               }
             } else if (idx === 3) {
               if (!hasCreatedAt) {
-                db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP", (alterErr) => {
-                  if (alterErr) console.error("❌ Error altering users table (created_at):", alterErr.message);
-                  seedSuperadmin();
+                db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT NULL", (alterErr) => {
+                  if (alterErr) {
+                    console.error("❌ Error altering users table (created_at):", alterErr.message);
+                    seedSuperadmin();
+                  } else {
+                    // Backfill existing rows with the current timestamp
+                    db.run("UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL", (backfillErr) => {
+                      if (backfillErr) console.error("❌ Error backfilling users table (created_at):", backfillErr.message);
+                      seedSuperadmin();
+                    });
+                  }
                 });
               } else {
                 seedSuperadmin();
@@ -451,7 +459,7 @@ app.post("/api/register", registerLimiter, (req, res) => {
 
   db.serialize(() => {
     db.run(
-      "INSERT INTO users (whatsapp, name, email, password_hash, salt, role) VALUES (?, ?, ?, ?, ?, 'parent')",
+      "INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at) VALUES (?, ?, ?, ?, ?, 'parent', datetime('now'))",
       [whatsapp, name, email || null, password_hash, salt],
       function (err) {
           if (err) {

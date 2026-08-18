@@ -77,8 +77,8 @@ db.serialize(() => {
               const superadminSalt = crypto.randomBytes(16).toString("hex");
               const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
               db.run(`
-                INSERT OR IGNORE INTO users (whatsapp, name, email, password_hash, salt, role)
-                VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin')
+                INSERT OR IGNORE INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
+                VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))
               `, [superadminHash, superadminSalt], () => {
 
                 // Step 6: Create audit_log table
@@ -162,10 +162,18 @@ db.serialize(() => {
               } else if (idx === 3) {
                 const hasCreatedAt = !errUserInfo && userRows && userRows.some(r => r.name === "created_at");
                 if (!hasCreatedAt) {
-                  db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP", (errAlter) => {
-                    if (errAlter) console.error("  ❌ users migration failed (created_at):", errAlter.message);
-                    else console.log('  ✔  Table "users" migrated (created_at column added)');
-                    next2();
+                  db.run("ALTER TABLE users ADD COLUMN created_at DATETIME DEFAULT NULL", (errAlter) => {
+                    if (errAlter) {
+                      console.error("  ❌ users migration failed (created_at):", errAlter.message);
+                      next2();
+                    } else {
+                      // Backfill existing rows with the current timestamp
+                      db.run("UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL", (errBackfill) => {
+                        if (errBackfill) console.error("  ❌ users backfill failed (created_at):", errBackfill.message);
+                        else console.log('  ✔  Table "users" migrated (created_at column added and backfilled)');
+                        next2();
+                      });
+                    }
                   });
                 } else {
                   next2();
