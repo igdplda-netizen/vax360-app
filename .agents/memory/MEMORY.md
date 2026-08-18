@@ -8,4 +8,5 @@
 - [Replit dev: single public port only](replit-dev-single-port.md) — browser/canvas cannot reach a second app port via `:PORT` suffix on the dev domain; proxy same-origin instead.
 - [Replit workflow: backend as background process](replit-workflow-backend.md) — port 5011 is not a supported workflow port; start backend with `&` inside the same workflow command so it runs in background alongside Metro on port 5000.
 - [Metro blockList anchoring](metro-blocklist-anchoring.md) — unanchored blockList regex (e.g. /backend/) blocks node_modules files and fails native bundles with fake "file does not exist" errors.
+- [Expo export image-size crash](expo-export-image-size.md) — Metro 0.84 needs image-size 1.x override; duplicate JSON keys in package.json overrides silently win last-one.
 - [Workflow command broken by task agent](workflow-task-agent-risk.md) — task agents may silently break Expo Go by removing `--localhost`, changing PACKAGER_HOSTNAME, bumping SDK in package.json without npm install, or dropping `exposeLocalhost`.

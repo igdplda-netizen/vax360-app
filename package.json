@@ -75,6 +75,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
+    "image-size": "1.2.1",
     "minimatch": "3.1.5",
     "tar": "7.5.20",
     "shell-quote": "1.10.0",
@@ -83,7 +84,6 @@
     "undici": "6.27.0",
     "uuid": "11.1.1",
     "brace-expansion": "2.1.4",
-    "image-size": "2.0.2",
     "ip-address": "10.5.0",
     "body-parser": "2.3.0"
   },
