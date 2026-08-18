@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const crypto = require("crypto");
 const helmet = require("helmet");
+const { warnIfDefaultPassword } = require("./lib/superadmin-warning");
 
 // Load environment variables from .env file (if dotenv is available)
 try {
@@ -134,34 +135,23 @@ const db = new sqlite3.Database(
       db.all("PRAGMA table_info(users)", (errInfo, rows) => {
         const seedSuperadmin = () => {
           // Seed default Superadmin user if not exists (using PBKDF2).
-          // Only warn about the default password when it genuinely hasn't been
-          // changed — not unconditionally on every boot.
+          // warnIfDefaultPassword checks the stored hash independently of
+          // INITIAL_SUPERADMIN_PASSWORD, so a custom env value cannot suppress
+          // a genuine alert on an account that still carries the default hash.
           const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
           db.get("SELECT password_hash, salt FROM users WHERE whatsapp = '9999'", (errAdmin, rowAdmin) => {
             if (!errAdmin && !rowAdmin) {
               // User doesn't exist yet — seed and warn if using the default password.
-              if (superadminPassword === "Admin@123") {
-                console.warn(
-                  "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
-                );
-              }
+              warnIfDefaultPassword(null, superadminPassword);
               const superadminSalt = crypto.randomBytes(16).toString("hex");
               const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
               db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
                       VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))`, [superadminHash, superadminSalt], (insertErr) => {
                         if (insertErr) console.error("❌ Error seeding superadmin:", insertErr.message);
                       });
-            } else if (!errAdmin && rowAdmin && superadminPassword === "Admin@123" && rowAdmin.salt) {
-              // User exists — only warn if their stored hash still matches the default
-              // password (i.e. it was never changed).
-              const defaultHash = crypto
-                .pbkdf2Sync("Admin@123", rowAdmin.salt, 100000, 64, "sha512")
-                .toString("hex");
-              if (defaultHash === rowAdmin.password_hash) {
-                console.warn(
-                  "\n⚠️  WARNING: Superadmin password is still set to default 'Admin@123'. Change this password immediately in production!\n"
-                );
-              }
+            } else if (!errAdmin && rowAdmin) {
+              // User exists — warn if stored hash still matches the default password.
+              warnIfDefaultPassword(rowAdmin, superadminPassword);
             }
           });
         };

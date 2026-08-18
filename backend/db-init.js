@@ -13,6 +13,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const crypto = require('crypto');
+const { warnIfDefaultPassword } = require('./lib/superadmin-warning');
 
 // Load .env if dotenv is available
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* no dotenv */ }
@@ -141,25 +142,15 @@ function initializeDatabase(db, callback) {
                   };
 
                   if (existingAdmin) {
-                    // Only warn if the stored hash still matches the default password.
-                    if (superadminPassword === "Admin@123" && existingAdmin.salt) {
-                      const defaultHash = crypto
-                        .pbkdf2Sync("Admin@123", existingAdmin.salt, 100000, 64, "sha512")
-                        .toString("hex");
-                      if (defaultHash === existingAdmin.password_hash) {
-                        console.warn(
-                          "\n⚠️  WARNING: Superadmin password is still set to default 'Admin@123'. Change this password immediately in production!\n"
-                        );
-                      }
-                    }
+                    // Warn if the stored hash still matches the default password.
+                    // Note: warnIfDefaultPassword checks the stored hash directly,
+                    // independent of INITIAL_SUPERADMIN_PASSWORD, so a custom env
+                    // value cannot suppress a genuine alert on an unchanged account.
+                    warnIfDefaultPassword(existingAdmin, superadminPassword);
                     afterSeed();
                   } else {
                     // Superadmin doesn't exist yet — seed with the configured password.
-                    if (superadminPassword === "Admin@123") {
-                      console.warn(
-                        "\n⚠️  WARNING: Initial superadmin password set to default 'Admin@123'. Change this password immediately in production!\n"
-                      );
-                    }
+                    warnIfDefaultPassword(null, superadminPassword);
                     const superadminSalt = crypto.randomBytes(16).toString("hex");
                     const superadminHash = crypto
                       .pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512")
