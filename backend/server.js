@@ -572,9 +572,11 @@ app.post("/api/login", loginLimiter, (req, res) => {
         return;
       }
 
-      // Check if superadmin is still using the default password — signal must-change
+      // Check if ANY superadmin is still using the default password — signal must-change.
+      // Keyed on role, not on the seed whatsapp '9999', so the guard works for all
+      // superadmin accounts regardless of how they were created.
       let mustChangePassword = false;
-      if (user.whatsapp === '9999' && user.salt) {
+      if (user.role === 'superadmin' && user.salt) {
         const { _DEFAULT_PASSWORD } = require('./lib/superadmin-warning');
         const defaultHash = crypto.pbkdf2Sync(_DEFAULT_PASSWORD, user.salt, 100000, 64, 'sha512').toString('hex');
         if (defaultHash === user.password_hash) {
@@ -732,9 +734,9 @@ app.post("/api/login/2fa", loginLimiter, (req, res) => {
               { expiresIn: "7d" }
             );
 
-            // Check if superadmin is still using the default password even after 2FA
+            // Check if ANY superadmin is still using the default password even after 2FA
             let mustChangePassword = false;
-            if (user.whatsapp === '9999' && user.salt) {
+            if (user.role === 'superadmin' && user.salt) {
               const { _DEFAULT_PASSWORD } = require('./lib/superadmin-warning');
               const defaultHash = crypto.pbkdf2Sync(_DEFAULT_PASSWORD, user.salt, 100000, 64, 'sha512').toString('hex');
               if (defaultHash === user.password_hash) {

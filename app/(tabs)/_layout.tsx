@@ -1,13 +1,24 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
+import { useEffect } from 'react';
 import { Colors } from '../../constants/colors';
 import { useApp } from '../../context/AppContext';
 
 export default function TabLayout() {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-  const { t } = useApp();
+  const { t, state } = useApp();
+  const router = useRouter();
+
+  // Enforce the mandatory password-change screen — cannot be bypassed by
+  // navigating directly to /(tabs) (e.g. hardware back, deep-link, app restart
+  // with a saved token that still carries the default-credential flag).
+  useEffect(() => {
+    if (state.mustChangePassword) {
+      router.replace('/change-password');
+    }
+  }, [state.mustChangePassword]);
 
   return (
     <Tabs

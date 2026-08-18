@@ -46,6 +46,8 @@ interface AppState {
   userRole: 'parent' | 'admin' | 'superadmin' | null;
   currentUser: User | null;
   partnerBranding: PartnerBranding | null;
+  /** True when the authenticated superadmin must change their default password before using the app. */
+  mustChangePassword: boolean;
 }
 
 interface AppContextType {
@@ -95,6 +97,7 @@ const DEFAULT_STATE: AppState = {
   userRole: null,
   currentUser: null,
   partnerBranding: null,
+  mustChangePassword: false,
 };
 
 const translations: Record<Language, Record<string, string>> = {
@@ -788,6 +791,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         token: data.token,
         userRole: data.role,
         currentUser: data.user,
+        mustChangePassword: !!data.must_change_password,
       };
       await saveState(next);
       // Trigger sync
@@ -814,6 +818,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         token: data.token,
         userRole: data.role,
         currentUser: data.user,
+        mustChangePassword: !!data.must_change_password,
       };
       await saveState(next);
       setTimeout(() => syncData(), 500);
@@ -874,11 +879,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         return { success: false, error: data.error || 'Password change failed' };
       }
-      // Atomically swap in the fresh token so subsequent requests don't 403
-      if (data.token) {
-        const next = { ...stateRef.current, token: data.token };
-        await saveState(next);
-      }
+      // Atomically swap in the fresh token and clear the forced-change flag
+      const next = {
+        ...stateRef.current,
+        token: data.token ?? stateRef.current.token,
+        mustChangePassword: false,
+      };
+      await saveState(next);
       return { success: true };
     } catch {
       return { success: false, error: 'Server connection failed' };
