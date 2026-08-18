@@ -1,7 +1,33 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import QRCode from 'qrcode';
 import { formatToDeviceDate } from './date';
+
+/**
+ * Converts a remote/local image to a base64 data URI. Android/iOS print
+ * WebViews block non-inline resources ("Not allowed to read file under
+ * given URL"), so every image must be embedded as data URI.
+ */
+async function toDataUri(src: string): Promise<string | null> {
+  try {
+    if (src.startsWith('data:image/')) return src;
+    const response = await fetch(src);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        resolve(result && result.startsWith('data:image/') ? result : null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Native (iOS/Android) certificate export.
@@ -56,12 +82,13 @@ export async function exportCertificatePdf(
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
-  // Only allow safe image sources for the partner logo (untrusted input)
-  const safeLogoSrc = (src: any): string | null => {
+  // Only allow safe image sources for the partner logo (untrusted input),
+  // then embed as data URI (print WebView cannot load external resources)
+  const safeLogoSrc = async (src: any): Promise<string | null> => {
     if (typeof src !== 'string') return null;
     const trimmed = src.trim();
     if (/^https?:\/\//i.test(trimmed) || /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(trimmed)) {
-      return trimmed;
+      return await toDataUri(trimmed);
     }
     return null;
   };
@@ -87,7 +114,7 @@ export async function exportCertificatePdf(
     })
     .join('');
 
-  const logoSrc = safeLogoSrc(state.partnerBranding?.logo);
+  const logoSrc = await safeLogoSrc(state.partnerBranding?.logo);
   const partnerBlock = logoSrc
     ? `<div class="partner"><div>Logo parceiras:</div><img src="${esc(logoSrc)}" style="height:32px;margin-top:4px" /></div>`
     : state.partnerBranding?.name
@@ -164,16 +191,28 @@ export async function exportCertificatePdf(
 
   const { uri } = await Print.printToFileAsync({ html });
 
+  // Copy to the app cache dir with a readable filename — the print output
+  // path is not always readable by the share sheet / other apps.
+  const filename = `certificado_${String(currentChild.name || 'crianca').replace(/[^\p{L}\p{N}]+/gu, '_')}.pdf`;
+  let shareUri = uri;
+  try {
+    const dest = `${FileSystem.cacheDirectory}${filename}`;
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    shareUri = dest;
+  } catch {
+    // fall back to the original uri
+  }
+
   if (await Sharing.isAvailableAsync()) {
     // Share sheet lets the user view, print, or save the PDF
-    await Sharing.shareAsync(uri, {
+    await Sharing.shareAsync(shareUri, {
       mimeType: 'application/pdf',
-      dialogTitle: `certificado_${currentChild.name.replace(/\s+/g, '_')}.pdf`,
+      dialogTitle: filename,
       UTI: 'com.adobe.pdf',
     });
   } else {
     // Fallback: open the native print dialog directly
-    await Print.printAsync({ uri });
+    await Print.printAsync({ uri: shareUri });
   }
 
   return null;
