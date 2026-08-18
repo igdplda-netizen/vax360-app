@@ -14,6 +14,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const crypto = require('crypto');
 const { warnIfDefaultPassword } = require('./lib/superadmin-warning');
+const { validateAdminPassword } = require('./lib/validate-admin-password');
 
 // Load .env if dotenv is available
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* no dotenv */ }
@@ -29,6 +30,21 @@ try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
  * @param {function}         callback Called with (err) when done. err is null on success.
  */
 function initializeDatabase(db, callback) {
+  // Reject weak or missing INITIAL_SUPERADMIN_PASSWORD in production before
+  // touching the database.  This mirrors the same check in server.js so that
+  // running db-init.js standalone (e.g. a migration step) also refuses weak
+  // credentials.
+  if (process.env.NODE_ENV === "production") {
+    const _adminPassCheck = validateAdminPassword(process.env.INITIAL_SUPERADMIN_PASSWORD || "");
+    if (!_adminPassCheck.valid) {
+      const err = new Error(
+        "FATAL: INITIAL_SUPERADMIN_PASSWORD does not meet strength requirements. " + _adminPassCheck.reason
+      );
+      console.error("❌ " + err.message);
+      return callback(err);
+    }
+  }
+
   db.serialize(() => {
     // Step 1: Create store table
     db.run(`

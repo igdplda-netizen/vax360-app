@@ -9,6 +9,7 @@ const rateLimit = require("express-rate-limit");
 const crypto = require("crypto");
 const helmet = require("helmet");
 const { warnIfDefaultPassword } = require("./lib/superadmin-warning");
+const { validateAdminPassword } = require("./lib/validate-admin-password");
 
 // Load environment variables from .env file (if dotenv is available)
 try {
@@ -36,6 +37,16 @@ if (NODE_ENV === "production") {
   }
   if (CORS_ORIGIN === "*" || CORS_ORIGIN.split(",").map(s => s.trim()).includes("*")) {
     console.error("❌ FATAL ERROR: CORS wildcard (*) is not allowed in production!");
+    process.exit(1);
+  }
+  // Reject weak or missing INITIAL_SUPERADMIN_PASSWORD early, before any DB work.
+  const _adminPassCheck = validateAdminPassword(process.env.INITIAL_SUPERADMIN_PASSWORD || "");
+  if (!_adminPassCheck.valid) {
+    console.error(
+      "❌ FATAL ERROR: INITIAL_SUPERADMIN_PASSWORD does not meet strength requirements in production.\n" +
+      "   Reason: " + _adminPassCheck.reason + "\n" +
+      "   Set this environment variable to a strong value (≥8 chars, letter + digit, no simple sequences) before starting the server."
+    );
     process.exit(1);
   }
 }

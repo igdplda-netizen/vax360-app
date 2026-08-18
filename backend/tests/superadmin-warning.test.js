@@ -57,8 +57,11 @@ async function captureWarnings(fn) {
   return warnings;
 }
 
-/** True if any captured warning mentions the default password. */
-const hasDefaultWarning = (ws) => ws.some((w) => w.includes('Admin@123'));
+/**
+ * True if any captured warning indicates a default-credential risk.
+ * Does NOT look for the credential string itself — messages no longer include it.
+ */
+const hasDefaultWarning = (ws) => ws.some((w) => /default/i.test(w));
 
 // ─────────────────────────────────────────────────────────
 // Part A: unit tests — warnIfDefaultPassword
