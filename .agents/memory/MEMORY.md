@@ -7,4 +7,5 @@
 - [Expo Go on Replit](expo-go-replit-public-domain.md) — `--tunnel`/ngrok fails in-container; use `REPLIT_EXPO_DEV_DOMAIN` via `EXPO_PACKAGER_PROXY_URL` instead.
 - [Replit dev: single public port only](replit-dev-single-port.md) — browser/canvas cannot reach a second app port via `:PORT` suffix on the dev domain; proxy same-origin instead.
 - [Replit workflow: backend as background process](replit-workflow-backend.md) — port 5011 is not a supported workflow port; start backend with `&` inside the same workflow command so it runs in background alongside Metro on port 5000.
+- [Metro blockList anchoring](metro-blocklist-anchoring.md) — unanchored blockList regex (e.g. /backend/) blocks node_modules files and fails native bundles with fake "file does not exist" errors.
 - [Workflow command broken by task agent](workflow-task-agent-risk.md) — task agents may silently break Expo Go by removing `--localhost`, changing PACKAGER_HOSTNAME, bumping SDK in package.json without npm install, or dropping `exposeLocalhost`.
