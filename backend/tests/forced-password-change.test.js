@@ -6,7 +6,8 @@
  *   (b) POST /api/login/2fa preserves the flag before a password change and clears it after
  *   (c) POST /api/login after a successful /api/auth/change-own-password does NOT return the flag
  *   (d) POST /api/auth/change-own-password is authenticated — no token → 401/403
- *   (e) Non-superadmin users never receive must_change_password even when a default-style password is set
+ *   (e) Non-superadmin users never receive must_change_password, including after 2FA,
+ *       even when a default-style password is set
  *
  * These tests are the machine-readable guarantee that a future refactor cannot silently
  * re-open the default-credential bypass described in the task spec.
@@ -60,6 +61,18 @@ function insertUser(whatsapp, name, plainPassword, role = 'parent') {
       `INSERT OR IGNORE INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
        VALUES (?, ?, NULL, ?, ?, ?, datetime('now'))`,
       [whatsapp, name, password_hash, salt, role],
+      (err) => { if (err) reject(err); else resolve(); }
+    );
+  });
+}
+
+function enableTwoFactor(whatsapp, secret) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `UPDATE users
+          SET two_factor_secret = ?, two_factor_enabled = 1
+        WHERE whatsapp = ?`,
+      [secret, whatsapp],
       (err) => { if (err) reject(err); else resolve(); }
     );
   });
@@ -482,6 +495,8 @@ describe('POST /api/auth/change-own-password — authentication enforcement', ()
 describe('POST /api/login — must_change_password is superadmin-only', () => {
   jest.setTimeout(30_000);
 
+  const NON_SUPERADMIN_TOTP_SECRET = 'KRSXG5DSNFXGOIDB';
+
   beforeAll(async () => {
     // Seed a parent and an admin user — both with a password that matches the
     // default string ('Admin@123') to prove the flag is superadmin-specific.
@@ -507,5 +522,31 @@ describe('POST /api/login — must_change_password is superadmin-only', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.must_change_password).toBeFalsy();
+  });
+
+  test('parent user completes 2FA without receiving must_change_password', async () => {
+    await enableTwoFactor('8801', NON_SUPERADMIN_TOTP_SECRET);
+
+    const passwordRes = await request(app)
+      .post('/api/login')
+      .send({ whatsapp: '8801', password: DEFAULT_SUPERADMIN_PASSWORD });
+
+    expect(passwordRes.status).toBe(200);
+    expect(passwordRes.body.two_factor_required).toBe(true);
+    expect(typeof passwordRes.body.temp_token).toBe('string');
+    expect(passwordRes.body.must_change_password).toBeFalsy();
+
+    const twoFactorRes = await request(app)
+      .post('/api/login/2fa')
+      .send({
+        temp_token: passwordRes.body.temp_token,
+        code: generateTotp(NON_SUPERADMIN_TOTP_SECRET),
+      });
+
+    expect(twoFactorRes.status).toBe(200);
+    expect(twoFactorRes.body.success).toBe(true);
+    expect(typeof twoFactorRes.body.token).toBe('string');
+    expect(twoFactorRes.body.role).toBe('parent');
+    expect(twoFactorRes.body.must_change_password).toBeFalsy();
   });
 });
