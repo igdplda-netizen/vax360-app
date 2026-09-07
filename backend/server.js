@@ -772,7 +772,7 @@ app.post("/api/login/2fa", loginLimiter, (req, res) => {
 
     const whatsapp = decoded.whatsapp;
     db.get(
-      "SELECT whatsapp, name, email, role, password_hash, two_factor_secret, two_factor_enabled FROM users WHERE whatsapp = ?",
+      "SELECT whatsapp, name, email, role, password_hash, salt, two_factor_secret, two_factor_enabled FROM users WHERE whatsapp = ?",
       [whatsapp],
       (dbErr, user) => {
         if (dbErr) {

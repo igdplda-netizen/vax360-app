@@ -3,9 +3,10 @@
  *
  * Confirms that:
  *   (a) POST /api/login with default superadmin credentials returns must_change_password: true
- *   (b) POST /api/login after a successful /api/auth/change-own-password does NOT return the flag
- *   (c) POST /api/auth/change-own-password is authenticated — no token → 401/403
- *   (d) Non-superadmin users never receive must_change_password even when a default-style password is set
+ *   (b) POST /api/login/2fa preserves the flag before a password change and clears it after
+ *   (c) POST /api/login after a successful /api/auth/change-own-password does NOT return the flag
+ *   (d) POST /api/auth/change-own-password is authenticated — no token → 401/403
+ *   (e) Non-superadmin users never receive must_change_password even when a default-style password is set
  *
  * These tests are the machine-readable guarantee that a future refactor cannot silently
  * re-open the default-credential bypass described in the task spec.
@@ -60,6 +61,51 @@ function insertUser(whatsapp, name, plainPassword, role = 'parent') {
   });
 }
 
+function generateTotp(secret) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0;
+  let value = 0;
+  const bytes = [];
+
+  for (const char of secret.replace(/=+$/, '').toUpperCase()) {
+    value = (value << 5) | alphabet.indexOf(char);
+    bits += 5;
+    if (bits >= 8) {
+      bytes.push((value >> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+
+  const counter = Math.floor(Date.now() / 1000 / 30);
+  const buffer = Buffer.alloc(8);
+  buffer.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  buffer.writeUInt32BE(counter >>> 0, 4);
+  const hmac = crypto.createHmac('sha1', Buffer.from(bytes)).update(buffer).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const binary =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
+  return String(binary % 1_000_000).padStart(6, '0');
+}
+
+function setSuperadminCredentials(password, twoFactorSecret = null) {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const passwordHash = crypto
+      .pbkdf2Sync(password, salt, 100_000, 64, 'sha512')
+      .toString('hex');
+    db.run(
+      `UPDATE users
+          SET password_hash = ?, salt = ?, two_factor_secret = ?, two_factor_enabled = ?
+        WHERE whatsapp = '9999'`,
+      [passwordHash, salt, twoFactorSecret, twoFactorSecret ? 1 : 0],
+      (err) => { if (err) reject(err); else resolve(); }
+    );
+  });
+}
+
 /** The hard-coded default password used to seed the superadmin. */
 const DEFAULT_SUPERADMIN_PASSWORD = 'Admin@123';
 
@@ -71,6 +117,61 @@ beforeAll(async () => {
 
 afterAll((done) => {
   db.close(() => done());
+});
+
+describe('POST /api/login/2fa — forced password-change guard', () => {
+  jest.setTimeout(30_000);
+
+  const TOTP_SECRET = 'JBSWY3DPEHPK3PXP';
+  const CHANGED_PASSWORD = 'TwoFactor9x';
+
+  beforeAll(async () => {
+    await setSuperadminCredentials(DEFAULT_SUPERADMIN_PASSWORD, TOTP_SECRET);
+  });
+
+  afterAll(async () => {
+    await setSuperadminCredentials(DEFAULT_SUPERADMIN_PASSWORD);
+  });
+
+  async function loginWith2fa(password) {
+    const passwordRes = await request(app)
+      .post('/api/login')
+      .send({ whatsapp: '9999', password });
+
+    expect(passwordRes.status).toBe(200);
+    expect(passwordRes.body.two_factor_required).toBe(true);
+    expect(typeof passwordRes.body.temp_token).toBe('string');
+
+    return request(app)
+      .post('/api/login/2fa')
+      .send({
+        temp_token: passwordRes.body.temp_token,
+        code: generateTotp(TOTP_SECRET),
+      });
+  }
+
+  test('keeps the flag through 2FA and clears it after change-own-password', async () => {
+    const first2faRes = await loginWith2fa(DEFAULT_SUPERADMIN_PASSWORD);
+
+    expect(first2faRes.status).toBe(200);
+    expect(first2faRes.body.success).toBe(true);
+    expect(typeof first2faRes.body.token).toBe('string');
+    expect(first2faRes.body.must_change_password).toBe(true);
+
+    const changeRes = await request(app)
+      .post('/api/auth/change-own-password')
+      .set('Authorization', `Bearer ${first2faRes.body.token}`)
+      .send({ newPassword: CHANGED_PASSWORD });
+
+    expect(changeRes.status).toBe(200);
+    expect(changeRes.body.success).toBe(true);
+
+    const second2faRes = await loginWith2fa(CHANGED_PASSWORD);
+
+    expect(second2faRes.status).toBe(200);
+    expect(second2faRes.body.success).toBe(true);
+    expect(second2faRes.body.must_change_password).toBeFalsy();
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════════
