@@ -318,6 +318,65 @@ describe('POST /api/auth/change-own-password → flag cleared on next login', ()
 });
 
 // ════════════════════════════════════════════════════════════════════════════
+// Rejected weak passwords leave the forced-change state intact
+// ════════════════════════════════════════════════════════════════════════════
+
+describe('POST /api/auth/change-own-password — complexity errors preserve forced change', () => {
+  jest.setTimeout(30_000);
+
+  const TEST_WA = '9997';
+
+  beforeAll(async () => {
+    await insertUser(
+      TEST_WA,
+      'Weak Password Test Superadmin',
+      DEFAULT_SUPERADMIN_PASSWORD,
+      'superadmin'
+    );
+  });
+
+  test.each([
+    ['A1', 'password_length_error'],
+    ['111111', 'password_repetitive_error'],
+    ['abcdef', 'password_sequential_error'],
+    ['NoDigits', 'password_complexity_error'],
+  ])(
+    'rejects %p with %s without changing the password or forced-change flag',
+    async (weakPassword, expectedError) => {
+      const initialLoginRes = await request(app)
+        .post('/api/login')
+        .send({ whatsapp: TEST_WA, password: DEFAULT_SUPERADMIN_PASSWORD });
+
+      expect(initialLoginRes.status).toBe(200);
+      expect(initialLoginRes.body.must_change_password).toBe(true);
+
+      const changeRes = await request(app)
+        .post('/api/auth/change-own-password')
+        .set('Authorization', `Bearer ${initialLoginRes.body.token}`)
+        .send({ newPassword: weakPassword });
+
+      expect(changeRes.status).toBe(400);
+      expect(changeRes.body.error).toBe(expectedError);
+
+      const unchangedPasswordLoginRes = await request(app)
+        .post('/api/login')
+        .send({ whatsapp: TEST_WA, password: DEFAULT_SUPERADMIN_PASSWORD });
+
+      expect(unchangedPasswordLoginRes.status).toBe(200);
+      expect(unchangedPasswordLoginRes.body.success).toBe(true);
+      expect(unchangedPasswordLoginRes.body.must_change_password).toBe(true);
+
+      const rejectedPasswordLoginRes = await request(app)
+        .post('/api/login')
+        .send({ whatsapp: TEST_WA, password: weakPassword });
+
+      expect(rejectedPasswordLoginRes.status).toBe(401);
+      expect(rejectedPasswordLoginRes.body.error).toBe('Invalid credentials');
+    }
+  );
+});
+
+// ════════════════════════════════════════════════════════════════════════════
 // (c) change-own-password requires a valid auth token
 // ════════════════════════════════════════════════════════════════════════════
 
