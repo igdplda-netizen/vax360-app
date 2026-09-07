@@ -1,6 +1,5 @@
 const express = require("express");
 const fs = require("fs");
-const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
@@ -28,6 +27,7 @@ const DB_PATH = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.resolve(__dirname, "database.sqlite");
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+const IS_TEST = NODE_ENV === "test" || Boolean(process.env.JEST_WORKER_ID);
 
 // Enforce environment validation for production
 if (NODE_ENV === "production") {
@@ -46,6 +46,13 @@ if (NODE_ENV === "production") {
       "❌ FATAL ERROR: INITIAL_SUPERADMIN_PASSWORD does not meet strength requirements in production.\n" +
       "   Reason: " + _adminPassCheck.reason + "\n" +
       "   Set this environment variable to a strong value (≥8 chars, letter + digit, no simple sequences) before starting the server."
+    );
+    process.exit(1);
+  }
+  if (!process.env.DATABASE_URL) {
+    console.error(
+      "❌ FATAL ERROR: DATABASE_URL is required in production.\n" +
+      "   Autoscale filesystems are ephemeral; refusing to store production data in local SQLite."
     );
     process.exit(1);
   }
@@ -90,7 +97,7 @@ app.use((req, res, next) => {
 // General Rate Limiter to prevent DoS attacks on sync and health endpoints
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per 15 minutes
+  max: IS_TEST ? 1000 : 100,
   message: {
     error: "Too many requests from this IP, please try again later"
   },
@@ -99,14 +106,39 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// ─── Database Setup (SQLite) ────────────────────────────
-const db = new sqlite3.Database(
+// ─── Database Setup ─────────────────────────────────────
+// PostgreSQL (DATABASE_URL) is used whenever available — required in
+// production, where the filesystem is ephemeral (autoscale) and a local
+// SQLite file would silently lose data between instances/restarts.
+// SQLite remains for tests (DB_PATH=":memory:") and environments without
+// DATABASE_URL. See backend/lib/db.js.
+const { openDatabase, usingPostgres } = require("./lib/db");
+
+const db = openDatabase(
   process.env.DB_PATH === ":memory:" ? ":memory:" : DB_PATH,
   (err) => {
     if (err) {
       console.error("❌ Error connecting to database:", err.message);
       process.exit(1);
     }
+
+    if (usingPostgres()) {
+      console.log("✅ Connected to PostgreSQL database");
+      // Schema is managed outside the server process in Postgres mode:
+      //   - development: node backend/db-init.js (run by the workflow)
+      //   - production:  Replit's Publish flow applies the dev→prod schema diff
+      // Here we only seed/verify the superadmin account (data, not DDL).
+      verifyPostgresSchema((schemaErr) => {
+        if (schemaErr) {
+          console.error("❌ PostgreSQL schema validation failed:", schemaErr.message);
+          if (NODE_ENV === "production") process.exit(1);
+          return;
+        }
+        seedSuperadminAccount();
+      });
+      return;
+    }
+
     console.log(`✅ Connected to SQLite database at ${DB_PATH}`);
 
     // Auto-create tables on first run
@@ -144,28 +176,7 @@ const db = new sqlite3.Database(
       }
       // Auto-migration: Alter table to add columns if table already existed without them
       db.all("PRAGMA table_info(users)", (errInfo, rows) => {
-        const seedSuperadmin = () => {
-          // Seed default Superadmin user if not exists (using PBKDF2).
-          // warnIfDefaultPassword checks the stored hash independently of
-          // INITIAL_SUPERADMIN_PASSWORD, so a custom env value cannot suppress
-          // a genuine alert on an account that still carries the default hash.
-          const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
-          db.get("SELECT password_hash, salt FROM users WHERE whatsapp = '9999'", (errAdmin, rowAdmin) => {
-            if (!errAdmin && !rowAdmin) {
-              // User doesn't exist yet — seed and warn if using the default password.
-              warnIfDefaultPassword(null, superadminPassword);
-              const superadminSalt = crypto.randomBytes(16).toString("hex");
-              const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
-              db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
-                      VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))`, [superadminHash, superadminSalt], (insertErr) => {
-                        if (insertErr) console.error("❌ Error seeding superadmin:", insertErr.message);
-                      });
-            } else if (!errAdmin && rowAdmin) {
-              // User exists — warn if stored hash still matches the default password.
-              warnIfDefaultPassword(rowAdmin, superadminPassword);
-            }
-          });
-        };
+        const seedSuperadmin = seedSuperadminAccount;
 
         if (!errInfo && rows) {
           const hasSalt = rows.some(r => r.name === "salt");
@@ -242,6 +253,65 @@ const db = new sqlite3.Database(
   )`);
   },
 );
+
+const REQUIRED_POSTGRES_TABLES = ["app_meta", "audit_log", "store", "users"];
+
+/**
+ * Refuse to run production traffic against an empty or incomplete database.
+ * Replit's Publish flow owns production DDL; this is a read-only startup gate,
+ * not a migration mechanism.
+ */
+function verifyPostgresSchema(callback) {
+  db.all(
+    `SELECT table_name AS name
+       FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name IN ('app_meta', 'audit_log', 'store', 'users')`,
+    [],
+    (err, rows) => {
+      if (err) return callback(err);
+      const present = new Set((rows || []).map((row) => row.name));
+      const missing = REQUIRED_POSTGRES_TABLES.filter((name) => !present.has(name));
+      if (missing.length) {
+        return callback(
+          new Error(
+            `Missing required table(s): ${missing.join(", ")}. ` +
+            "Publish the development schema before starting production."
+          )
+        );
+      }
+      callback(null);
+    }
+  );
+}
+
+// Seed default Superadmin user if not exists (using PBKDF2).
+// warnIfDefaultPassword checks the stored hash independently of
+// INITIAL_SUPERADMIN_PASSWORD, so a custom env value cannot suppress
+// a genuine alert on an account that still carries the default hash.
+// This is data seeding (DML), not schema management — safe in all envs.
+function seedSuperadminAccount() {
+  const superadminPassword = process.env.INITIAL_SUPERADMIN_PASSWORD || "Admin@123";
+  db.get("SELECT password_hash, salt FROM users WHERE whatsapp = '9999'", (errAdmin, rowAdmin) => {
+    if (errAdmin) {
+      console.error("❌ Error checking superadmin account:", errAdmin.message);
+      return;
+    }
+    if (!rowAdmin) {
+      // User doesn't exist yet — seed and warn if using the default password.
+      warnIfDefaultPassword(null, superadminPassword);
+      const superadminSalt = crypto.randomBytes(16).toString("hex");
+      const superadminHash = crypto.pbkdf2Sync(superadminPassword, superadminSalt, 100000, 64, "sha512").toString("hex");
+      db.run(`INSERT INTO users (whatsapp, name, email, password_hash, salt, role, created_at)
+              VALUES ('9999', 'Superadmin', 'admin@vax360.com', ?, ?, 'superadmin', datetime('now'))`, [superadminHash, superadminSalt], (insertErr) => {
+                if (insertErr) console.error("❌ Error seeding superadmin:", insertErr.message);
+              });
+    } else {
+      // User exists — warn if stored hash still matches the default password.
+      warnIfDefaultPassword(rowAdmin, superadminPassword);
+    }
+  });
+}
 
 // ─── Health Check ───────────────────────────────────────
 app.get("/api/health", (_req, res) => {
@@ -380,7 +450,12 @@ function authenticateToken(req, res, next) {
 // ─── Rate Limiting ──────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "test" ? 15 : 5, // Limit each IP to 15 in tests, 5 in production
+  max: IS_TEST ? 15 : 5,
+  // Keep the explicit limiter test isolated from unrelated login tests.
+  // Production remains IP-keyed by express-rate-limit's secure default.
+  keyGenerator: IS_TEST
+    ? (req) => `test:${String(req.body?.whatsapp || "2fa")}`
+    : undefined,
   message: {
     success: false,
     message: "Too many login attempts, please try again later",
@@ -389,7 +464,7 @@ const loginLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "test" ? 15 : 5, // Limit each IP to 15 in tests, 5 in production
+  max: IS_TEST ? 15 : 5,
   message: {
     error: "Too many registration attempts, please try again later",
   },
@@ -399,7 +474,7 @@ const registerLimiter = rateLimit({
 
 const resetPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "test" ? 15 : 3, // Very strict: 3 attempts per 15 min in production
+  max: IS_TEST ? 1000 : 3,
   message: {
     error: "Too many password reset attempts, please try again later",
   },
@@ -1243,6 +1318,41 @@ app.get("/api/admin/backup", authenticateToken, (req, res) => {
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+  if (usingPostgres()) {
+    // Export all application tables to a JSON snapshot file.
+    const jsonBackupPath = path.join(backupDir, `backup-${timestamp}.json`);
+    const dump = {};
+    db.all("SELECT * FROM users", [], (errUsers, users) => {
+      if (errUsers) return handleInternalError(res, errUsers, "❌ Database backup failed (users):");
+      dump.users = users;
+      db.all("SELECT * FROM store", [], (errStore, store) => {
+        if (errStore) return handleInternalError(res, errStore, "❌ Database backup failed (store):");
+        dump.store = store;
+        db.all("SELECT * FROM audit_log", [], (errAudit, audits) => {
+          if (errAudit) return handleInternalError(res, errAudit, "❌ Database backup failed (audit_log):");
+          dump.audit_log = audits;
+          db.all("SELECT * FROM app_meta", [], (errMeta, meta) => {
+            if (errMeta) return handleInternalError(res, errMeta, "❌ Database backup failed (app_meta):");
+            dump.app_meta = meta;
+            fs.writeFile(jsonBackupPath, JSON.stringify(dump, null, 2), (writeErr) => {
+              if (writeErr) return handleInternalError(res, writeErr, "❌ Database backup failed:");
+              db.run(
+                "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
+                ["admin_backup_db", "database", "postgres", `Path: backups/backup-${timestamp}.json`],
+                (auditErr) => {
+                  if (auditErr) console.error("❌ Audit backup error:", auditErr.message);
+                  res.json({ success: true, message: `Backup created successfully at backups/backup-${timestamp}.json` });
+                }
+              );
+            });
+          });
+        });
+      });
+    });
+    return;
+  }
+
   const backupPath = path.join(backupDir, `backup-${timestamp}.sqlite`);
 
   if (process.env.DB_PATH === ":memory:" || DB_PATH.endsWith(":memory:")) {
@@ -1357,7 +1467,7 @@ if (require.main === module) {
   httpServer = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Vax360 API running on http://0.0.0.0:${PORT}`);
     console.log(`   Environment: ${NODE_ENV}`);
-    console.log(`   Database:    ${DB_PATH}\n`);
+    console.log(`   Database:    ${usingPostgres() ? "PostgreSQL" : DB_PATH}\n`);
   });
 }
 

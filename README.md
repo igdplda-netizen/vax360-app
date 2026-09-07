@@ -52,7 +52,7 @@ Foi desenvolvido com foco na usabilidade, integridade médica de dados (vacinas 
 | 📄 **Certificado PDF** | Exportação de certificado oficial em PDF com QR Code de verificação integrado |
 | 🌐 **Multiplataforma Real** | Compatibilidade Web, iOS (Expo Go) e Android |
 | 🌍 **Multilingue (4 Idiomas)** | Português (🇦🇴 Angola), Inglês (🇬🇧), Francês (🇫🇷) e Afrikaans (🇿🇦) |
-| 💾 **Sincronização & Backup** | Integração backend com SQLite e sincronização offline-first |
+| 💾 **Sincronização & Backup** | PostgreSQL persistente em produção e sincronização offline-first |
 
 ---
 
@@ -63,7 +63,7 @@ Foi desenvolvido com foco na usabilidade, integridade médica de dados (vacinas 
 | **Frontend** | React Native (Expo SDK 56, Expo Router, TypeScript) |
 | **Estilização** | Dynamic Theme Engine com suporte a Dark Mode & Sombras Cross-Platform |
 | **Backend** | Node.js + Express 5 |
-| **Base de Dados** | SQLite 3 + Sistema de Auditoria |
+| **Base de Dados** | PostgreSQL (produção/Replit) + SQLite (testes/local) |
 | **PDF & QR Code** | jsPDF + qrcode (rendição vetorizada de alta precisão) |
 | **Nativo/Mobile** | Capacitor 6 (Android & iOS) |
 
@@ -110,7 +110,7 @@ vax360/
 ├── context/             # AppContext (gestão de estado global, autenticação, i18n, sync)
 ├── utils/               # Utilitários (exportador de PDF, formato de datas, sombras cross-platform)
 ├── assets/              # Imagens e ícones de marca do app
-├── backend/             # API Express & Base de Dados SQLite
+├── backend/             # API Express & camada PostgreSQL/SQLite
 │   ├── server.js        # Servidor Express API
 │   ├── db-init.js       # Inicialização da base de dados e migrações
 │   └── package.json     # Dependências do servidor

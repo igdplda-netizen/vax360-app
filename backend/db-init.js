@@ -273,13 +273,19 @@ function initializeDatabase(db, callback) {
 
 // ─── CLI entry point ─────────────────────────────────────
 if (require.main === module) {
+  const { openDatabase, usingPostgres } = require('./lib/db');
+
   const DB_PATH = process.env.DB_PATH
     ? path.resolve(process.env.DB_PATH)
     : path.resolve(__dirname, 'database.sqlite');
 
-  console.log(`\n🗄️  Initializing database at: ${DB_PATH}\n`);
+  console.log(
+    usingPostgres()
+      ? '\n🗄️  Initializing PostgreSQL database (DATABASE_URL)\n'
+      : `\n🗄️  Initializing database at: ${DB_PATH}\n`
+  );
 
-  const db = new sqlite3.Database(DB_PATH, (err) => {
+  const db = openDatabase(DB_PATH, (err) => {
     if (err) {
       console.error('❌ Failed to open database:', err.message);
       process.exit(1);

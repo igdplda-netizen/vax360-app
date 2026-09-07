@@ -23,6 +23,7 @@
 ## Backend Dependencies (backend/package.json)
 - express                ^5.2.1   # HTTP server framework
 - sqlite3               ^6.0.1   # SQLite database driver
+- pg                    ^8.23.0  # PostgreSQL database driver (production)
 - cors                  ^2.8.6   # Cross-origin resource sharing
 - body-parser            ^2.2.2   # JSON body parsing middleware
 
