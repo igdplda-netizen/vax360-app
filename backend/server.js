@@ -661,7 +661,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
             if (auditErr) console.error("❌ Audit login 2fa pending error:", auditErr.message);
             // Sign a short-lived temp token
             const temp_token = jwt.sign(
-              { whatsapp: user.whatsapp, role: user.role, step: "2fa_pending" },
+              { whatsapp: user.whatsapp, step: "2fa_pending" },
               JWT_SECRET,
               { expiresIn: "5m" }
             );

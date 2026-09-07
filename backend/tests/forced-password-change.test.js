@@ -24,6 +24,7 @@ delete process.env.INITIAL_SUPERADMIN_PASSWORD;
 
 const request = require('supertest');
 const crypto  = require('crypto');
+const jwt = require('jsonwebtoken');
 const { app, db, shutdown } = require('../server');
 const {
   mustChangeDefaultPassword,
@@ -73,6 +74,16 @@ function enableTwoFactor(whatsapp, secret) {
           SET two_factor_secret = ?, two_factor_enabled = 1
         WHERE whatsapp = ?`,
       [secret, whatsapp],
+      (err) => { if (err) reject(err); else resolve(); }
+    );
+  });
+}
+
+function updateUserRole(whatsapp, role) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      'UPDATE users SET role = ? WHERE whatsapp = ?',
+      [role, whatsapp],
       (err) => { if (err) reject(err); else resolve(); }
     );
   });
@@ -548,5 +559,36 @@ describe('POST /api/login — must_change_password is superadmin-only', () => {
     expect(typeof twoFactorRes.body.token).toBe('string');
     expect(twoFactorRes.body.role).toBe('parent');
     expect(twoFactorRes.body.must_change_password).toBeFalsy();
+  });
+
+  test('uses the current database role when the role changes during 2FA login', async () => {
+    await updateUserRole('8802', 'admin');
+    await enableTwoFactor('8802', NON_SUPERADMIN_TOTP_SECRET);
+
+    const passwordRes = await request(app)
+      .post('/api/login')
+      .send({ whatsapp: '8802', password: DEFAULT_SUPERADMIN_PASSWORD });
+
+    expect(passwordRes.status).toBe(200);
+    expect(passwordRes.body.two_factor_required).toBe(true);
+
+    await updateUserRole('8802', 'parent');
+
+    const twoFactorRes = await request(app)
+      .post('/api/login/2fa')
+      .send({
+        temp_token: passwordRes.body.temp_token,
+        code: generateTotp(NON_SUPERADMIN_TOTP_SECRET),
+      });
+
+    expect(twoFactorRes.status).toBe(200);
+    expect(twoFactorRes.body.role).toBe('parent');
+
+    const completedToken = jwt.verify(
+      twoFactorRes.body.token,
+      process.env.JWT_SECRET,
+      { algorithms: ['HS256'] }
+    );
+    expect(completedToken.role).toBe('parent');
   });
 });
