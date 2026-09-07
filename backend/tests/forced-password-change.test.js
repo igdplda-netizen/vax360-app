@@ -24,6 +24,10 @@ delete process.env.INITIAL_SUPERADMIN_PASSWORD;
 const request = require('supertest');
 const crypto  = require('crypto');
 const { app, db, shutdown } = require('../server');
+const {
+  mustChangeDefaultPassword,
+  _DEFAULT_PASSWORD,
+} = require('../lib/superadmin-warning');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -108,6 +112,44 @@ function setSuperadminCredentials(password, twoFactorSecret = null) {
 
 /** The hard-coded default password used to seed the superadmin. */
 const DEFAULT_SUPERADMIN_PASSWORD = 'Admin@123';
+
+describe('mustChangeDefaultPassword', () => {
+  function buildUser(role, password) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const password_hash = crypto
+      .pbkdf2Sync(password, salt, 100_000, 64, 'sha512')
+      .toString('hex');
+    return { role, password_hash, salt };
+  }
+
+  test('requires a change for a superadmin using the default password', () => {
+    expect(
+      mustChangeDefaultPassword(buildUser('superadmin', _DEFAULT_PASSWORD))
+    ).toBe(true);
+  });
+
+  test('does not require a change for a superadmin using a changed password', () => {
+    expect(
+      mustChangeDefaultPassword(buildUser('superadmin', 'Changed9x'))
+    ).toBe(false);
+  });
+
+  test.each(['admin', 'parent'])(
+    'does not require a change for a %s using the default password',
+    (role) => {
+      expect(
+        mustChangeDefaultPassword(buildUser(role, _DEFAULT_PASSWORD))
+      ).toBe(false);
+    }
+  );
+
+  test.each([null, { role: 'superadmin' }, { role: 'superadmin', salt: 'salt' }])(
+    'returns false when credential data is incomplete',
+    (user) => {
+      expect(mustChangeDefaultPassword(user)).toBe(false);
+    }
+  );
+});
 
 // ─── Suite setup / teardown ──────────────────────────────────────────────────
 
@@ -240,7 +282,6 @@ describe('POST /api/auth/change-own-password → flag cleared on next login', ()
   beforeAll(async () => {
     // Seed a superadmin row with the default password hash so the login
     // endpoint computes must_change_password = true for this user too.
-    const { _DEFAULT_PASSWORD } = require('../lib/superadmin-warning');
     const salt = crypto.randomBytes(16).toString('hex');
     const password_hash = crypto
       .pbkdf2Sync(_DEFAULT_PASSWORD, salt, 100_000, 64, 'sha512')

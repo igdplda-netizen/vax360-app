@@ -21,6 +21,23 @@ const crypto = require('crypto');
 const DEFAULT_PASSWORD = 'Admin@123';
 
 /**
+ * Return whether an authenticated user must replace the default superadmin password.
+ *
+ * @param {{ role?: string, password_hash?: string, salt?: string }|null} user
+ * @returns {boolean}
+ */
+function mustChangeDefaultPassword(user) {
+  if (!user || user.role !== 'superadmin' || !user.salt || !user.password_hash) {
+    return false;
+  }
+
+  const defaultHash = crypto
+    .pbkdf2Sync(DEFAULT_PASSWORD, user.salt, 100000, 64, 'sha512')
+    .toString('hex');
+  return defaultHash === user.password_hash;
+}
+
+/**
  * Warn (development) or abort (production) if superadmin credentials are weak.
  *
  * @param {{ password_hash: string, salt: string }|null} existingRow
@@ -72,4 +89,8 @@ function warnIfDefaultPassword(existingRow, configuredPassword) {
   }
 }
 
-module.exports = { warnIfDefaultPassword, _DEFAULT_PASSWORD: DEFAULT_PASSWORD };
+module.exports = {
+  mustChangeDefaultPassword,
+  warnIfDefaultPassword,
+  _DEFAULT_PASSWORD: DEFAULT_PASSWORD,
+};
