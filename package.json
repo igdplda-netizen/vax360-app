@@ -42,6 +42,7 @@
     "expo-sharing": "~57.0.13",
     "expo-splash-screen": "~57.0.0",
     "expo-status-bar": "~57.0.0",
+    "image-size": "npm:image-size-next@1.2.2",
     "jspdf": "^4.2.1",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
@@ -75,7 +76,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "image-size": "1.2.1",
+    "image-size": "npm:image-size-next@1.2.2",
     "minimatch": "3.1.5",
     "tar": "7.5.20",
     "shell-quote": "1.10.0",

@@ -7,4 +7,4 @@ description: Web export fails on every PNG asset when image-size 2.x is used wit
 
 **Why:** Metro 0.84 (`metro/src/Assets.js getAssetData`) passes a file *path* string to `imageSize()`, but image-size 2.x only accepts Uint8Array/Buffer (paths moved to `imageSizeFromFile`). The string hits `TextDecoder.decode` and throws the misleading ArrayBuffer error.
 
-**How to apply:** Keep the npm override `"image-size": "1.2.1"` in package.json. Beware: JSON duplicate keys in `overrides` are silently resolved last-one-wins — a stray second `"image-size"` entry re-broke the pin once. This also breaks deployment publishes (build step runs the same export).
+**How to apply:** Replace the abandoned dependency with a maintained, security-fixed fork that preserves the 1.x path-string API Metro expects. Verify both the dependency audit and an Expo web export; a fix that passes only one is incomplete.
