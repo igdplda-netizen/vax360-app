@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
-import { VACCINE_SCHEDULE } from '../constants/vaccines';
+import { getAdministrationSite, VACCINE_SCHEDULE } from '../constants/vaccines';
 import { Ionicons } from '@expo/vector-icons';
 import { formatToDeviceDate, promptForDate } from '../utils/date';
 import { shadows } from '../utils/shadows';
@@ -54,6 +54,7 @@ export default function VaccineDetailScreen() {
   const catStyle = CATEGORY_COLORS[category];
   const categoryLabel = t(category === 'mandatory' ? 'mandatoryVaccines' : category === 'recommended' ? 'recommendedVaccines' : 'travelVaccines');
   const info = vaccine.detailedInfo;
+  const administration = getAdministrationSite(vaccine);
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
@@ -107,6 +108,14 @@ export default function VaccineDetailScreen() {
               <Ionicons name="repeat" size={16} color={Colors.primary} />
               <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
                 {isPt ? `Dose ${vaccine.doseNumber} de ${vaccine.doses}` : `Dose ${vaccine.doseNumber} of ${vaccine.doses}`}
+              </Text>
+            </View>
+            <View style={styles.meta}>
+              <Ionicons name="body" size={16} color={Colors.primary} />
+              <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
+                {isPt ? administration.sitePt : administration.site}
+                {' · '}
+                {isPt ? administration.routePt : administration.route}
               </Text>
             </View>
           </View>

@@ -29,6 +29,73 @@ export interface Vaccine {
   };
 }
 
+export interface AdministrationSite {
+  route: string;
+  routePt: string;
+  site: string;
+  sitePt: string;
+}
+
+/**
+ * Standard administration route/site guidance for each scheduled vaccine.
+ * The health professional should make the final choice based on the product
+ * formulation, the child's age and local immunization guidance.
+ */
+export function getAdministrationSite(vaccine: Vaccine): AdministrationSite {
+  const oralIds = new Set(['rota-1', 'rota-2', 'cholera']);
+  const intradermalIds = new Set(['bcg']);
+  const subcutaneousIds = new Set([
+    'yellow-fever',
+    'yellow-fever-travel',
+    'mmr-1',
+    'mmr-2',
+    'varicella',
+    'varicella-2',
+  ]);
+
+  if (oralIds.has(vaccine.id)) {
+    return {
+      route: 'Oral',
+      routePt: 'Via oral',
+      site: 'Mouth',
+      sitePt: 'Boca',
+    };
+  }
+
+  if (intradermalIds.has(vaccine.id)) {
+    return {
+      route: 'Intradermal',
+      routePt: 'Intradérmica',
+      site: 'Upper arm (usually the right arm)',
+      sitePt: 'Parte superior do braço (geralmente o braço direito)',
+    };
+  }
+
+  if (subcutaneousIds.has(vaccine.id)) {
+    return {
+      route: 'Subcutaneous',
+      routePt: 'Subcutânea',
+      site: vaccine.ageMonths < 12
+        ? 'Anterolateral thigh'
+        : 'Upper outer arm',
+      sitePt: vaccine.ageMonths < 12
+        ? 'Face anterolateral da coxa'
+        : 'Parte superior externa do braço',
+    };
+  }
+
+  return {
+    route: 'Intramuscular',
+    routePt: 'Intramuscular',
+    site: vaccine.ageMonths < 12
+      ? 'Anterolateral thigh'
+      : 'Deltoid muscle of the upper arm',
+    sitePt: vaccine.ageMonths < 12
+      ? 'Face anterolateral da coxa'
+      : 'Músculo deltoide da parte superior do braço',
+  };
+}
+
 export const VACCINE_SCHEDULE: Vaccine[] = [
   // ============================================================
   // AT BIRTH (0 months)

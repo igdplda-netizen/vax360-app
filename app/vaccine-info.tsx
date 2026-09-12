@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
-import { VACCINE_SCHEDULE } from '../constants/vaccines';
+import { getAdministrationSite, VACCINE_SCHEDULE } from '../constants/vaccines';
 import { Ionicons } from '@expo/vector-icons';
 import { shadows } from '../utils/shadows';
 
@@ -47,6 +47,7 @@ export default function VaccineInfoScreen() {
     : 'travelVaccines'
   );
   const info = vaccine.detailedInfo;
+  const administration = getAdministrationSite(vaccine);
 
   const bg   = isDark ? Colors.background.dark : Colors.background.light;
   const surf = isDark ? Colors.surface.dark : Colors.surface.light;
@@ -97,6 +98,29 @@ export default function VaccineInfoScreen() {
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Administration site */}
+        <View style={[styles.section, { backgroundColor: surf }]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconBox, { backgroundColor: Colors.primary + '18' }]}>
+              <Ionicons name="body" size={18} color={Colors.primary} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: tc }]}>
+              {isPt ? 'Local de aplicação' : 'Administration site'}
+            </Text>
+          </View>
+          <Text style={[styles.infoText, { color: ts }]}>
+            {isPt ? administration.sitePt : administration.site}
+          </Text>
+          <Text style={[styles.infoText, { color: ts, marginTop: 6 }]}>
+            {isPt ? 'Via' : 'Route'}: {isPt ? administration.routePt : administration.route}
+          </Text>
+          <Text style={[styles.infoText, { color: ts, marginTop: 8, fontStyle: 'italic' }]}>
+            {isPt
+              ? 'O profissional de saúde confirmará o local adequado conforme a idade, o produto e as orientações locais.'
+              : 'The health professional will confirm the appropriate site based on age, product and local guidance.'}
+          </Text>
         </View>
 
         {/* Benefits */}
