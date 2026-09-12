@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
-import { getItem, setItem } from '../lib/storage';
+import { getItem, setItem, removeItem } from '../lib/storage';
 import { VACCINE_SCHEDULE, Vaccine } from '../constants/vaccines';
 
 export type Language = 'en' | 'pt' | 'fr' | 'af';
@@ -86,6 +86,15 @@ interface AppContextType {
 }
 
 const STORAGE_KEY = 'vax360_state';
+const USER_CHILDREN_KEY = (whatsapp: string) => `vax360_children:${whatsapp}`;
+const PENDING_SYNC_KEY = (whatsapp: string) => `vax360_pending_sync:${whatsapp}`;
+
+type PendingSync = {
+  revision: number;
+  whatsapp: string;
+  token: string;
+  children: Child[];
+};
 
 const DEFAULT_STATE: AppState = {
   language: 'pt',
@@ -589,6 +598,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const stateRef = useRef(state);
   stateRef.current = state;
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionGenerationRef = useRef(0);
+  const mutationRevisionRef = useRef(0);
+  const pendingSyncRef = useRef<PendingSync | null>(null);
+  const syncInFlightRef = useRef<Promise<boolean> | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [syncPending, setSyncPending] = useState(false);
@@ -602,7 +616,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const loadState = async () => {
     const saved = await getItem<AppState>(STORAGE_KEY);
     if (saved) {
-      setState(prev => ({ ...prev, ...saved }));
+      const restored = { ...DEFAULT_STATE, ...saved };
+      if (restored.currentUser && restored.token) {
+        const cachedChildren = await getItem<Child[]>(USER_CHILDREN_KEY(restored.currentUser.whatsapp));
+        if (cachedChildren) restored.children = cachedChildren;
+        const pending = await getItem<PendingSync>(PENDING_SYNC_KEY(restored.currentUser.whatsapp));
+        if (pending) {
+          pendingSyncRef.current = { ...pending, token: restored.token };
+          mutationRevisionRef.current = Math.max(mutationRevisionRef.current, pending.revision);
+          syncTimerRef.current = setTimeout(() => syncData(), 500);
+        }
+      }
+      stateRef.current = restored;
+      setState(restored);
     }
     setLoaded(true);
   };
@@ -611,6 +637,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState(newState);
     await setItem(STORAGE_KEY, newState);
   }, []);
+
+  const scheduleSync = (nextState: AppState) => {
+    if (!nextState.token || !nextState.currentUser) return;
+    const revision = ++mutationRevisionRef.current;
+    const pending: PendingSync = {
+      revision,
+      whatsapp: nextState.currentUser.whatsapp,
+      token: nextState.token,
+      children: nextState.children,
+    };
+    pendingSyncRef.current = pending;
+    stateRef.current = nextState;
+    setItem(USER_CHILDREN_KEY(pending.whatsapp), pending.children);
+    setItem(PENDING_SYNC_KEY(pending.whatsapp), pending);
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    const generation = sessionGenerationRef.current;
+    syncTimerRef.current = setTimeout(() => {
+      syncTimerRef.current = null;
+      if (generation === sessionGenerationRef.current) {
+        syncData();
+      }
+    }, 500);
+  };
 
   const setLanguage = useCallback((language: Language) => {
     setState(prev => {
@@ -659,8 +708,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentChildId: newChild.id,
       };
       setItem(STORAGE_KEY, next);
-      // Auto-trigger background sync
-      setTimeout(() => syncData(), 500);
+      scheduleSync(next);
       return next;
     });
   }, [getScheduledDate]);
@@ -674,7 +722,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ),
       };
       setItem(STORAGE_KEY, next);
-      setTimeout(() => syncData(), 500);
+      scheduleSync(next);
       return next;
     });
   }, []);
@@ -687,7 +735,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentChildId: prev.currentChildId === id ? (prev.children[0]?.id || null) : prev.currentChildId,
       };
       setItem(STORAGE_KEY, next);
-      setTimeout(() => syncData(), 500);
+      scheduleSync(next);
       return next;
     });
   }, []);
@@ -717,7 +765,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }),
       };
       setItem(STORAGE_KEY, next);
-      setTimeout(() => syncData(), 500);
+      scheduleSync(next);
       return next;
     });
   }, []);
@@ -739,7 +787,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }),
       };
       setItem(STORAGE_KEY, next);
-      setTimeout(() => syncData(), 500);
+      scheduleSync(next);
       return next;
     });
   }, []);
@@ -772,6 +820,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.language]);
 
   // Authentication logic
+  const pullChildrenForUser = async (
+    whatsapp: string,
+    token: string
+  ): Promise<Child[] | null> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/sync/${whatsapp}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.data) return null;
+      return Array.isArray(data.data.children) ? data.data.children : [];
+    } catch {
+      return null;
+    }
+  };
+
   const login = async (whatsapp: string, password: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/login`, {
@@ -786,16 +850,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (data.two_factor_required) {
         return { success: true, requires2FA: true, tempToken: data.temp_token };
       }
+      sessionGenerationRef.current += 1;
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+        syncTimerRef.current = null;
+      }
+      const loginGeneration = sessionGenerationRef.current;
+      const serverChildren = await pullChildrenForUser(data.user.whatsapp, data.token);
+      if (loginGeneration !== sessionGenerationRef.current) {
+        return { success: false, error: 'Login superseded' };
+      }
+      const pending = await getItem<PendingSync>(PENDING_SYNC_KEY(data.user.whatsapp));
+      const cachedChildren = await getItem<Child[]>(USER_CHILDREN_KEY(data.user.whatsapp));
+      const restoredChildren = pending?.children ?? serverChildren ?? cachedChildren ?? [];
       const next = {
         ...state,
+        children: restoredChildren,
+        currentChildId: restoredChildren[0]?.id ?? null,
         token: data.token,
         userRole: data.role,
         currentUser: data.user,
         mustChangePassword: !!data.must_change_password,
       };
       await saveState(next);
-      // Trigger sync
-      setTimeout(() => syncData(), 500);
+      await setItem(USER_CHILDREN_KEY(data.user.whatsapp), restoredChildren);
+      if (pending) {
+        pendingSyncRef.current = { ...pending, token: data.token };
+        mutationRevisionRef.current = Math.max(mutationRevisionRef.current, pending.revision);
+        syncTimerRef.current = setTimeout(() => syncData(), 0);
+      } else {
+        pendingSyncRef.current = null;
+      }
       return { success: true, mustChangePassword: !!data.must_change_password };
     } catch (err: any) {
       return { success: false, error: 'Server connection failed' };
@@ -813,15 +898,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         return { success: false, error: data.error || 'Invalid code' };
       }
+      sessionGenerationRef.current += 1;
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+        syncTimerRef.current = null;
+      }
+      const loginGeneration = sessionGenerationRef.current;
+      const serverChildren = await pullChildrenForUser(data.user.whatsapp, data.token);
+      if (loginGeneration !== sessionGenerationRef.current) {
+        return { success: false, error: 'Login superseded' };
+      }
+      const pending = await getItem<PendingSync>(PENDING_SYNC_KEY(data.user.whatsapp));
+      const cachedChildren = await getItem<Child[]>(USER_CHILDREN_KEY(data.user.whatsapp));
+      const restoredChildren = pending?.children ?? serverChildren ?? cachedChildren ?? [];
       const next = {
         ...state,
+        children: restoredChildren,
+        currentChildId: restoredChildren[0]?.id ?? null,
         token: data.token,
         userRole: data.role,
         currentUser: data.user,
         mustChangePassword: !!data.must_change_password,
       };
       await saveState(next);
-      setTimeout(() => syncData(), 500);
+      await setItem(USER_CHILDREN_KEY(data.user.whatsapp), restoredChildren);
+      if (pending) {
+        pendingSyncRef.current = { ...pending, token: data.token };
+        mutationRevisionRef.current = Math.max(mutationRevisionRef.current, pending.revision);
+        syncTimerRef.current = setTimeout(() => syncData(), 0);
+      } else {
+        pendingSyncRef.current = null;
+      }
       return { success: true, mustChangePassword: !!data.must_change_password };
     } catch (err) {
       return { success: false, error: 'Server connection failed' };
@@ -893,6 +1000,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = useCallback(async () => {
+    // Flush a pending local change before clearing the authenticated state.
+    // This covers an immediate logout after adding/editing a child.
+    if (pendingSyncRef.current) {
+      await syncData();
+    }
+    sessionGenerationRef.current += 1;
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
     const next: AppState = {
       ...DEFAULT_STATE,
       language: state.language,
@@ -955,48 +1072,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Sync API
   const syncData = async (): Promise<boolean> => {
-    const currentState = stateRef.current;
-    if (!currentState.token || !currentState.currentUser) return false;
-    setSyncPending(true);
-    try {
-      // 1. Post local children to sync
-      const pushRes = await fetch(`${API_BASE_URL}/sync/${currentState.currentUser.whatsapp}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentState.token}`,
-        },
-        body: JSON.stringify({ children: currentState.children }),
-      });
+    if (syncInFlightRef.current) return syncInFlightRef.current;
+    const pending = pendingSyncRef.current;
+    if (!pending) return true;
+    const generation = sessionGenerationRef.current;
+    const operation = (async (): Promise<boolean> => {
+      setSyncPending(true);
+      try {
+        const pushRes = await fetch(`${API_BASE_URL}/sync/${pending.whatsapp}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${pending.token}`,
+          },
+          body: JSON.stringify({ children: pending.children }),
+        });
 
-      if (!pushRes.ok) {
+        if (generation !== sessionGenerationRef.current) {
+          setSyncPending(false);
+          return false;
+        }
+
+        if (!pushRes.ok) {
+          setIsOnline(false);
+          setSyncPending(false);
+          return false;
+        }
+
+        // Clear only the exact revision that was posted. If another mutation
+        // happened during this request, its newer pending snapshot remains.
+        if (pendingSyncRef.current?.revision === pending.revision) {
+          pendingSyncRef.current = null;
+          await removeItem(PENDING_SYNC_KEY(pending.whatsapp));
+        }
+        setIsOnline(true);
+        setSyncPending(false);
+        return true;
+      } catch {
         setIsOnline(false);
         setSyncPending(false);
         return false;
       }
+    })();
 
-      // 2. Fetch server state to merge
-      const pullRes = await fetch(`${API_BASE_URL}/sync/${currentState.currentUser.whatsapp}`, {
-        headers: { 'Authorization': `Bearer ${currentState.token}` },
-      });
-      const pullData = await pullRes.json();
-      if (pullRes.ok && pullData.success && pullData.data) {
-        const mergedChildren = pullData.data.children || [];
-        setState(prev => {
-          const next = { ...prev, children: mergedChildren };
-          setItem(STORAGE_KEY, next);
-          return next;
-        });
-      }
+    syncInFlightRef.current = operation;
+    const result = await operation;
+    syncInFlightRef.current = null;
 
-      setIsOnline(true);
-      setSyncPending(false);
-      return true;
-    } catch {
-      setIsOnline(false);
-      setSyncPending(false);
-      return false;
+    // Serialize full-document writes so an older request can never finish
+    // after a newer one and overwrite it on the server.
+    if (result && pendingSyncRef.current) {
+      return syncData();
     }
+    return result;
   };
 
   // Branding
