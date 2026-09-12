@@ -107,7 +107,7 @@ export default function VaccineInfoScreen() {
               <Ionicons name="body" size={18} color={Colors.primary} />
             </View>
             <Text style={[styles.sectionTitle, { color: tc }]}>
-              {isPt ? 'Local de aplicação' : 'Administration site'}
+              {isPt ? 'Local' : 'Site'}
             </Text>
           </View>
           <Text style={[styles.infoText, { color: ts }]}>
