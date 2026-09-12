@@ -107,14 +107,14 @@ export default function VaccineInfoScreen() {
               <Ionicons name="body" size={18} color={Colors.primary} />
             </View>
             <Text style={[styles.sectionTitle, { color: tc }]}>
-              {isPt ? 'Local' : 'Site'}
+              {isPt ? 'Onde é aplicada' : 'Where it is given'}
             </Text>
           </View>
           <Text style={[styles.infoText, { color: ts }]}>
             {isPt ? administration.sitePt : administration.site}
           </Text>
           <Text style={[styles.infoText, { color: ts, marginTop: 6 }]}>
-            {isPt ? 'Via' : 'Route'}: {isPt ? administration.routePt : administration.route}
+            {isPt ? 'Como é aplicada' : 'How it is given'}: {isPt ? administration.routePt : administration.route}
           </Text>
           <Text style={[styles.infoText, { color: ts, marginTop: 8, fontStyle: 'italic' }]}>
             {isPt

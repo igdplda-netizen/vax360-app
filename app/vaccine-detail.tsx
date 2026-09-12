@@ -113,9 +113,9 @@ export default function VaccineDetailScreen() {
             <View style={styles.meta}>
               <Ionicons name="body" size={16} color={Colors.primary} />
               <Text style={[styles.metaText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-                {isPt ? 'Local' : 'Site'}: {isPt ? administration.sitePt : administration.site}
+                {isPt ? 'Onde é aplicada' : 'Where it is given'}: {isPt ? administration.sitePt : administration.site}
                 {' · '}
-                {isPt ? 'Via' : 'Route'}: {isPt ? administration.routePt : administration.route}
+                {isPt ? 'Como é aplicada' : 'How it is given'}: {isPt ? administration.routePt : administration.route}
               </Text>
             </View>
           </View>
