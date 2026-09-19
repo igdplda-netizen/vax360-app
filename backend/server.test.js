@@ -3,13 +3,60 @@ process.env.SYNC_AUTH_TOKEN = "test_token_123";
 process.env.JWT_SECRET = "test_jwt_secret";
 
 const request = require("supertest");
-const { app, db, shutdown } = require("./server");
+const { app, db, shutdown, verifyTOTP, base32Decode } = require("./server");
+const crypto = require("crypto");
 
 afterAll((done) => {
   // Give background async tasks (like audit logs) a moment to finish before closing the DB
   setTimeout(() => {
     db.close(() => done());
   }, 500);
+});
+
+describe("TOTP verification security", () => {
+  const secret = "JBSWY3DPEHPK3PXP";
+  const now = 1_700_000_000_000;
+
+  function getTOTPForOffset(offset) {
+    const key = base32Decode(secret);
+    const counter = Math.floor(now / 1000 / 30) + offset;
+    const buf = Buffer.alloc(8);
+    buf.writeUInt32BE(0, 0);
+    buf.writeUInt32BE(counter, 4);
+
+    const hmac = crypto.createHmac("sha1", key).update(buf).digest();
+    const hmacOffset = hmac[hmac.length - 1] & 0xf;
+    const code =
+      ((hmac[hmacOffset] & 0x7f) << 24) |
+      ((hmac[hmacOffset + 1] & 0xff) << 16) |
+      ((hmac[hmacOffset + 2] & 0xff) << 8) |
+      (hmac[hmacOffset + 3] & 0xff);
+
+    return (code % 1000000).toString().padStart(6, "0");
+  }
+
+  beforeEach(() => {
+    jest.spyOn(Date, "now").mockReturnValue(now);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("accepts only the current code and one adjacent time step by default", () => {
+    expect(verifyTOTP(secret, getTOTPForOffset(-1))).toBe(true);
+    expect(verifyTOTP(secret, getTOTPForOffset(0))).toBe(true);
+    expect(verifyTOTP(secret, getTOTPForOffset(1))).toBe(true);
+    expect(verifyTOTP(secret, getTOTPForOffset(-2))).toBe(false);
+    expect(verifyTOTP(secret, getTOTPForOffset(2))).toBe(false);
+  });
+
+  it("does not log submitted or valid codes after failed verification", () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    expect(verifyTOTP(secret, "000000")).toBe(false);
+    expect(logSpy).not.toHaveBeenCalled();
+  });
 });
 
 describe("Core Endpoints", () => {
@@ -570,8 +617,7 @@ describe("2FA Endpoints", () => {
   const testPhone = "555222222";
   const testPassword = "a1b2c3";
 
-  const { base32Decode, loginLimiter, registerLimiter, resetPasswordLimiter } = require("./server");
-  const crypto = require("crypto");
+  const { loginLimiter, registerLimiter, resetPasswordLimiter } = require("./server");
   function getTOTP(secret) {
     const key = base32Decode(secret);
     const epoch = Math.floor(Date.now() / 1000);

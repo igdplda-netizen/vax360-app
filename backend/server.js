@@ -386,15 +386,13 @@ function generateSecret(length = 16) {
 }
 
 // Verify TOTP token with tolerance window
-function verifyTOTP(secret, token, window = 4) {
+function verifyTOTP(secret, token, window = 1) {
   try {
     if (!secret || !token) return false;
     const cleanToken = String(token).replace(/\s+/g, "");
     const key = base32Decode(secret);
     const epoch = Math.floor(Date.now() / 1000);
     const currentCounter = Math.floor(epoch / 30);
-    const allowedCodes = [];
-
     for (let i = -window; i <= window; i++) {
       const counter = currentCounter + i;
       const buf = Buffer.alloc(8);
@@ -410,12 +408,10 @@ function verifyTOTP(secret, token, window = 4) {
         (hmac[offset + 3] & 0xff);
 
       const checkToken = (codeVal % 1000000).toString().padStart(6, "0");
-      allowedCodes.push({ offsetSec: i * 30, code: checkToken });
       if (checkToken === cleanToken) {
         return true;
       }
     }
-    console.log(`[2FA Debug] Verification failed. Input: "${cleanToken}". Allowed codes in window:`, allowedCodes);
   } catch (err) {
     console.error("❌ TOTP verification error:", err.message);
   }
