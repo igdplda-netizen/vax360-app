@@ -459,6 +459,30 @@ describe("Cryptographic Upgrades & Backup/Recovery", () => {
     expect(resetRes.statusCode).toBe(403);
     expect(resetRes.body).toHaveProperty("error", "Access denied");
   });
+
+  it("should deny an admin from resetting parent or superadmin passwords", async () => {
+    await new Promise((resolve, reject) => {
+      db.run(
+        "INSERT INTO users (whatsapp, name, password_hash, salt, role) SELECT ?, ?, password_hash, salt, ? FROM users WHERE whatsapp = ?",
+        ["777777777", "Test Admin", "admin", "555555555"],
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+
+    const adminLogin = await request(app)
+      .post("/api/login")
+      .send({ whatsapp: "777777777", password: "resetPass456" });
+    expect(adminLogin.statusCode).toBe(200);
+
+    for (const target of ["555555555", "9999"]) {
+      const resetRes = await request(app)
+        .post(`/api/admin/users/${target}/reset-password`)
+        .set("Authorization", `Bearer ${adminLogin.body.token}`)
+        .send({ password: "TakenOver123" });
+      expect(resetRes.statusCode).toBe(403);
+      expect(resetRes.body).toHaveProperty("error", "Access denied");
+    }
+  });
 });
 
 describe("CORS Configuration", () => {

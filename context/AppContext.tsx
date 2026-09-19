@@ -73,7 +73,6 @@ interface AppContextType {
   login: (whatsapp: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; tempToken?: string; mustChangePassword?: boolean; error?: string }>;
   login2FA: (tempToken: string, code: string) => Promise<{ success: boolean; mustChangePassword?: boolean; error?: string }>;
   registerUser: (name: string, whatsapp: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  resetPassword: (whatsapp: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   changeOwnPassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   get2FAStatus: () => Promise<boolean>;
@@ -954,23 +953,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const resetPassword = async (whatsapp: string, newPassword: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsapp, newPassword }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || t('resetFailed') };
-      }
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: 'Server connection failed' };
-    }
-  };
-
   const changeOwnPassword = async (newPassword: string) => {
     if (!state.token) return { success: false, error: 'Not authenticated' };
     try {
@@ -1199,7 +1181,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       login2FA,
       registerUser,
-      resetPassword,
       changeOwnPassword,
       logout,
       get2FAStatus,

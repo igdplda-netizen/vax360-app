@@ -6,7 +6,7 @@
  *
  * Coverage:
  *   POST /api/login            – correct creds succeed; wrong creds fail; missing fields → 400; rate-limit fires
- *   POST /api/auth/reset-password – valid payload succeeds; missing fields → 400; complexity rules enforced; unknown user → 404
+ *   POST /api/auth/reset-password – disabled until ownership verification exists
  *   POST /api/register         – success; duplicate WhatsApp → registration_failed; missing fields → 400; complexity rules enforced
  */
 
@@ -174,130 +174,31 @@ describe('POST /api/auth/reset-password', () => {
     await insertUser('5500000002', 'Reset User', 'OldPass1');
   });
 
-  test('returns 200 and resets the password for a valid payload', async () => {
+  test('returns 410 and does not reset a password', async () => {
     const res = await request(app)
       .post('/api/auth/reset-password')
       .send({ whatsapp: '5500000002', newPassword: 'NewPass2' });
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-  });
+    expect(res.status).toBe(410);
+    expect(res.body.error).toBe('password_reset_unavailable');
 
-  test('user can log in with the new password after a reset', async () => {
-    // First reset
-    await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'ResetPass3' });
-
-    // Then login
-    const res = await request(app)
+    const loginRes = await request(app)
       .post('/api/login')
-      .send({ whatsapp: '5500000002', password: 'ResetPass3' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
+      .send({ whatsapp: '5500000002', password: 'OldPass1' });
+    expect(loginRes.status).toBe(200);
   });
 
-  test('user cannot log in with the old password after a reset', async () => {
-    await request(app)
+  test('returns the same response for existing and unknown accounts', async () => {
+    const existing = await request(app)
       .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'BrandNew4' });
-
-    const res = await request(app)
-      .post('/api/login')
-      .send({ whatsapp: '5500000002', password: 'ResetPass3' }); // previous password
-
-    expect(res.status).toBe(401);
-  });
-
-  test('returns 400 when whatsapp is missing', async () => {
-    const res = await request(app)
+      .send({ whatsapp: '5500000002', newPassword: 'ValidPass2' });
+    const unknown = await request(app)
       .post('/api/auth/reset-password')
-      .send({ newPassword: 'NewPass2' });
+      .send({ whatsapp: '9090909090', newPassword: 'ValidPass2' });
 
-    expect(res.status).toBe(400);
-  });
-
-  test('returns 400 when newPassword is missing', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002' });
-
-    expect(res.status).toBe(400);
-  });
-
-  test('returns 400 when body is empty', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({});
-
-    expect(res.status).toBe(400);
-  });
-
-  test('returns 404 for a non-existent user', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '9090909090', newPassword: 'ValidPass1' });
-
-    expect(res.status).toBe(404);
-    expect(res.body.error).toBe('user_not_found');
-  });
-
-  // ── Password-complexity enforcement ──────────────────────────────────────
-
-  test('rejects a password shorter than 6 characters', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'Ab1' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('password_length_error');
-  });
-
-  test('rejects a password longer than 64 characters', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'Aa1' + 'x'.repeat(63) });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('password_length_error');
-  });
-
-  test('rejects a password with only repeated characters', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'aaaaaa' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('password_repetitive_error');
-  });
-
-  test('rejects a password with no digit', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: 'NoDigitHere' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('password_complexity_error');
-  });
-
-  test('rejects a password with no letter', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: '123456' });
-
-    expect(res.status).toBe(400);
-    // Sequential digits are caught first by the sequential check OR complexity check
-    expect(['password_sequential_error', 'password_complexity_error']).toContain(res.body.error);
-  });
-
-  test('rejects a purely sequential digit password', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ whatsapp: '5500000002', newPassword: '12345678' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('password_sequential_error');
+    expect(existing.status).toBe(410);
+    expect(unknown.status).toBe(410);
+    expect(unknown.body).toEqual(existing.body);
   });
 });
 

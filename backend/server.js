@@ -485,54 +485,13 @@ const resetPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ─── Self-Service Password Reset (Public) ────────────────
-app.post("/api/auth/reset-password", resetPasswordLimiter, (req, res) => {
-  const { whatsapp, newPassword } = req.body;
-  if (!whatsapp || !newPassword) {
-    return res.status(400).json({ error: "WhatsApp number and new password are required" });
-  }
-
-  const complexity = validatePasswordComplexity(newPassword);
-  if (!complexity.valid) {
-    return res.status(400).json({ error: complexity.msg });
-  }
-
-  // Check user exists
-  db.get(
-    "SELECT whatsapp, role FROM users WHERE whatsapp = ?",
-    [whatsapp],
-    (err, user) => {
-      if (err) {
-        return handleInternalError(res, err, "❌ Error querying user for reset:");
-      }
-      if (!user) {
-        // Return generic message to prevent user enumeration
-        return res.status(404).json({ error: "user_not_found" });
-      }
-
-      const { salt, hash: password_hash } = hashPassword(newPassword);
-
-      db.run(
-        "UPDATE users SET password_hash = ?, salt = ? WHERE whatsapp = ?",
-        [password_hash, salt, whatsapp],
-        function (updateErr) {
-          if (updateErr) {
-            return handleInternalError(res, updateErr, "❌ Error resetting password:");
-          }
-
-          // Audit log
-          db.run(
-            "INSERT INTO audit_log (action, entity_type, entity_id, payload) VALUES (?, ?, ?, ?)",
-            ["self_reset_password", "user", whatsapp, "Self-service reset from login screen"],
-            (auditErr) => {
-              if (auditErr) console.error("❌ Audit self-reset password error:", auditErr.message);
-              res.json({ success: true, message: "Password reset successfully" });
-            }
-          );
-        }
-      );
-    }
-  );
+// Password recovery is intentionally unavailable until an out-of-band
+// ownership-verification mechanism is configured.
+app.post("/api/auth/reset-password", resetPasswordLimiter, (_req, res) => {
+  return res.status(410).json({
+    error: "password_reset_unavailable",
+    message: "Contact an administrator to recover access.",
+  });
 });
 
 // ─── Register Route ──────────────────────────────────────
@@ -1062,10 +1021,10 @@ app.post("/api/user/change-password", authenticateToken, (req, res) => {
   );
 });
 
-// POST reset password of a user (Admin/Superadmin only)
+// POST reset password of a user (Superadmin only)
 app.post("/api/admin/users/:whatsapp/reset-password", authenticateToken, (req, res) => {
   const whatsapp = req.params.whatsapp;
-  if (req.user.role !== "superadmin" && req.user.role !== "admin" && req.user.whatsapp !== whatsapp) {
+  if (req.user.role !== "superadmin") {
     return res.status(403).json({ error: "Access denied" });
   }
   const { password } = req.body;
