@@ -15,6 +15,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { warnIfDefaultPassword } = require('./lib/superadmin-warning');
 const { validateAdminPassword } = require('./lib/validate-admin-password');
+const { LOGIN_LIMIT_SCHEMA } = require('./lib/login-limit-store');
 
 // Load .env if dotenv is available
 try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); } catch (_) { /* no dotenv */ }
@@ -45,7 +46,9 @@ function initializeDatabase(db, callback) {
     }
   }
 
-  db.serialize(() => {
+  db.run(LOGIN_LIMIT_SCHEMA, (limitErr) => {
+    if (limitErr) return callback(limitErr);
+    db.serialize(() => {
     // Step 1: Create store table
     db.run(`
       CREATE TABLE IF NOT EXISTS store (
@@ -267,6 +270,7 @@ function initializeDatabase(db, callback) {
           afterStoreMigration();
         }
       });
+    });
     });
   });
 }

@@ -1,3 +1,4 @@
+- [Shared login limits](shared-login-limits.md) — authentication throttling uses shared atomic counters and fails closed rather than falling back to process memory.
 # Vax360 Expo App Memory
 
 - [Expo CJS/ESM shim](expo-cjs-shim.md) — react-native-web v0.21 ships ESM at dist/index.js but expo-router SSR needs CJS. Fix: copy CJS index to dist/index.js.

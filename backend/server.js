@@ -116,6 +116,7 @@ app.use(globalLimiter);
 // SQLite remains for tests (DB_PATH=":memory:") and environments without
 // DATABASE_URL. See backend/lib/db.js.
 const { openDatabase, usingPostgres } = require("./lib/db");
+const { LoginLimitStore, LOGIN_LIMIT_SCHEMA } = require("./lib/login-limit-store");
 
 const db = openDatabase(
   process.env.DB_PATH === ":memory:" ? ":memory:" : DB_PATH,
@@ -143,6 +144,7 @@ const db = openDatabase(
     }
 
     console.log(`✅ Connected to SQLite database at ${DB_PATH}`);
+    db.run(LOGIN_LIMIT_SCHEMA);
 
     // Auto-create tables on first run
     db.run(`CREATE TABLE IF NOT EXISTS store (
@@ -257,7 +259,7 @@ const db = openDatabase(
   },
 );
 
-const REQUIRED_POSTGRES_TABLES = ["app_meta", "audit_log", "store", "users"];
+const REQUIRED_POSTGRES_TABLES = ["app_meta", "audit_log", "store", "users", "login_rate_limits"];
 
 /**
  * Refuse to run production traffic against an empty or incomplete database.
@@ -269,7 +271,7 @@ function verifyPostgresSchema(callback) {
     `SELECT table_name AS name
        FROM information_schema.tables
       WHERE table_schema = 'public'
-        AND table_name IN ('app_meta', 'audit_log', 'store', 'users')`,
+        AND table_name IN ('app_meta', 'audit_log', 'store', 'users', 'login_rate_limits')`,
     [],
     (err, rows) => {
       if (err) return callback(err);
@@ -462,13 +464,16 @@ function loginRateLimitKey(req) {
     .replace(/\D/g, "");
   const accountKey = crypto
     .createHmac("sha256", JWT_SECRET)
-    .update(account || "missing")
+    .update(JSON.stringify([ipKeyGenerator(req.ip), account || "missing"]))
     .digest("hex");
 
-  return `${ipKeyGenerator(req.ip)}:${accountKey}`;
+  return accountKey;
 }
 
+const loginLimitStore = new LoginLimitStore(db);
 const loginLimiter = rateLimit({
+  store: loginLimitStore,
+  passOnStoreError: false,
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: IS_TEST ? 15 : 5,
   keyGenerator: loginRateLimitKey,
@@ -1402,6 +1407,7 @@ app.get(/^\/(?!api).*/, (req, res) => {
 let httpServer;
 
 function shutdown() {
+  loginLimitStore.shutdown();
   console.log("\n🛑 Shutting down...");
   if (httpServer) {
     httpServer.close(() => {

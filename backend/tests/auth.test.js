@@ -205,6 +205,16 @@ describe('POST /api/login', () => {
     expect(missing.status).toBe(429);
     expect(existing.body).toEqual(missing.body);
   });
+
+  test('persisted limit keys do not disclose phone numbers or IPs', async () => {
+    await request(app).post('/api/login')
+      .set('X-Forwarded-For', '10.0.0.49')
+      .send({ whatsapp: '5599994444', password: 'WrongPass9' });
+    const rows = await new Promise((resolve, reject) =>
+      db.all('SELECT key FROM login_rate_limits', (err, rows) => err ? reject(err) : resolve(rows)));
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) expect(row.key).toMatch(/^[a-f0-9]{64}$/);
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════════
