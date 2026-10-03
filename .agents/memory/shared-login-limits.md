@@ -14,3 +14,15 @@ Extending shared throttling must preserve each policy's identity and active logi
 **Why:** Moving storage must not turn an IP-only policy into a per-account policy, let one endpoint spend another policy's budget, or reset existing login failures during rollout.
 
 **How to apply:** Isolate new policies with stable namespaces, preserve existing login key compatibility, and do not silently bypass throttling on storage errors.
+
+General throttling retains its normal health-request quota; storage-outage
+exceptions are restricted to the lightweight health GET/HEAD route.
+
+**Why:** A storage failure must not disable abuse protection for business APIs,
+but blocking the liveness probe solely because counters are unavailable can
+cause unnecessary server replacement during a database outage. Permanently
+exempting health requests would change the existing quota policy.
+
+**How to apply:** Keep liveness distinct from database readiness. Handle store
+errors within the limiter's own callback so unrelated request errors retain
+their original status (for example, oversized JSON remains 413).

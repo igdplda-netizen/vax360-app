@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 const { LoginLimitStore, LOGIN_LIMIT_SCHEMA } = require('./login-limit-store');
 
-describe.each(['', 'register', 'reset-password'])('shared limiter store (%s)', namespace => {
+describe.each(['', 'register', 'reset-password', 'global'])('shared limiter store (%s)', namespace => {
   let dir, file, dbA, dbB, a, b;
   const run = (db, sql, params = []) => new Promise((resolve, reject) =>
     db.run(sql, params, err => err ? reject(err) : resolve()));
@@ -82,8 +82,9 @@ describe.each(['', 'register', 'reset-password'])('shared limiter store (%s)', n
     await expect(a.increment('key')).rejects.toThrow();
   });
 
-  test('other namespaces cannot read, decrement or reset this policy', async () => {
-    const other = new LoginLimitStore(dbB, namespace === 'register' ? 'reset-password' : 'register');
+  test.each(['', 'register', 'reset-password', 'global'])('namespace "%s" cannot change another policy', async otherNamespace => {
+    if (otherNamespace === namespace) return;
+    const other = new LoginLimitStore(dbB, otherNamespace);
     other.init({ windowMs: 900000 });
     try {
       await a.increment('same-key');

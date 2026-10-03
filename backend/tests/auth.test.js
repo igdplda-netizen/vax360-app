@@ -259,7 +259,7 @@ describe('POST /api/login', () => {
     const rows = await new Promise((resolve, reject) =>
       db.all('SELECT key FROM login_rate_limits', (err, rows) => err ? reject(err) : resolve(rows)));
     expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) expect(row.key).toMatch(/^(?:(?:register|reset-password):)?[a-f0-9]{64}$/);
+    for (const row of rows) expect(row.key).toMatch(/^(?:(?:global|register|reset-password):)?[a-f0-9]{64}$/);
   });
 });
 
@@ -359,7 +359,13 @@ describe('persistent registration and password-reset policies', () => {
     });
 
   test('storage failure refuses requests without revealing accounts or internal details', async () => {
-    await runSql('ALTER TABLE login_rate_limits RENAME TO unavailable_rate_limits');
+    // Fail only the auth stores: a full outage is now caught by the general
+    // limiter first and is covered separately in global-limit.test.js.
+    const increment = LoginLimitStore.prototype.increment;
+    const failure = jest.spyOn(LoginLimitStore.prototype, 'increment').mockImplementation(function (key) {
+      if (this.prefix !== 'global:') return Promise.reject(new Error('Storage unavailable'));
+      return increment.call(this, key);
+    });
     const log = jest.spyOn(console, 'error').mockImplementation(() => {});
     try {
       for (const path of ['/api/register', '/api/auth/reset-password', '/api/auth/change-own-password']) {
@@ -373,7 +379,7 @@ describe('persistent registration and password-reset policies', () => {
         expect(existing.body).toEqual({ error: 'Authentication temporarily unavailable, please try again later' });
       }
     } finally {
-      await runSql('ALTER TABLE unavailable_rate_limits RENAME TO login_rate_limits');
+      failure.mockRestore();
       log.mockRestore();
     }
     expect((await register('10.1.0.8')).status).toBe(400);

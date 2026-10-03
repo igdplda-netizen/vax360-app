@@ -97,18 +97,6 @@ app.use((req, res, next) => {
   }
 });
 
-// General Rate Limiter to prevent DoS attacks on sync and health endpoints
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: IS_TEST ? 1000 : 100,
-  message: {
-    error: "Too many requests from this IP, please try again later"
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(globalLimiter);
-
 // ─── Database Setup ─────────────────────────────────────
 // PostgreSQL (DATABASE_URL) is used whenever available — required in
 // production, where the filesystem is ephemeral (autoscale) and a local
@@ -317,6 +305,38 @@ function seedSuperadminAccount() {
     }
   });
 }
+
+// Shared general IP budget, separate from all authentication budgets.
+// Successful and failed requests both count; no process-local fallback.
+const globalLimitStore = new LoginLimitStore(db, "global");
+const globalLimiter = rateLimit({
+  store: globalLimitStore,
+  passOnStoreError: false,
+  keyGenerator: authIpLimitKey,
+  windowMs: 15 * 60 * 1000,
+  max: IS_TEST ? 1000 : 100,
+  message: {
+    error: "Too many requests from this IP, please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+function globalLimitStorageError(err, req, res, next) {
+  console.error("General rate-limit storage unavailable:", err.message);
+  // This lightweight liveness endpoint must remain usable during a storage
+  // outage. It is still limited normally (including 429s at the quota).
+  // Only GET/HEAD of this exact route bypass storage errors, never other APIs.
+  if (req.path === "/api/health" && (req.method === "GET" || req.method === "HEAD")) {
+    return next();
+  }
+  return res.status(503).json({ error: "Service temporarily unavailable, please try again later" });
+}
+// Handle only errors from this limiter, not earlier middleware errors (e.g.
+// oversized JSON must retain its 413 response rather than become a 503).
+app.use((req, res, next) => globalLimiter(req, res, err => {
+  if (err) return globalLimitStorageError(err, req, res, next);
+  return next();
+}));
 
 // ─── Health Check ───────────────────────────────────────
 app.get("/api/health", (_req, res) => {
@@ -1428,6 +1448,7 @@ app.get(/^\/(?!api).*/, (req, res) => {
 let httpServer;
 
 function shutdown() {
+  globalLimitStore.shutdown();
   loginLimitStore.shutdown();
   registerLimitStore.shutdown();
   resetPasswordLimitStore.shutdown();
