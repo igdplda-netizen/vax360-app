@@ -19,7 +19,7 @@ process.env.JWT_SECRET = 'test_jwt_secret_for_auth_tests';
 
 const request = require('supertest');
 const crypto  = require('crypto');
-const { app, db, shutdown } = require('../server');
+const { app, db, shutdown, base32Decode } = require('../server');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -55,6 +55,27 @@ function insertUser(whatsapp, name, plainPassword, role = 'parent') {
       (err) => { if (err) reject(err); else resolve(); }
     );
   });
+}
+
+async function insertTwoFactorUser(whatsapp) {
+  const secret = 'JBSWY3DPEHPK3PXP';
+  await insertUser(whatsapp, '2FA Test User', 'TestPass1');
+  await new Promise((resolve, reject) => {
+    db.run(
+      'UPDATE users SET two_factor_enabled = 1, two_factor_secret = ? WHERE whatsapp = ?',
+      [secret, whatsapp],
+      (err) => { if (err) reject(err); else resolve(); }
+    );
+  });
+  return secret;
+}
+
+function generateTotp(secret) {
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30_000)));
+  const hmac = crypto.createHmac('sha1', base32Decode(secret)).update(counter).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0');
 }
 
 // ─── Suite setup / teardown ──────────────────────────────────────────────────
@@ -162,6 +183,24 @@ describe('POST /api/login', () => {
     expect(lastStatus).toBe(429);
   });
 
+  test('successful logins neither consume the failure budget nor clear earlier failures', async () => {
+    const whatsapp = '5599994444';
+    await insertUser(whatsapp, 'Repeated Login User', 'TestPass1');
+    const login = (password) => request(app).post('/api/login').send({ whatsapp, password });
+
+    for (let i = 0; i < 14; i++) {
+      expect((await login('WrongPass9')).status).toBe(401);
+    }
+    // More successes than the limit, while only one failed attempt remains.
+    for (let i = 0; i < 16; i++) {
+      const res = await login('TestPass1');
+      expect(res.status).toBe(200);
+      expect(res.body.token).toEqual(expect.any(String));
+    }
+    expect((await login('WrongPass9')).status).toBe(401);
+    expect((await login('WrongPass9')).status).toBe(429);
+  });
+
   test('attempts for one account do not block another account on the same IP', async () => {
     const sharedIp = '10.0.0.43';
 
@@ -214,6 +253,51 @@ describe('POST /api/login', () => {
       db.all('SELECT key FROM login_rate_limits', (err, rows) => err ? reject(err) : resolve(rows)));
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) expect(row.key).toMatch(/^[a-f0-9]{64}$/);
+  });
+});
+
+describe('POST /api/login/2fa rate limiting', () => {
+  jest.setTimeout(30_000);
+
+  test('successful password and 2FA steps do not consume or reset the shared failure budget', async () => {
+    const whatsapp = '5599995555';
+    const secret = await insertTwoFactorUser(whatsapp);
+    const login = () => request(app).post('/api/login').send({ whatsapp, password: 'TestPass1' });
+    const initial = await login();
+    expect(initial.status).toBe(200);
+    expect(initial.body.two_factor_required).toBe(true);
+    const verify = (temp_token, code) => request(app).post('/api/login/2fa').send({ temp_token, code });
+
+    for (let i = 0; i < 14; i++) {
+      // A non-numeric code is deterministically invalid, unlike a random six-digit code.
+      const res = await verify(initial.body.temp_token, 'invalid');
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('invalid_2fa_code');
+    }
+    for (let i = 0; i < 16; i++) {
+      const pending = await login();
+      expect(pending.status).toBe(200);
+      expect(pending.body.two_factor_required).toBe(true);
+      const verified = await verify(pending.body.temp_token, generateTotp(secret));
+      expect(verified.status).toBe(200);
+      expect(verified.body.token).toEqual(expect.any(String));
+    }
+    expect((await verify(initial.body.temp_token, 'invalid')).status).toBe(401);
+    expect((await verify(initial.body.temp_token, 'invalid')).status).toBe(429);
+    // Issuing another challenge cannot bypass failures from the 2FA step.
+    expect((await login()).status).toBe(429);
+  });
+
+  test('invalid temporary tokens and incomplete requests remain limited', async () => {
+    for (let i = 0; i < 15; i++) {
+      const body = i % 2 === 0 ? { temp_token: 'invalid', code: '123456' } : {};
+      const res = await request(app).post('/api/login/2fa')
+        .set('X-Forwarded-For', '10.0.0.45').send(body);
+      expect(res.status).toBe(400);
+    }
+    const blocked = await request(app).post('/api/login/2fa')
+      .set('X-Forwarded-For', '10.0.0.45').send({});
+    expect(blocked.status).toBe(429);
   });
 });
 

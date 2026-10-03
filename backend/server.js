@@ -477,6 +477,8 @@ const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: IS_TEST ? 15 : 5,
   keyGenerator: loginRateLimitKey,
+  // Refund successful password/2FA steps without clearing earlier failures.
+  skipSuccessfulRequests: true,
   message: {
     success: false,
     message: "Too many login attempts, please try again later",
