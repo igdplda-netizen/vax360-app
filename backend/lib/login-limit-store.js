@@ -10,8 +10,13 @@ const LOGIN_LIMIT_SCHEMA = `
   )`;
 
 class LoginLimitStore {
-  constructor(db) {
+  constructor(db, namespace = "") {
     this.db = db;
+    // Empty preserves existing login keys and their active failure budgets.
+    if (namespace && !/^[a-z][a-z0-9-]*$/.test(namespace)) {
+      throw new Error("Invalid rate-limit namespace");
+    }
+    this.prefix = namespace ? `${namespace}:` : "";
     this.localKeys = false;
   }
 
@@ -32,6 +37,7 @@ class LoginLimitStore {
   }
 
   async increment(key) {
+    key = this.prefix + key;
     const now = Date.now();
     const row = await this.query(`
       INSERT INTO login_rate_limits (key, hits, reset_at) VALUES (?, 1, ?)
@@ -46,7 +52,7 @@ class LoginLimitStore {
   async get(key) {
     const row = await this.query(
       "SELECT hits, reset_at FROM login_rate_limits WHERE key = ? AND reset_at > ?",
-      [key, Date.now()],
+      [this.prefix + key, Date.now()],
     );
     return row ? { totalHits: Number(row.hits), resetTime: new Date(Number(row.reset_at)) } : undefined;
   }
@@ -57,11 +63,11 @@ class LoginLimitStore {
     await this.query(`
       UPDATE login_rate_limits SET hits = CASE WHEN hits > 0 THEN hits - 1 ELSE 0 END
       WHERE key = ? AND reset_at > ? RETURNING hits
-    `, [key, Date.now()]);
+    `, [this.prefix + key, Date.now()]);
   }
 
   async resetKey(key) {
-    await this.query("DELETE FROM login_rate_limits WHERE key = ? RETURNING key", [key]);
+    await this.query("DELETE FROM login_rate_limits WHERE key = ? RETURNING key", [this.prefix + key]);
   }
 
   shutdown() {

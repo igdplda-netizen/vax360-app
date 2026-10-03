@@ -20,6 +20,13 @@ process.env.JWT_SECRET = 'test_jwt_secret_for_auth_tests';
 const request = require('supertest');
 const crypto  = require('crypto');
 const { app, db, shutdown, base32Decode } = require('../server');
+const { LoginLimitStore } = require('../lib/login-limit-store');
+const { ipKeyGenerator } = require('express-rate-limit');
+
+const runSql = (sql, params = []) => new Promise((resolve, reject) =>
+  db.run(sql, params, err => err ? reject(err) : resolve()));
+const ipLimitKey = ip => crypto.createHmac('sha256', process.env.JWT_SECRET)
+  .update(ipKeyGenerator(ip)).digest('hex');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -252,7 +259,128 @@ describe('POST /api/login', () => {
     const rows = await new Promise((resolve, reject) =>
       db.all('SELECT key FROM login_rate_limits', (err, rows) => err ? reject(err) : resolve(rows)));
     expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) expect(row.key).toMatch(/^[a-f0-9]{64}$/);
+    for (const row of rows) expect(row.key).toMatch(/^(?:(?:register|reset-password):)?[a-f0-9]{64}$/);
+  });
+});
+
+describe('persistent registration and password-reset policies', () => {
+  const register = (ip, body = {}) => request(app).post('/api/register')
+    .set('X-Forwarded-For', ip).send(body);
+  const reset = (ip, whatsapp = '5500000002') => request(app)
+    .post('/api/auth/reset-password').set('X-Forwarded-For', ip)
+    .send({ whatsapp, newPassword: 'NewPass2' });
+
+  test('registration allows 15 attempts, counts successes, and blocks the 16th across accounts', async () => {
+    const ip = '10.1.0.1';
+    const success = await register(ip, { name: 'Limit User', whatsapp: '5511110080', password: 'ValidPass1' });
+    expect(success.status).toBe(200);
+    for (let i = 1; i < 15; i++) {
+      expect((await register(ip)).status).toBe(400);
+    }
+    const existing = await register(ip, { name: 'Existing', whatsapp: '5511110080', password: 'ValidPass1' });
+    const missing = await register(ip, { name: 'Unknown', whatsapp: '5511110081', password: 'ValidPass1' });
+    expect(existing.status).toBe(429);
+    expect(missing.status).toBe(429);
+    expect(existing.body).toEqual(missing.body);
+    expect(existing.body.error).toBe('Too many registration attempts, please try again later');
+    expect(existing.headers['ratelimit-limit']).toBe('15');
+    expect(Number(existing.headers['retry-after'])).toBeGreaterThan(0);
+    expect((await register('10.1.0.2')).status).toBe(400);
+    // A blocked registration must not create a profile.
+    const login = await request(app).post('/api/login')
+      .send({ whatsapp: '5511110081', password: 'ValidPass1' });
+    expect(login.status).toBe(401);
+  });
+
+  test('reset permits the final attempt and shares its budget with own-password changes', async () => {
+    const ip = '10.1.0.3';
+    expect((await reset(ip)).status).toBe(410);
+    // Retain the existing test limit (1000) without sending 1000 requests.
+    await runSql('UPDATE login_rate_limits SET hits = ? WHERE key = ?',
+      [999, 'reset-password:' + ipLimitKey(ip)]);
+    expect((await reset(ip)).status).toBe(410);
+    const existing = await reset(ip);
+    const missing = await reset(ip, '5500099999');
+    expect(existing.status).toBe(429);
+    expect(missing.status).toBe(429);
+    expect(existing.body).toEqual(missing.body);
+    expect(existing.body.error).toBe('Too many password reset attempts, please try again later');
+    expect(existing.headers['ratelimit-limit']).toBe('1000');
+    expect(Number(existing.headers['retry-after'])).toBeGreaterThan(0);
+    const change = await request(app).post('/api/auth/change-own-password')
+      .set('X-Forwarded-For', ip).send({});
+    expect(change.status).toBe(429);
+    expect(change.body).toEqual(existing.body);
+    expect((await reset('10.1.0.4')).status).toBe(410);
+  });
+
+  test('registration, reset and login budgets remain independent on the same IP', async () => {
+    const ip = '10.1.0.5';
+    for (let i = 0; i < 15; i++) expect((await register(ip)).status).toBe(400);
+    expect((await register(ip)).status).toBe(429);
+    expect((await reset(ip)).status).toBe(410);
+    await runSql('UPDATE login_rate_limits SET hits = ? WHERE key = ?',
+      [1000, 'reset-password:' + ipLimitKey(ip)]);
+    expect((await reset(ip)).status).toBe(429);
+    const login = await request(app).post('/api/login')
+      .set('X-Forwarded-For', ip)
+      .send({ whatsapp: '5500000001', password: 'TestPass1' });
+    expect(login.status).toBe(200);
+  });
+
+  test.each([
+    ['register', 15, '10.1.0.6', register, 400],
+    ['reset-password', 1000, '10.1.0.7', reset, 410],
+  ])('%s uses counters written by independent and recreated stores and renews expired windows',
+    async (namespace, limit, ip, send, allowedStatus) => {
+      expect((await send(ip)).status).toBe(allowedStatus);
+      const key = ipLimitKey(ip);
+      const first = new LoginLimitStore(db, namespace);
+      first.init({ windowMs: 900000 });
+      try {
+        expect((await first.get(key)).totalHits).toBe(1);
+        await runSql('UPDATE login_rate_limits SET hits = ? WHERE key = ?', [limit - 1, first.prefix + key]);
+        expect((await first.increment(key)).totalHits).toBe(limit);
+      } finally {
+        first.shutdown();
+      }
+      const recreated = new LoginLimitStore(db, namespace);
+      recreated.init({ windowMs: 900000 });
+      try {
+        expect((await recreated.get(key)).totalHits).toBe(limit);
+        expect((await send(ip)).status).toBe(429);
+        await runSql('UPDATE login_rate_limits SET reset_at = ? WHERE key = ?',
+          [Date.now() - 1, recreated.prefix + key]);
+        expect((await send(ip)).status).toBe(allowedStatus);
+        expect((await recreated.get(key)).totalHits).toBe(1);
+      } finally {
+        recreated.shutdown();
+      }
+    });
+
+  test('storage failure refuses requests without revealing accounts or internal details', async () => {
+    await runSql('ALTER TABLE login_rate_limits RENAME TO unavailable_rate_limits');
+    const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      for (const path of ['/api/register', '/api/auth/reset-password', '/api/auth/change-own-password']) {
+        const send = whatsapp => request(app).post(path).set('X-Forwarded-For', '10.1.0.8')
+          .send({ name: 'Unavailable', whatsapp, password: 'ValidPass1', newPassword: 'NewPass2' });
+        const existing = await send('5500000001');
+        const missing = await send('5511110082');
+        expect(existing.status).toBe(503);
+        expect(missing.status).toBe(503);
+        expect(existing.body).toEqual(missing.body);
+        expect(existing.body).toEqual({ error: 'Authentication temporarily unavailable, please try again later' });
+      }
+    } finally {
+      await runSql('ALTER TABLE unavailable_rate_limits RENAME TO login_rate_limits');
+      log.mockRestore();
+    }
+    expect((await register('10.1.0.8')).status).toBe(400);
+    expect((await reset('10.1.0.8')).status).toBe(410);
+    const login = await request(app).post('/api/login')
+      .send({ whatsapp: '5511110082', password: 'ValidPass1' });
+    expect(login.status).toBe(401);
   });
 });
 

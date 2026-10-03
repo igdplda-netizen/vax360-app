@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 const { LoginLimitStore, LOGIN_LIMIT_SCHEMA } = require('./login-limit-store');
 
-describe('shared login limiter store', () => {
+describe.each(['', 'register', 'reset-password'])('shared limiter store (%s)', namespace => {
   let dir, file, dbA, dbB, a, b;
   const run = (db, sql, params = []) => new Promise((resolve, reject) =>
     db.run(sql, params, err => err ? reject(err) : resolve()));
@@ -23,8 +23,8 @@ describe('shared login limiter store', () => {
     dbA = await open();
     await run(dbA, LOGIN_LIMIT_SCHEMA);
     dbB = await open();
-    a = new LoginLimitStore(dbA);
-    b = new LoginLimitStore(dbB);
+    a = new LoginLimitStore(dbA, namespace);
+    b = new LoginLimitStore(dbB, namespace);
     a.init({ windowMs: 900000 });
     b.init({ windowMs: 900000 });
   });
@@ -52,14 +52,14 @@ describe('shared login limiter store', () => {
     a.shutdown();
     await close(dbA);
     dbA = await open();
-    a = new LoginLimitStore(dbA);
+    a = new LoginLimitStore(dbA, namespace);
     a.init({ windowMs: 900000 });
     expect((await a.increment('persisted-key')).totalHits).toBe(3);
   });
 
   test('an expired window starts again at one', async () => {
     await a.increment('expired-key');
-    await run(dbA, 'UPDATE login_rate_limits SET reset_at = ? WHERE key = ?', [Date.now() - 1, 'expired-key']);
+    await run(dbA, 'UPDATE login_rate_limits SET reset_at = ? WHERE key = ?', [Date.now() - 1, a.prefix + 'expired-key']);
     expect(await b.get('expired-key')).toBeUndefined();
     const result = await b.increment('expired-key');
     expect(result.totalHits).toBe(1);
@@ -80,5 +80,21 @@ describe('shared login limiter store', () => {
   test('database failures propagate rather than using an in-memory fallback', async () => {
     await run(dbA, 'DROP TABLE login_rate_limits');
     await expect(a.increment('key')).rejects.toThrow();
+  });
+
+  test('other namespaces cannot read, decrement or reset this policy', async () => {
+    const other = new LoginLimitStore(dbB, namespace === 'register' ? 'reset-password' : 'register');
+    other.init({ windowMs: 900000 });
+    try {
+      await a.increment('same-key');
+      expect(await other.get('same-key')).toBeUndefined();
+      expect((await other.increment('same-key')).totalHits).toBe(1);
+      await other.decrement('same-key');
+      expect((await a.get('same-key')).totalHits).toBe(1);
+      await other.resetKey('same-key');
+      expect((await a.get('same-key')).totalHits).toBe(1);
+    } finally {
+      other.shutdown();
+    }
   });
 });

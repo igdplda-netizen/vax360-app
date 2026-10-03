@@ -5,6 +5,9 @@ process.env.JWT_SECRET = "test_jwt_secret";
 const request = require("supertest");
 const { app, db, shutdown, verifyTOTP, base32Decode } = require("./server");
 const crypto = require("crypto");
+const { ipKeyGenerator } = require("express-rate-limit");
+const authIpLimitKey = ip => crypto.createHmac("sha256", process.env.JWT_SECRET)
+  .update(ipKeyGenerator(ip)).digest("hex");
 
 afterAll((done) => {
   // Give background async tasks (like audit logs) a moment to finish before closing the DB
@@ -637,22 +640,22 @@ describe("2FA Endpoints", () => {
     return (code % 1000000).toString().padStart(6, "0");
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const ips = ["::ffff:127.0.0.1", "127.0.0.1", "::1"];
-    ips.forEach(ip => {
-      loginLimiter.resetKey(ip);
-      registerLimiter.resetKey(ip);
-      resetPasswordLimiter.resetKey(ip);
-    });
+    await Promise.all(ips.flatMap(ip => [
+      loginLimiter.resetKey(ip),
+      registerLimiter.resetKey(authIpLimitKey(ip)),
+      resetPasswordLimiter.resetKey(authIpLimitKey(ip)),
+    ]));
   });
 
   beforeAll(async () => {
     const ips = ["::ffff:127.0.0.1", "127.0.0.1", "::1"];
-    ips.forEach(ip => {
-      loginLimiter.resetKey(ip);
-      registerLimiter.resetKey(ip);
-      resetPasswordLimiter.resetKey(ip);
-    });
+    await Promise.all(ips.flatMap(ip => [
+      loginLimiter.resetKey(ip),
+      registerLimiter.resetKey(authIpLimitKey(ip)),
+      resetPasswordLimiter.resetKey(authIpLimitKey(ip)),
+    ]));
 
     // Register test user
     await request(app)

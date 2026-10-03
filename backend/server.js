@@ -487,7 +487,22 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Preserve the IP-only policies without persisting raw IP addresses.
+function authIpLimitKey(req) {
+  return crypto.createHmac("sha256", JWT_SECRET)
+    .update(ipKeyGenerator(req.ip)).digest("hex");
+}
+
+function authLimitStorageError(err, _req, res, _next) {
+  console.error("Authentication rate-limit storage unavailable:", err.message);
+  return res.status(503).json({ error: "Authentication temporarily unavailable, please try again later" });
+}
+
+const registerLimitStore = new LoginLimitStore(db, "register");
 const registerLimiter = rateLimit({
+  store: registerLimitStore,
+  passOnStoreError: false,
+  keyGenerator: authIpLimitKey,
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: IS_TEST ? 15 : 5,
   message: {
@@ -497,7 +512,11 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const resetPasswordLimitStore = new LoginLimitStore(db, "reset-password");
 const resetPasswordLimiter = rateLimit({
+  store: resetPasswordLimitStore,
+  passOnStoreError: false,
+  keyGenerator: authIpLimitKey,
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: IS_TEST ? 1000 : 3,
   message: {
@@ -509,7 +528,7 @@ const resetPasswordLimiter = rateLimit({
 
 // Password recovery is intentionally unavailable until an out-of-band
 // ownership-verification mechanism is configured.
-app.post("/api/auth/reset-password", resetPasswordLimiter, (_req, res) => {
+app.post("/api/auth/reset-password", resetPasswordLimiter, authLimitStorageError, (_req, res) => {
   return res.status(410).json({
     error: "password_reset_unavailable",
     message: "Contact an administrator to recover access.",
@@ -517,7 +536,7 @@ app.post("/api/auth/reset-password", resetPasswordLimiter, (_req, res) => {
 });
 
 // ─── Register Route ──────────────────────────────────────
-app.post("/api/register", registerLimiter, (req, res) => {
+app.post("/api/register", registerLimiter, authLimitStorageError, (req, res) => {
   const { name, whatsapp, email, password } = req.body;
   if (!name || !whatsapp || !password) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -689,7 +708,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
 });
 
 // ─── Authenticated Change-Own-Password Route ────────────
-app.post("/api/auth/change-own-password", resetPasswordLimiter, authenticateToken, (req, res) => {
+app.post("/api/auth/change-own-password", resetPasswordLimiter, authLimitStorageError, authenticateToken, (req, res) => {
   const { newPassword } = req.body;
   if (!newPassword) {
     return res.status(400).json({ error: "New password is required" });
@@ -1410,6 +1429,8 @@ let httpServer;
 
 function shutdown() {
   loginLimitStore.shutdown();
+  registerLimitStore.shutdown();
+  resetPasswordLimitStore.shutdown();
   console.log("\n🛑 Shutting down...");
   if (httpServer) {
     httpServer.close(() => {
