@@ -161,6 +161,50 @@ describe('POST /api/login', () => {
     }
     expect(lastStatus).toBe(429);
   });
+
+  test('attempts for one account do not block another account on the same IP', async () => {
+    const sharedIp = '10.0.0.43';
+
+    for (let i = 0; i < 15; i++) {
+      const res = await request(app)
+        .post('/api/login')
+        .set('X-Forwarded-For', sharedIp)
+        .send({ whatsapp: '5599992222', password: 'WrongPass9' });
+      expect(res.status).toBe(401);
+    }
+
+    const blocked = await request(app)
+      .post('/api/login')
+      .set('X-Forwarded-For', sharedIp)
+      .send({ whatsapp: '5599992222', password: 'WrongPass9' });
+    expect(blocked.status).toBe(429);
+
+    const otherAccount = await request(app)
+      .post('/api/login')
+      .set('X-Forwarded-For', sharedIp)
+      .send({ whatsapp: '5500000001', password: 'TestPass1' });
+    expect(otherAccount.status).toBe(200);
+  });
+
+  test('429 response does not reveal whether the account exists', async () => {
+    async function exhaustLimit(whatsapp) {
+      let response;
+      for (let i = 0; i < 16; i++) {
+        response = await request(app)
+          .post('/api/login')
+          .set('X-Forwarded-For', '10.0.0.44')
+          .send({ whatsapp, password: 'WrongPass9' });
+      }
+      return response;
+    }
+
+    const existing = await exhaustLimit('5500000001');
+    const missing = await exhaustLimit('5599993333');
+
+    expect(existing.status).toBe(429);
+    expect(missing.status).toBe(429);
+    expect(existing.body).toEqual(missing.body);
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════════

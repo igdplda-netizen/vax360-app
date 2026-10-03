@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 const jwt = require("jsonwebtoken");
-const rateLimit = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const crypto = require("crypto");
 const helmet = require("helmet");
 const {
@@ -447,18 +447,37 @@ function authenticateToken(req, res, next) {
 }
 
 // ─── Rate Limiting ──────────────────────────────────────
+function loginRateLimitAccount(req) {
+  if (req.path === "/api/login/2fa") {
+    const decoded = jwt.decode(req.body?.temp_token);
+    return decoded && typeof decoded === "object" ? decoded.whatsapp : null;
+  }
+
+  return req.body?.whatsapp;
+}
+
+function loginRateLimitKey(req) {
+  const account = String(loginRateLimitAccount(req) || "missing")
+    .trim()
+    .replace(/\D/g, "");
+  const accountKey = crypto
+    .createHmac("sha256", JWT_SECRET)
+    .update(account || "missing")
+    .digest("hex");
+
+  return `${ipKeyGenerator(req.ip)}:${accountKey}`;
+}
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: IS_TEST ? 15 : 5,
-  // Keep the explicit limiter test isolated from unrelated login tests.
-  // Production remains IP-keyed by express-rate-limit's secure default.
-  keyGenerator: IS_TEST
-    ? (req) => `test:${String(req.body?.whatsapp || "2fa")}`
-    : undefined,
+  keyGenerator: loginRateLimitKey,
   message: {
     success: false,
     message: "Too many login attempts, please try again later",
   },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const registerLimiter = rateLimit({
