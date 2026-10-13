@@ -65,7 +65,6 @@ expertMode = true
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-publicDir = "dist"
 run = ["node", "server.js"]
 
 [postMerge]
