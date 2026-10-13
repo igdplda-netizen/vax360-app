@@ -25,7 +25,7 @@
     "test": "jest backend/",
     "test:dependency-security": "node --test scripts/dependency-security.test.js",
     "test:prep": "npm run build && npm run db:init && npm test",
-    "postinstall": "node scripts/patch-forge.js && cd backend && npm install && node ../patch-devtools.js",
+    "postinstall": "cd backend && npm install && cd .. && node scripts/patch-forge.js && node patch-devtools.js",
     "start": "node build.js && cd backend && node db-init.js && node server.js"
   },
   "dependencies": {

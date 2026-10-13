@@ -4,6 +4,7 @@ const { createRequire } = require('node:module');
 const path = require('node:path');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
+const { patchPackage, lockedPackages } = require('./patch-forge');
 
 const minimumVersions = {
   '@capacitor/android': '6.2.2',
@@ -58,11 +59,39 @@ for (const directory of ['.', 'backend']) {
 }
 
 test('node-forge security backport is present and idempotent', () => {
-  const target = path.join(path.dirname(require.resolve('node-forge/package.json')), 'lib/rsa.js');
-  const before = fs.readFileSync(target, 'utf8');
-  assert.match(before, /GHSA-86w9-cpqp-85rv/);
+  const packages = lockedPackages(path.resolve(__dirname, '..'));
+  assert.ok(packages.length > 0);
+  const targets = packages.map(pkg => path.join(path.dirname(pkg), 'lib/rsa.js'));
+  const before = targets.map(target => fs.readFileSync(target, 'utf8'));
+  for (const source of before) {
+    assert.match(source, /GHSA-86w9-cpqp-85rv/);
+    assert.match(source, /\('parameters' in capture\) \? 2 : 1/);
+  }
   execFileSync(process.execPath, ['scripts/patch-forge.js']);
-  assert.equal(fs.readFileSync(target, 'utf8'), before);
+  targets.forEach((target, index) => assert.equal(fs.readFileSync(target, 'utf8'), before[index]));
+});
+
+test('node-forge backport patches fresh installations and fails closed on drift', () => {
+  const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'forge-patch-'));
+  try {
+    const packagePath = path.join(directory, 'package.json');
+    const target = path.join(directory, 'lib/rsa.js');
+    fs.mkdirSync(path.dirname(target));
+    fs.writeFileSync(packagePath, JSON.stringify({ version: '1.4.0' }));
+    fs.writeFileSync(target, 'if(obj.value.length !== 2) { throw new Error(); }');
+    patchPackage(packagePath);
+    const source = fs.readFileSync(target, 'utf8');
+    assert.match(source, /\('parameters' in capture\) \? 2 : 1/);
+    patchPackage(packagePath);
+    assert.equal(fs.readFileSync(target, 'utf8'), source);
+    fs.writeFileSync(target, 'unexpected source');
+    assert.throws(() => patchPackage(packagePath), /Unexpected node-forge RSA source/);
+    assert.equal(fs.readFileSync(target, 'utf8'), 'unexpected source');
+    fs.writeFileSync(packagePath, JSON.stringify({ version: '1.4.1' }));
+    assert.throws(() => patchPackage(packagePath), /Review\/remove/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('RSA accepts real signatures but rejects extra nested DigestAlgorithm elements', () => {
@@ -80,10 +109,21 @@ test('RSA accepts real signatures but rejects extra nested DigestAlgorithm eleme
   const oid = make(asn1.Type.OID, false, asn1.oidToDer(forge.oids.sha256).getBytes());
   const nullParameter = make(asn1.Type.NULL, false, '');
   const garbage = make(asn1.Type.OCTETSTRING, false, 'attacker-controlled padding');
+  for (const elements of [[oid], [oid, nullParameter]]) {
+    const info = make(asn1.Type.SEQUENCE, true, [
+      make(asn1.Type.SEQUENCE, true, elements),
+      make(asn1.Type.OCTETSTRING, false, digest.digest().getBytes()),
+    ]);
+    const signature = privateKey.sign(asn1.toDer(info).getBytes(), 'NONE');
+    assert.equal(publicKey.verify(digest.digest().getBytes(), signature), true);
+  }
   for (const elements of [
     [oid, nullParameter, garbage],
     [oid, garbage],
     [oid, make(asn1.Type.NULL, false, 'nonempty NULL')],
+    [oid, asn1.create(asn1.Class.CONTEXT_SPECIFIC, asn1.Type.NULL, false, '')],
+    [oid, make(asn1.Type.NULL, true, [])],
+    [oid, nullParameter, nullParameter],
   ]) {
     const info = make(asn1.Type.SEQUENCE, true, [
       make(asn1.Type.SEQUENCE, true, elements),

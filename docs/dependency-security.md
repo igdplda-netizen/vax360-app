@@ -24,10 +24,18 @@ Upstream's latest release remains 1.4.0. The examined
 installation time. RSA PKCS#1 v1.5 verification accepts only an algorithm OID
 and an optional empty NULL parameter, rejecting extra nested elements.
 It preserves existing DigestInfo validation and all other cryptographic APIs.
-The patch is idempotent and fails explicitly on an unexpected source or version.
+The element-count check follows the proposed upstream fix in
+https://github.com/digitalbazaar/forge/pull/1152, with an additional empty-NULL
+check. It uses the ASN.1 validator's captured parameters, not just the tag number,
+so non-universal or constructed NULL lookalikes cannot bypass validation.
+The patch covers every node-forge occurrence in both lockfiles, after backend
+installation finishes. It is idempotent, upgrades the previous local backport,
+and fails explicitly on a missing locked copy, unexpected source, or version.
 
 Tests verify valid signatures, altered messages, and correctly signed malformed
 DigestInfo values, including extra nested elements and invalid NULL parameters.
+They also verify optional omitted NULL parameters, wrong tag classes, constructed
+NULLs, fresh-install patching, idempotency, and fail-closed behavior on drift.
 
 **Scanner limitation:** the package keeps its real upstream name/version.
 Version-only dependency scanners still report this advisory despite the tested
