@@ -94,8 +94,9 @@ test('node-forge backport patches fresh installations and fails closed on drift'
   }
 });
 
-test('RSA accepts real signatures but rejects extra nested DigestAlgorithm elements', () => {
-  const forge = require('node-forge');
+for (const packagePath of lockedPackages(path.resolve(__dirname, '..'))) {
+test(`${path.relative(process.cwd(), packagePath)}: RSA rejects malformed DigestAlgorithm elements`, () => {
+  const forge = require(path.dirname(packagePath));
   const { privateKey, publicKey } = forge.pki.rsa.generateKeyPair({ bits: 1024, e: 3 });
   const digest = forge.md.sha256.create().update('vaccination record');
   assert.equal(publicKey.verify(digest.digest().getBytes(), privateKey.sign(digest)), true);
@@ -133,5 +134,54 @@ test('RSA accepts real signatures but rejects extra nested DigestAlgorithm eleme
     // so rejection proves structure checking, not a mismatched key/digest.
     const signature = privateKey.sign(asn1.toDer(info).getBytes(), 'NONE');
     assert.throws(() => publicKey.verify(digest.digest().getBytes(), signature), /DigestInfo/);
+  }
+});
+}
+
+test('fresh node-forge reproduces the vulnerability before patching and rejects it afterward', () => {
+  const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'forge-regression-'));
+  try {
+    const installed = path.dirname(lockedPackages(path.resolve(__dirname, '..'))[0]);
+    const packagePath = path.join(directory, 'package.json');
+    fs.copyFileSync(path.join(installed, 'package.json'), packagePath);
+    fs.cpSync(path.join(installed, 'lib'), path.join(directory, 'lib'), { recursive: true });
+    const target = path.join(directory, 'lib/rsa.js');
+    const patchedSource = fs.readFileSync(target, 'utf8');
+    // Reconstruct the upstream 1.4.0 condition, leaving the real verifier intact.
+    // The negative control must accept the malformed structure, proving that
+    // rejection after patching is caused by the backport rather than bad padding.
+    const backport = /obj\.value\.length !== 2 \|\|\s*\/\/ GHSA-86w9-cpqp-85rv:[^\n]*\n\s*obj\.value\[0\]\.value\.length !==\s*\(\('parameters' in capture\) \? 2 : 1\) \|\|\s*\('parameters' in capture && capture\.parameters !== ''\)\) \{/g;
+    assert.equal([...patchedSource.matchAll(backport)].length, 1);
+    fs.writeFileSync(target, patchedSource.replace(backport, 'obj.value.length !== 2) {'));
+    const probe = `
+      const assert = require('node:assert/strict');
+      const forge = require(process.argv[1]);
+      const { privateKey, publicKey } = forge.pki.rsa.generateKeyPair({ bits: 1024, e: 3 });
+      const digest = forge.md.sha256.create().update('security regression').digest().getBytes();
+      const a = forge.asn1;
+      const make = (type, constructed, value) => a.create(a.Class.UNIVERSAL, type, constructed, value);
+      const oid = make(a.Type.OID, false, a.oidToDer(forge.oids.sha256).getBytes());
+      const nil = make(a.Type.NULL, false, '');
+      const garbage = make(a.Type.OCTETSTRING, false, 'attacker-controlled padding');
+      for (const elements of [[oid, nil, garbage], [oid, garbage]]) {
+        const info = make(a.Type.SEQUENCE, true, [
+          make(a.Type.SEQUENCE, true, elements),
+          make(a.Type.OCTETSTRING, false, digest),
+        ]);
+        const signature = privateKey.sign(a.toDer(info).getBytes(), 'NONE');
+        if (process.argv[2] === 'unpatched') {
+          assert.equal(publicKey.verify(digest, signature), true);
+        } else {
+          assert.throws(() => publicKey.verify(digest, signature), /DigestInfo/);
+        }
+      }
+    `;
+    // Separate processes prevent require's cache from masking the source change.
+    execFileSync(process.execPath, ['-e', probe, directory, 'unpatched']);
+    patchPackage(packagePath);
+    assert.equal(fs.readFileSync(target, 'utf8'), patchedSource);
+    execFileSync(process.execPath, ['-e', probe, directory, 'patched']);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
   }
 });

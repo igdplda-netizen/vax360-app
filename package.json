@@ -13,6 +13,7 @@
     "setup": "npm install && cd backend && npm install && cd .. && npm run db:init",
     "prebuild": "node scripts/patch-forge.js",
     "build": "npx expo export --platform web && node build.js",
+    "preexport:web": "node scripts/patch-forge.js",
     "export:web": "npx expo export --platform web",
     "cap:init": "npx -y @capacitor/cli init Vax360 com.vax360.app --web-dir www",
     "cap:add:android": "npx -y @capacitor/cli add android",

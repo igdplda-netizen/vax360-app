@@ -3,7 +3,8 @@
 Run `npm run test:dependency-security` after changing dependency versions and
 `npm run postinstall` after installations that skip lifecycle scripts.
 Both the root and backend lockfiles are part of the application.
-`npm run build` also applies the RSA backport before production web export.
+`npm run build` and `npm run export:web` also apply the RSA backport before
+web export, including when installation lifecycle scripts were skipped.
 
 ## braces: GHSA-vfj7-8cjw-p6xm
 
@@ -36,6 +37,9 @@ Tests verify valid signatures, altered messages, and correctly signed malformed
 DigestInfo values, including extra nested elements and invalid NULL parameters.
 They also verify optional omitted NULL parameters, wrong tag classes, constructed
 NULLs, fresh-install patching, idempotency, and fail-closed behavior on drift.
+Signature checks run against every locked installed copy. An isolated copy of
+the real upstream verifier serves as a negative control: it must accept the
+malformed nested elements before the backport and reject them afterward.
 
 **Scanner limitation:** the package keeps its real upstream name/version.
 Version-only dependency scanners still report this advisory despite the tested
