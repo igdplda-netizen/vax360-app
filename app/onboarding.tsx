@@ -205,7 +205,7 @@ export default function OnboardingScreen() {
   const isPreview = params.preview === '1';
   const previewConfig = isPreview ? getOnboardingPreview() : null;
   const effectiveConfig: OnboardingConfig = previewConfig || onboardingConfig;
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
@@ -233,6 +233,7 @@ export default function OnboardingScreen() {
     soft: isDark ? '#263B3A' : '#EAF1E8',
   };
   const isWide = width >= 760;
+  const isCompact = !isWide && height < 740;
 
   useEffect(() => {
     fade.setValue(0);
@@ -296,6 +297,7 @@ export default function OnboardingScreen() {
         </View>
 
         <ScrollView
+          style={styles.scroll}
           contentContainerStyle={[styles.scrollContent, { maxWidth: isWide ? 1040 : 560 }]}
           showsVerticalScrollIndicator={false}
           bounces={false}
@@ -304,6 +306,7 @@ export default function OnboardingScreen() {
             <Animated.View
               style={[
                 styles.artPanel,
+                isCompact && styles.artPanelCompact,
                 { backgroundColor: palette.soft, opacity: fade },
                 isWide && styles.artPanelWide,
               ]}
@@ -351,7 +354,7 @@ export default function OnboardingScreen() {
                 ))}
               </View>
 
-              <Text style={[styles.title, { color: palette.text }]}>{currentCopy.title}</Text>
+              <Text style={[styles.title, isCompact && styles.titleCompact, { color: palette.text }]}>{currentCopy.title}</Text>
               <Text style={[styles.body, { color: palette.muted }]}>{currentCopy.body}</Text>
 
               <View style={[styles.note, { borderColor: palette.border }]}>
@@ -403,27 +406,30 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, minHeight: '100%' },
-  page: { flex: 1, alignItems: 'center', width: '100%' },
+  safeArea: { flex: 1 },
+  page: { flex: 1, minHeight: 0, alignItems: 'center', width: '100%' },
   topbar: {
     width: '100%',
-    height: 66,
+    minHeight: 66,
+    flexShrink: 0,
     paddingHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 9, flexShrink: 0 },
   brandMark: { width: 31, height: 31, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   brandName: { fontSize: 18, fontWeight: '800', letterSpacing: -0.45 },
-  skipButton: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingVertical: 10, paddingLeft: 12 },
-  skipText: { fontSize: 14, fontWeight: '600' },
+  skipButton: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingVertical: 10, paddingLeft: 12, flexShrink: 1 },
+  skipText: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
   pressed: { opacity: 0.66 },
-  scrollContent: { flexGrow: 1, width: '100%', paddingHorizontal: 24, paddingTop: 10, paddingBottom: 26 },
-  main: { flex: 1, justifyContent: 'center' },
+  scroll: { flex: 1, minHeight: 0, width: '100%' },
+  scrollContent: { flexGrow: 1, alignSelf: 'center', width: '100%', paddingHorizontal: 24, paddingTop: 10, paddingBottom: 26 },
+  main: { flexGrow: 1, flexShrink: 0, justifyContent: 'center' },
   mainWide: { flexDirection: 'row', alignItems: 'center', gap: 68, paddingVertical: 20 },
   artPanel: {
     height: 255,
+    flexShrink: 0,
     width: '100%',
     borderRadius: 30,
     overflow: 'hidden',
@@ -431,6 +437,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 27,
   },
+  artPanelCompact: { height: 200, marginBottom: 20 },
   artPanelWide: { flex: 1, height: 400, marginBottom: 0 },
   orbit: {
     position: 'absolute',
@@ -472,6 +479,7 @@ const styles = StyleSheet.create({
   artCaption: {
     position: 'absolute',
     bottom: 15,
+    maxWidth: '92%',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -480,28 +488,32 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   captionDot: { width: 6, height: 6, borderRadius: 3 },
-  artCaptionText: { fontSize: 11, fontWeight: '600' },
+  artCaptionText: { fontSize: 11, fontWeight: '600', flexShrink: 1 },
   artIndex: { position: 'absolute', top: 18, right: 20, fontSize: 12, fontWeight: '700', letterSpacing: 1.4 },
   message: { width: '100%' },
   messageWide: { flex: 1, maxWidth: 420 },
-  progressHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 },
-  eyebrow: { fontSize: 12, fontWeight: '800', letterSpacing: 1.05, textTransform: 'uppercase' },
-  progressText: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  progressHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 11 },
+  eyebrow: { flex: 1, fontSize: 12, fontWeight: '800', letterSpacing: 1.05, textTransform: 'uppercase' },
+  progressText: { flexShrink: 0, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
   progressSlash: { opacity: 0.58 },
   progressTrack: { flexDirection: 'row', gap: 5, marginBottom: 22 },
   progressSegment: { flex: 1, height: 4, borderRadius: 4 },
   title: { fontSize: 30, lineHeight: 36, fontWeight: '800', letterSpacing: -0.9, marginBottom: 12 },
+  titleCompact: { fontSize: 26, lineHeight: 32 },
   body: { fontSize: 15, lineHeight: 23 },
   note: { flexDirection: 'row', alignItems: 'center', gap: 9, borderTopWidth: 1, paddingTop: 15, marginTop: 21 },
   noteText: { flex: 1, fontSize: 12, lineHeight: 18, fontWeight: '500' },
-  footer: { width: '100%', borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingTop: 14, paddingBottom: 12 },
+  footer: { width: '100%', flexShrink: 0, borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingTop: 14, paddingBottom: 12 },
   footerInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 14 },
-  backButton: { minHeight: 50, minWidth: 88, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  backText: { fontSize: 14, fontWeight: '700' },
-  backPlaceholder: { minWidth: 88 },
+  backButton: { minHeight: 50, flexShrink: 1, flexBasis: 88, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backText: { fontSize: 14, fontWeight: '700', flexShrink: 1 },
+  backPlaceholder: { flexBasis: 88, flexShrink: 1 },
   primaryButton: {
+    flex: 1,
+    minWidth: 0,
     minHeight: 52,
     paddingHorizontal: 21,
+    paddingVertical: 12,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -515,5 +527,5 @@ const styles = StyleSheet.create({
   },
   primaryPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
   disabledButton: { opacity: 0.65 },
-  primaryText: { color: '#FFFDF6', fontSize: 15, fontWeight: '700' },
+  primaryText: { color: '#FFFDF6', fontSize: 15, fontWeight: '700', flexShrink: 1, textAlign: 'center' },
 });
