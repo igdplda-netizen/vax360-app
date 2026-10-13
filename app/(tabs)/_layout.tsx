@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { useEffect } from 'react';
@@ -19,6 +19,10 @@ export default function TabLayout() {
       router.replace('/change-password');
     }
   }, [state.mustChangePassword]);
+
+  if (!state.isOnboarded) {
+    return <Redirect href="/onboarding" />;
+  }
 
   return (
     <Tabs

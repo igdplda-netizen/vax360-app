@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Alert, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
@@ -12,20 +12,6 @@ export default function ChildrenScreen() {
   const router = useRouter();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-
-  useEffect(() => {
-    if (!state.token) {
-      router.replace('/login');
-    }
-  }, [state.token]);
-
-  if (!state.token) {
-    return (
-      <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   const handleDelete = (id: string, name: string) => {
     Alert.alert(

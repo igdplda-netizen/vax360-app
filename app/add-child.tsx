@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, useColorScheme, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { getDeviceDateFormat, parseInputDate, formatInputText } from '../utils/date';
 
 export default function AddChildScreen() {
-  const { t, addChild } = useApp();
+  const { state, t, addChild } = useApp();
   const router = useRouter();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
@@ -16,6 +16,13 @@ export default function AddChildScreen() {
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const deviceFormat = getDeviceDateFormat();
+
+  if (!state.token) {
+    return <Redirect href={{ pathname: '/login', params: { next: '/add-child' } }} />;
+  }
+  if (state.mustChangePassword) {
+    return <Redirect href={{ pathname: '/change-password', params: { next: '/add-child' } }} />;
+  }
 
   const handleSave = () => {
     if (!name.trim()) {

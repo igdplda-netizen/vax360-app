@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { authDestination } from '../utils/auth-navigation';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { shadows } from '../utils/shadows';
@@ -9,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 export default function LoginScreen() {
   const { state, login, t } = useApp();
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string; registered?: string }>();
+  const destination = authDestination(params.next);
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
@@ -20,9 +23,11 @@ export default function LoginScreen() {
   useEffect(() => {
     // If already authenticated, redirect to home
     if (state.token) {
-      router.replace('/(tabs)');
+      router.replace(state.mustChangePassword
+        ? { pathname: '/change-password', params: { next: destination } }
+        : destination);
     }
-  }, [state.token, state.userRole]);
+  }, [state.token, state.mustChangePassword, destination]);
 
   const handleLogin = async () => {
     if (!whatsapp || !password) {
@@ -39,17 +44,32 @@ export default function LoginScreen() {
       // Redirect to 2FA verification screen
       router.push({
         pathname: '/two-factor',
-        params: { tempToken: res.tempToken, whatsapp },
+        params: { tempToken: res.tempToken, whatsapp, next: destination },
       });
     } else if (res.mustChangePassword) {
       // Superadmin must set a new password before using the app
-      router.replace('/change-password');
+      router.replace({ pathname: '/change-password', params: { next: destination } });
     }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light }]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => router.replace('/(tabs)')} style={{ paddingVertical: 12 }}>
+          <Text style={{ color: Colors.primary, fontWeight: '600' }}>
+            {state.language === 'pt' ? 'Continuar sem conta' : 'Continue without an account'}
+          </Text>
+        </TouchableOpacity>
+        {destination === '/add-child' && (
+          <Text style={{ color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary, marginBottom: 12 }}>
+            {state.language === 'pt' ? 'Entre para adicionar uma criança e guardar os seus registos.' : 'Sign in to add a child and save their records.'}
+          </Text>
+        )}
+        {params.registered === '1' && (
+          <Text style={{ color: Colors.success, marginBottom: 12 }}>
+            {state.language === 'pt' ? 'Conta criada! Entre para continuar.' : 'Account created! Sign in to continue.'}
+          </Text>
+        )}
         <View style={styles.header}>
           <View style={[styles.logoContainer, { backgroundColor: Colors.primary }]}>
             <Ionicons name="medical" size={36} color="#fff" />
@@ -124,7 +144,7 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.registerLink} onPress={() => router.push('/register')} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.registerLink} onPress={() => router.push({ pathname: '/register', params: { next: destination } })} activeOpacity={0.6}>
             <Text style={[styles.registerLinkText, { color: Colors.primary }]}>
               {t('noAccount')}
             </Text>

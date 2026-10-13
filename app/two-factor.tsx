@@ -5,11 +5,12 @@ import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { shadows } from '../utils/shadows';
 import { Ionicons } from '@expo/vector-icons';
+import { authDestination } from '../utils/auth-navigation';
 
 export default function TwoFactorScreen() {
   const { login2FA, enable2FA, setup2FA, t } = useApp();
   const router = useRouter();
-  const params = useLocalSearchParams<{ tempToken?: string; whatsapp?: string; mode?: 'setup' }>();
+  const params = useLocalSearchParams<{ tempToken?: string; whatsapp?: string; mode?: 'setup'; next?: string }>();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
@@ -51,9 +52,9 @@ export default function TwoFactorScreen() {
       if (!res.success) {
         setErrorMsg(res.error || 'Código 2FA incorreto.');
       } else if (res.mustChangePassword) {
-        router.replace('/change-password');
+        router.replace({ pathname: '/change-password', params: { next: authDestination(params.next) } });
       } else {
-        router.replace('/(tabs)');
+        router.replace(authDestination(params.next));
       }
     } else {
       const success = await enable2FA(codeValue, qrCodeData?.secret ?? '');
@@ -76,7 +77,9 @@ export default function TwoFactorScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => {
-            router.replace(isLoginMode ? '/login' : '/(tabs)/settings');
+            router.replace(isLoginMode
+              ? { pathname: '/login', params: { next: authDestination(params.next) } }
+              : '/(tabs)/settings');
           }} activeOpacity={0.6}>
             <Ionicons name="arrow-back" size={24} color={isDark ? Colors.text.dark.primary : Colors.text.light.primary} />
           </TouchableOpacity>

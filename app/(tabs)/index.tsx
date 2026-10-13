@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp } from '../../context/AppContext';
@@ -17,21 +17,6 @@ export default function HomeScreen() {
 
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const logoUrl = state.partnerBranding?.logo;
-
-  useEffect(() => {
-    // If not authenticated, redirect to login
-    if (!state.token) {
-      router.replace('/login');
-    }
-  }, [state.token]);
-
-  if (!state.token) {
-    return (
-      <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
@@ -60,15 +45,20 @@ export default function HomeScreen() {
             <Ionicons name="people-outline" size={48} color={primaryColor} />
           </View>
           <Text style={[styles.emptyTitle, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
-            {t('noChildren')}
+            {state.token ? t('noChildren') : t('guestWelcome')}
           </Text>
           <Text style={[styles.emptyDesc, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
-            {t('addFirstChild')}
+            {state.token ? t('addFirstChild') : t('guestHint')}
           </Text>
           <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]} onPress={() => router.push('/add-child')} activeOpacity={0.8}>
             <Ionicons name="add" size={20} color="#fff" />
             <Text style={styles.addButtonText}>{t('addChild')}</Text>
           </TouchableOpacity>
+          {!state.token && (
+            <TouchableOpacity onPress={() => router.push('/(tabs)/search')} style={{ marginTop: 20, padding: 12 }} accessibilityRole="button">
+              <Text style={{ color: primaryColor, fontWeight: '700', fontSize: 16 }}>{t('guestBrowse')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );

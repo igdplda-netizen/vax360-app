@@ -63,7 +63,7 @@ interface AppContextType {
   getVaccineStatus: (child: Child, vaccineId: string) => VaccineStatus;
   getScheduledDate: (birthDate: string, ageMonths: number) => string;
   getVaccinesForChild: (child: Child) => (Vaccine & { status: VaccineStatus; scheduledDate: string })[];
-  completeOnboarding: () => void;
+  completeOnboarding: () => Promise<void>;
   t: (key: string) => string;
 
   // Connection & API
@@ -110,6 +110,9 @@ const DEFAULT_STATE: AppState = {
 
 const translations: Record<Language, Record<string, string>> = {
   en: {
+    guestWelcome: 'Discover vaccines',
+    guestHint: 'Explore vaccine information without an account. Sign in only when adding a child to save their records.',
+    guestBrowse: 'Explore vaccines',
     appName: 'Vax360',
     tagline: "Your Child's Health, Organized",
     home: 'Home',
@@ -218,6 +221,9 @@ const translations: Record<Language, Record<string, string>> = {
     changePasswordRequired: 'You must set a new password before continuing.',
   },
   pt: {
+    guestWelcome: 'Conheça as vacinas',
+    guestHint: 'Consulte informações sobre vacinas sem criar conta. Só precisa de entrar ao adicionar uma criança, para guardar os seus registos.',
+    guestBrowse: 'Explorar vacinas',
     appName: 'Vax360',
     tagline: 'A Saúde do Seu Filho, Organizada',
     home: 'Início',
@@ -326,6 +332,9 @@ const translations: Record<Language, Record<string, string>> = {
     changePasswordRequired: 'Deve definir uma nova senha antes de continuar.',
   },
   fr: {
+    guestWelcome: 'Découvrez les vaccins',
+    guestHint: 'Consultez les vaccins sans compte. Connectez-vous uniquement pour ajouter un enfant et conserver ses données.',
+    guestBrowse: 'Explorer les vaccins',
     appName: 'Vax360',
     tagline: "La Santé de Votre Enfant, Organisée",
     home: 'Accueil',
@@ -434,6 +443,9 @@ const translations: Record<Language, Record<string, string>> = {
     changePasswordRequired: 'Vous devez définir un nouveau mot de passe avant de continuer.',
   },
   af: {
+    guestWelcome: 'Leer meer oor entstowwe',
+    guestHint: 'Verken entstowwe sonder ’n rekening. Meld net aan wanneer jy ’n kind byvoeg om hul rekords te stoor.',
+    guestBrowse: 'Verken entstowwe',
     appName: 'Vax360',
     tagline: 'U Kind se Gesondheid, Georganiseer',
     home: 'Tuis',
@@ -616,6 +628,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const saved = await getItem<AppState>(STORAGE_KEY);
     if (saved) {
       const restored = { ...DEFAULT_STATE, ...saved };
+      if (!restored.token || !restored.currentUser) {
+        restored.children = [];
+        restored.currentChildId = null;
+      }
       if (restored.currentUser && restored.token) {
         const cachedChildren = await getItem<Child[]>(USER_CHILDREN_KEY(restored.currentUser.whatsapp));
         if (cachedChildren) restored.children = cachedChildren;
@@ -633,6 +649,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const saveState = useCallback(async (newState: AppState) => {
+    stateRef.current = newState;
     setState(newState);
     await setItem(STORAGE_KEY, newState);
   }, []);
@@ -676,13 +693,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const completeOnboarding = useCallback(() => {
-    setState(prev => {
-      const next = { ...prev, isOnboarded: true };
-      setItem(STORAGE_KEY, next);
-      return next;
-    });
-  }, []);
+  const completeOnboarding = useCallback(async () => {
+    await saveState({ ...stateRef.current, isOnboarded: true });
+  }, [saveState]);
 
   const getScheduledDate = useCallback((birthDate: string, ageMonths: number): string => {
     const d = new Date(birthDate);
@@ -691,6 +704,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addChild = useCallback((child: Omit<Child, 'id' | 'vaccines'>) => {
+    if (!stateRef.current.token || !stateRef.current.currentUser || stateRef.current.mustChangePassword) {
+      throw new Error('Entre na sua conta antes de adicionar uma criança.');
+    }
     setState(prev => {
       const newChild: Child = {
         ...child,

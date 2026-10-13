@@ -1,4 +1,5 @@
 - [Shared login limits](shared-login-limits.md) — authentication throttling uses shared atomic counters and fails closed rather than falling back to process memory.
+- [Public app access](public-app-access.md) — explore without login; first-opening onboarding has at most three steps; require login when adding a child.
 # Vax360 Expo App Memory
 
 - [Expo CJS/ESM shim](expo-cjs-shim.md) — react-native-web v0.21 ships ESM at dist/index.js but expo-router SSR needs CJS. Fix: copy CJS index to dist/index.js.

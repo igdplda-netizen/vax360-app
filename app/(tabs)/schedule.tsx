@@ -42,20 +42,6 @@ export default function ScheduleScreen() {
   const primaryColor = state.partnerBranding?.primaryColor || Colors.primary;
   const currentChild = state.children.find(c => c.id === state.currentChildId);
 
-  React.useEffect(() => {
-    if (!state.token) {
-      router.replace('/login');
-    }
-  }, [state.token]);
-
-  if (!state.token) {
-    return (
-      <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
-
   if (!currentChild) {
     return (
       <View style={[styles.container, { backgroundColor: isDark ? Colors.background.dark : Colors.background.light, justifyContent: 'center', alignItems: 'center' }]}>
@@ -63,6 +49,12 @@ export default function ScheduleScreen() {
         <Text style={[styles.placeholderText, { color: isDark ? Colors.text.dark.secondary : Colors.text.light.secondary }]}>
           {t('noChildren')}
         </Text>
+        <TouchableOpacity onPress={() => router.push('/add-child')} accessibilityRole="button" style={{ padding: 16 }}>
+          <Text style={{ color: Colors.primary, fontWeight: '700' }}>{t('addChild')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/search')} accessibilityRole="button" style={{ padding: 16 }}>
+          <Text style={{ color: Colors.primary, fontWeight: '600' }}>{t('guestBrowse')}</Text>
+        </TouchableOpacity>
       </View>
     );
   }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { authDestination } from '../utils/auth-navigation';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { shadows } from '../utils/shadows';
@@ -9,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function ChangePasswordScreen() {
   const { changeOwnPassword, logout, t } = useApp();
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string }>();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
@@ -44,7 +46,7 @@ export default function ChangePasswordScreen() {
         setSuccessMsg(t('changePasswordSuccess') || 'Password changed successfully!');
         // Brief pause so the user sees the success message, then navigate to home
         setTimeout(() => {
-          router.replace('/(tabs)');
+          router.replace(authDestination(params.next));
         }, 1500);
       } else {
         setErrorMsg(res.error || t('changePasswordFailed') || 'Failed to change password.');

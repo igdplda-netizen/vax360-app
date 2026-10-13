@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, useColorScheme, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { authDestination } from '../utils/auth-navigation';
 import { useApp } from '../context/AppContext';
 import { Colors } from '../constants/colors';
 import { shadows } from '../utils/shadows';
@@ -9,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 export default function RegisterScreen() {
   const { registerUser, t } = useApp();
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string }>();
+  const destination = authDestination(params.next);
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
 
@@ -31,11 +34,7 @@ export default function RegisterScreen() {
     if (!res.success) {
       setErrorMsg(res.error || 'Erro ao registrar utilizador.');
     } else {
-      Alert.alert(
-        'Sucesso',
-        'Conta criada com sucesso! Faça login para começar.',
-        [{ text: 'OK', onPress: () => router.replace('/login') }]
-      );
+      router.replace({ pathname: '/login', params: { next: destination, registered: '1' } });
     }
   };
 
@@ -150,7 +149,7 @@ export default function RegisterScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.registerLink} onPress={() => router.replace('/login')} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.registerLink} onPress={() => router.replace({ pathname: '/login', params: { next: destination } })} activeOpacity={0.6}>
             <Text style={[styles.registerLinkText, { color: Colors.primary }]}>
               {t('alreadyAccount')}
             </Text>
