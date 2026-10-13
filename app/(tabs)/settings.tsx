@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, useColorScheme, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, useColorScheme, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApp, Language } from '../../context/AppContext';
 import { Colors } from '../../constants/colors';
@@ -112,6 +112,21 @@ export default function SettingsScreen() {
                 </View>
                 <Text style={[styles.rowLabel, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
                   {t('adminDashboard') || 'Painel Clínico'}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.row, { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' }]}
+                onPress={() => router.push('/admin-onboarding' as any)}
+                activeOpacity={0.6}
+                accessibilityRole="button"
+              >
+                <View style={styles.rowIcon}>
+                  <Ionicons name="albums-outline" size={20} color={primaryColor} />
+                </View>
+                <Text style={[styles.rowLabel, { color: isDark ? Colors.text.dark.primary : Colors.text.light.primary }]}>
+                  Gestão da apresentação
                 </Text>
                 <Ionicons name="chevron-forward" size={20} color={isDark ? Colors.text.dark.tertiary : Colors.text.light.tertiary} />
               </TouchableOpacity>

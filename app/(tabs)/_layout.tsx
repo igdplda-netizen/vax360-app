@@ -8,7 +8,7 @@ import { useApp } from '../../context/AppContext';
 export default function TabLayout() {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-  const { t, state } = useApp();
+  const { t, state, onboardingConfig } = useApp();
   const router = useRouter();
 
   // Enforce the mandatory password-change screen — cannot be bypassed by
@@ -20,9 +20,8 @@ export default function TabLayout() {
     }
   }, [state.mustChangePassword]);
 
-  if (!state.isOnboarded) {
-    return <Redirect href="/onboarding" />;
-  }
+  if (state.mustChangePassword) return <Redirect href="/change-password" />;
+  if (onboardingConfig.enabled && !state.isOnboarded) return <Redirect href="/onboarding" />;
 
   return (
     <Tabs

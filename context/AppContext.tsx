@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { Platform } from 'react-native';
 import { getItem, setItem, removeItem } from '../lib/storage';
 import { VACCINE_SCHEDULE, Vaccine } from '../constants/vaccines';
+import { DEFAULT_ONBOARDING_CONFIG, OnboardingConfig } from '../constants/onboarding';
 
 export type Language = 'en' | 'pt' | 'fr' | 'af';
 export type ThemeMode = 'light' | 'dark';
@@ -64,6 +65,8 @@ interface AppContextType {
   getScheduledDate: (birthDate: string, ageMonths: number) => string;
   getVaccinesForChild: (child: Child) => (Vaccine & { status: VaccineStatus; scheduledDate: string })[];
   completeOnboarding: () => Promise<void>;
+  onboardingConfig: OnboardingConfig;
+  updateOnboardingConfig: (config: OnboardingConfig) => Promise<void>;
   t: (key: string) => string;
 
   // Connection & API
@@ -615,6 +618,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const pendingSyncRef = useRef<PendingSync | null>(null);
   const syncInFlightRef = useRef<Promise<boolean> | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [onboardingConfig, setOnboardingConfig] = useState<OnboardingConfig>(DEFAULT_ONBOARDING_CONFIG);
   const [isOnline, setIsOnline] = useState(true);
   const [syncPending, setSyncPending] = useState(false);
 
@@ -625,6 +629,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loadState = async () => {
+    const cachedOnboarding = await getItem<OnboardingConfig>('vax360_onboarding_config');
+    if (cachedOnboarding) setOnboardingConfig(cachedOnboarding);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    try {
+      const res = await fetch(`${API_BASE_URL}/onboarding`, { signal: controller.signal });
+      if (!res.ok) throw new Error('Onboarding unavailable');
+      const config: OnboardingConfig = await res.json();
+      setOnboardingConfig(config);
+      await setItem('vax360_onboarding_config', config);
+    } catch (err) {
+      console.warn('Using cached onboarding configuration:', String(err));
+    } finally {
+      clearTimeout(timeout);
+    }
     const saved = await getItem<AppState>(STORAGE_KEY);
     if (saved) {
       const restored = { ...DEFAULT_STATE, ...saved };
@@ -696,6 +715,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const completeOnboarding = useCallback(async () => {
     await saveState({ ...stateRef.current, isOnboarded: true });
   }, [saveState]);
+
+  const updateOnboardingConfig = async (config: OnboardingConfig) => {
+    const res = await fetch(`${API_BASE_URL}/admin/onboarding`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${stateRef.current.token}` },
+      body: JSON.stringify(config),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Não foi possível guardar a apresentação.');
+    setOnboardingConfig(data);
+    await setItem('vax360_onboarding_config', data);
+  };
 
   const getScheduledDate = useCallback((birthDate: string, ageMonths: number): string => {
     const d = new Date(birthDate);
@@ -1192,6 +1223,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       completeOnboarding,
       t,
       API_BASE_URL,
+      onboardingConfig,
+      updateOnboardingConfig,
       isOnline,
       syncPending,
       login,

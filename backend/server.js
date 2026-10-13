@@ -1396,6 +1396,8 @@ app.get("/api/admin/backup", authenticateToken, (req, res) => {
 });
 
 // GET partner branding info (Public)
+require("./lib/onboarding").registerOnboardingRoutes(app, db, authenticateToken);
+
 app.get("/api/partner-logo", (req, res) => {
   db.get("SELECT value FROM app_meta WHERE key = 'partner_branding'", (err, row) => {
     if (err) {

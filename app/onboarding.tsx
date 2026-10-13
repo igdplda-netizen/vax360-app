@@ -10,9 +10,11 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { useApp } from '../context/AppContext';
+import type { OnboardingConfig, OnboardingLanguage } from '../constants/onboarding';
+import { clearOnboardingPreview, getOnboardingPreview } from '../utils/onboarding-preview';
 
 type Language = 'pt' | 'en' | 'fr' | 'af';
 type Copy = {
@@ -183,6 +185,13 @@ const copy: Record<Language, Copy[]> = {
   ],
 };
 
+export const BUILT_IN_ONBOARDING_COPY: Record<OnboardingLanguage, { eyebrow: string; title: string; body: string; note: string }[]> = {
+  pt: copy.pt.map(({ eyebrow, title, body, note }) => ({ eyebrow, title, body, note })),
+  en: copy.en.map(({ eyebrow, title, body, note }) => ({ eyebrow, title, body, note })),
+  fr: copy.fr.map(({ eyebrow, title, body, note }) => ({ eyebrow, title, body, note })),
+  af: copy.af.map(({ eyebrow, title, body, note }) => ({ eyebrow, title, body, note })),
+};
+
 const steps = [
   { icon: 'search-outline' as const, accent: '#E5A65B', mark: '01' },
   { icon: 'calendar-outline' as const, accent: '#4E9A8A', mark: '02' },
@@ -190,15 +199,31 @@ const steps = [
 ];
 
 export default function OnboardingScreen() {
-  const { completeOnboarding, state } = useApp();
+  const { completeOnboarding, state, onboardingConfig } = useApp();
   const router = useRouter();
+  const params = useLocalSearchParams<{ preview?: string }>();
+  const isPreview = params.preview === '1';
+  const previewConfig = isPreview ? getOnboardingPreview() : null;
+  const effectiveConfig: OnboardingConfig = previewConfig || onboardingConfig;
   const { width } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
   const isDark = state.theme === 'dark';
   const language: Language = state.language in copy ? state.language : 'pt';
-  const currentCopy = copy[language][step];
+  const configuredStep = effectiveConfig.steps.length ? effectiveConfig.steps[step] : undefined;
+  const configuredText = configuredStep?.[language];
+  const portugueseText = configuredStep?.pt;
+  const baseCopy = copy[language][Math.min(step, copy[language].length - 1)];
+  const currentCopy: Copy = configuredStep ? {
+    ...baseCopy,
+    eyebrow: configuredText?.eyebrow ?? portugueseText?.eyebrow ?? baseCopy.eyebrow,
+    title: configuredText?.title ?? portugueseText?.title ?? baseCopy.title,
+    body: configuredText?.body ?? portugueseText?.body ?? baseCopy.body,
+    note: configuredText?.note ?? portugueseText?.note ?? baseCopy.note,
+  } : baseCopy;
+  const totalSteps = effectiveConfig.steps.length || 3;
+  const isLastStep = step === totalSteps - 1;
   const palette = {
     background: isDark ? Colors.background.dark : '#F7F4EC',
     surface: isDark ? Colors.surface.dark : '#FFFEFA',
@@ -218,12 +243,24 @@ export default function OnboardingScreen() {
     }).start();
   }, [step, fade]);
 
+  if (isPreview && (!state.token || !['admin', 'superadmin'].includes(state.userRole || ''))) {
+    return <Redirect href="/(tabs)" />;
+  }
+  if (isPreview && !previewConfig) return <Redirect href={'/admin-onboarding' as any} />;
+  if (!isPreview && !onboardingConfig.enabled) return <Redirect href="/(tabs)" />;
+
   const changeStep = (nextStep: number) => {
-    if (nextStep >= 0 && nextStep < 3) setStep(nextStep);
+    if (nextStep >= 0 && nextStep < totalSteps) setStep(nextStep);
   };
 
   const finish = async () => {
     if (isCompleting) return;
+    if (isPreview) {
+      clearOnboardingPreview();
+      if (router.canGoBack()) router.back();
+      else router.replace('/admin-onboarding' as any);
+      return;
+    }
     setIsCompleting(true);
     try {
       await completeOnboarding();
@@ -233,7 +270,7 @@ export default function OnboardingScreen() {
     }
   };
 
-  const illustration = steps[step];
+  const illustration = steps[step % steps.length];
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
@@ -249,12 +286,12 @@ export default function OnboardingScreen() {
             onPress={finish}
             disabled={isCompleting}
             accessibilityRole="button"
-            accessibilityLabel={currentCopy.skip}
+            accessibilityLabel={isPreview ? 'Voltar ao editor' : currentCopy.skip}
             hitSlop={10}
             style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}
           >
-            <Text style={[styles.skipText, { color: palette.muted }]}>{currentCopy.skip}</Text>
-            <Ionicons name="arrow-forward" size={15} color={palette.muted} />
+            <Text style={[styles.skipText, { color: palette.muted }]}>{isPreview ? 'Voltar ao editor' : currentCopy.skip}</Text>
+            <Ionicons name={isPreview ? 'arrow-back' : 'arrow-forward'} size={15} color={palette.muted} />
           </Pressable>
         </View>
 
@@ -299,11 +336,11 @@ export default function OnboardingScreen() {
               <View style={styles.progressHeading}>
                 <Text style={[styles.eyebrow, { color: Colors.primary }]}>{currentCopy.eyebrow}</Text>
                 <Text style={[styles.progressText, { color: palette.muted }]}>
-                  {currentCopy.stepLabel} {step + 1}<Text style={styles.progressSlash}> / 3</Text>
+                  {currentCopy.stepLabel} {step + 1}<Text style={styles.progressSlash}> / {totalSteps}</Text>
                 </Text>
               </View>
-              <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: 3, now: step + 1 }}>
-                {[0, 1, 2].map((index) => (
+              <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: totalSteps, now: step + 1 }}>
+                {Array.from({ length: totalSteps }, (_, index) => (
                   <View
                     key={index}
                     style={[
@@ -341,10 +378,10 @@ export default function OnboardingScreen() {
               <View style={styles.backPlaceholder} />
             )}
             <Pressable
-              onPress={step === 2 ? finish : () => changeStep(step + 1)}
+              onPress={isLastStep ? finish : () => changeStep(step + 1)}
               disabled={isCompleting}
               accessibilityRole="button"
-              accessibilityLabel={step === 2 ? currentCopy.enter : currentCopy.next}
+              accessibilityLabel={isLastStep ? currentCopy.enter : currentCopy.next}
               accessibilityState={{ disabled: isCompleting }}
               style={({ pressed }) => [
                 styles.primaryButton,
@@ -354,9 +391,9 @@ export default function OnboardingScreen() {
               ]}
             >
               <Text style={styles.primaryText}>
-                {step === 2 ? currentCopy.enter : currentCopy.next}
+                {isLastStep ? currentCopy.enter : currentCopy.next}
               </Text>
-              <Ionicons name={step === 2 ? 'arrow-forward' : 'arrow-forward'} size={18} color="#FFFDF6" />
+              <Ionicons name="arrow-forward" size={18} color="#FFFDF6" />
             </Pressable>
           </View>
         </View>
