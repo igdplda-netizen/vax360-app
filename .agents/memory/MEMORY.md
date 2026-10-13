@@ -13,3 +13,4 @@
 - [Expo export image-size crash](expo-export-image-size.md) — Metro 0.84 needs image-size 1.x override; duplicate JSON keys in package.json overrides silently win last-one.
 - [Workflow command broken by task agent](workflow-task-agent-risk.md) — task agents may silently break Expo Go by removing `--localhost`, changing PACKAGER_HOSTNAME, bumping SDK in package.json without npm install, or dropping `exposeLocalhost`.
 - [Login failure budget](login-failure-budget.md) — successful authentication steps must not clear earlier failures, especially when password and 2FA share a budget.
+- [Security backport verification](security-backport-verification.md) — fork names and clean version scans do not prove remediation; verify the affected behavior and retain honest scanner findings.
