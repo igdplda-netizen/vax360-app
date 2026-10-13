@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { useApp } from '../context/AppContext';
 import type { OnboardingConfig, OnboardingLanguage } from '../constants/onboarding';
